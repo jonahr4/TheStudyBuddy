@@ -68,23 +68,23 @@ This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and 
 ---
 # Development Phases for TheStudyBuddy
 
-## Phase 1 — Frontend Skeleton
+## Phase 1 — Frontend Skeleton ✅
 Build the structure of the frontend without functionality.
 
 Tasks:
-- Create project with Vite + React + Tailwind
-- Set up routing
-- Set up Firebase Auth (UI only)
-- Create placeholder pages:
-  - Landing Page
-  - Login Page
-  - Dashboard
-  - Upload Page
-  - Flashcards Page
-  - Chat Page
-  - Not Found Page
-- Create basic layout components (navbar, sidebar)
-- Initialize GitHub repo and commit
+- ✅ Create project with Vite + React + Tailwind
+- ✅ Set up routing
+- ⬜ Set up Firebase Auth (UI only)
+- ✅ Create placeholder pages:
+  - ✅ Landing Page
+  - ✅ Login Page
+  - ✅ Dashboard
+  - ✅ Upload Page
+  - ✅ Flashcards Page
+  - ✅ Chat Page
+  - ✅ Not Found Page
+- ✅ Create basic layout components (navbar, sidebar)
+- ⬜ Initialize GitHub repo and commit
 
 Outcome:
 A visual, navigable app with no backend logic.

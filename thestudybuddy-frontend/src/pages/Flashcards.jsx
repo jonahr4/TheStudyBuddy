@@ -1,11 +1,18 @@
 export default function Flashcards() {
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Flashcards</h1>
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-12 text-center">
-          <p className="text-xl text-gray-700 mb-4">Flashcard placeholder</p>
-          <p className="text-gray-500">Click to flip</p>
+    <div className="gradient-bg min-h-screen">
+      {/* Gradient background blur */}
+      <div aria-hidden="true" className="gradient-blur">
+        <div className="gradient-blur-shape" />
+      </div>
+      
+      <div className="p-8">
+        <h2 className="mb-8">Flashcards</h2>
+        <div className="max-w-4xl mx-auto">
+          <div className="card p-12 text-center">
+            <p className="text-xl mb-4">Flashcard placeholder</p>
+            <p className="text-sm">Click to flip</p>
+          </div>
         </div>
       </div>
     </div>

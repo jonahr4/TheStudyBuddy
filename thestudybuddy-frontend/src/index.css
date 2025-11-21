@@ -1,3 +1,95 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Global theming with modern look */
+@layer base {
+  body {
+    @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-white;
+  }
+  
+  h1 {
+    @apply text-balance text-5xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-7xl;
+  }
+  
+  h2 {
+    @apply text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl;
+  }
+  
+  h3 {
+    @apply text-2xl font-semibold text-gray-900 dark:text-white;
+  }
+  
+  h4 {
+    @apply text-xl font-semibold text-gray-900 dark:text-white;
+  }
+  
+  p {
+    @apply text-pretty text-lg font-medium text-gray-500 dark:text-gray-400;
+  }
+  
+  a {
+    @apply text-gray-900 hover:text-indigo-600 dark:text-white dark:hover:text-indigo-400 transition-colors;
+  }
+}
+
+@layer components {
+  /* Primary button - Indigo style */
+  .btn-primary {
+    @apply rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400 transition-colors;
+  }
+  
+  /* Secondary button - Ghost style */
+  .btn-secondary {
+    @apply rounded-md px-3.5 py-2.5 text-sm font-semibold text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5 transition-colors;
+  }
+  
+  /* Card with dark mode support */
+  .card {
+    @apply bg-white rounded-lg shadow-xl p-6 ring-1 ring-gray-900/5 dark:bg-gray-800 dark:ring-white/10;
+  }
+  
+  /* Input fields with modern styling */
+  .input {
+    @apply w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 shadow-sm focus:ring-2 focus:ring-indigo-600 focus:border-transparent dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:ring-indigo-500;
+  }
+  
+  /* Badge/Pill component */
+  .badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-gray-900/10 dark:ring-white/10;
+  }
+  
+  /* Link with arrow */
+  .link-arrow {
+    @apply text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors;
+  }
+  
+  /* Gradient background wrapper */
+  .gradient-bg {
+    @apply relative isolate overflow-hidden;
+  }
+  
+  /* Gradient blur effect */
+  .gradient-blur {
+    position: absolute;
+    inset-left: 0;
+    inset-right: 0;
+    top: -0.75rem;
+    z-index: -10;
+    transform: translateZ(0);
+    overflow: hidden;
+    padding-left: 9rem;
+    padding-right: 9rem;
+    filter: blur(64px);
+  }
+  
+  .gradient-blur-shape {
+    margin-left: auto;
+    margin-right: auto;
+    aspect-ratio: 1155 / 678;
+    width: 86.625rem;
+    background-image: linear-gradient(to top right, #ff80b5, #9089fc);
+    opacity: 0.3;
+    clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%);
+  }
+}

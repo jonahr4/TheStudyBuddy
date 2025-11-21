@@ -1,6 +1,6 @@
-# StudyGuide AI — Getting Started
+# The Study Buddy — Getting Started
 
-This document outlines how to build the MVP version of **StudyGuide AI** using **Azure as the primary cloud**, **MongoDB Atlas** as the database, and **DigitalOcean** for optional background services.
+This document outlines how to build the MVP version of **The Study Buddy** using **Azure as the primary cloud**, **MongoDB Atlas** as the database, and **DigitalOcean** for optional background services.
 
 ---
 

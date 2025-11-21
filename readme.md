@@ -1,6 +1,6 @@
-# StudyGuide AI
+# The Study Buddy
 
-StudyGuide AI is an AI-powered learning tool that helps students upload homework notes, turn them into flashcards, and chat with an AI that understands their content.
+The Study Buddy is an AI-powered learning tool that helps students upload homework notes, turn them into flashcards, and chat with an AI that understands their content.
 
 This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and DigitalOcean background workers.
 

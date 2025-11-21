@@ -49,6 +49,7 @@ This document outlines how to build the MVP version of **The Study Buddy** using
 ---
 
 # Project Structure
+```
 studyguide-ai/
 │
 ├── frontend/ # React + Tailwind (Azure Static Web Apps)
@@ -56,7 +57,7 @@ studyguide-ai/
 ├── worker/ (optional) # DigitalOcean microservice
 ├── docs/ # Prompts, architecture, design
 └── README.md
-
+```
 
 ---
 

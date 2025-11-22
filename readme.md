@@ -49,26 +49,27 @@ This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and 
 # Tech Stack (Azure-Centric)
 
 **Frontend**
-- React (Vite)
-- TailwindCSS
-- Firebase Auth
+- React (Vite) + TailwindCSS
+- Firebase Auth (email/password + Google sign-in)
+- React Router DOM (client-side routing)
 - Azure Static Web Apps (hosting)
 
 **Backend**
-- Azure Functions
-- Azure OpenAI GPT-4.1
-- Azure Blob Storage
-- Azure API Management (optional)
+- Express.js API or Azure Functions (REST API endpoints)
+- Azure Functions (serverless compute for AI processing)
+- Azure OpenAI (GPT-4o-mini for flashcards + chat)
+- Azure Blob Storage (PDF files + extracted text storage)
+- Azure Cognitive Search (optional - for vector retrieval/RAG)
 
 **Database**
-- MongoDB Atlas ($50 credits)
+- MongoDB Atlas (users, subjects, notes metadata, flashcards)
 
 **Optional Microservices**
 - DigitalOcean Droplet or App Platform (YouTube/article workers)
 
 **DevOps**
-- GitHub Actions
-- Sentry + Azure Monitor
+- GitHub Actions (CI/CD)
+- Sentry + Azure Monitor (error tracking & logging)
 
 ---
 
@@ -83,6 +84,38 @@ This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and 
 7. User studies flashcards filtered by subject
 8. User chats with AI about specific subject content using RAG retrieval
 9. Optional DO worker fetches video/article recommendations per subject  
+
+---
+
+# Backend Architecture Overview
+
+**MongoDB Collections:**
+- **users**: Store email, name (from Firebase Auth)
+- **subjects**: Store name, color, userId (user's custom subjects)
+- **notes**: Store metadata (fileName, blobUrl, textUrl, subjectId)
+- **flashcards**: Store AI-generated flashcards (question, answer, subjectId)
+
+**Azure Blob Storage:**
+- Store uploaded raw PDF files
+- Store extracted text versions of notes
+
+**Azure Functions (Serverless Processing):**
+- **Process Note Text**: Download PDF from Blob → Extract text → Upload text to Blob
+- **Generate Flashcards**: Use Azure OpenAI (GPT-4o-mini) to create flashcards from note text
+- **Generate Chat Responses**: Use RAG (Retrieval-Augmented Generation) with note context
+
+**Azure OpenAI Integration:**
+- Flashcard generation with custom prompts
+- AI chat assistant with subject-specific context
+- Optional: Note summarization or preprocessing
+
+**Backend API (Express.js or Azure Functions):**
+- `POST/GET/PUT/DELETE /api/subjects` - Subject CRUD operations
+- `POST /api/notes/upload` - Upload file to Azure Blob + save metadata to MongoDB
+- `POST /api/flashcards/generate` - Trigger Azure Function to generate flashcards
+- `POST /api/ai/chat` - Send chat message, get AI response with RAG context
+- `GET /api/flashcards/:subjectId` - Retrieve flashcards for a subject
+- `GET /api/notes/:subjectId` - Get all notes for a subject
 
 ---
 
@@ -358,39 +391,107 @@ Outcome:
 
 ---
 
-## Phase 4 — Backend Development (Azure Functions)
-Build the serverless backend to support core features with subject-based organization.
+## Phase 4 — Backend Development (Azure + MongoDB)
+Build the backend API and serverless functions to support core features with subject-based organization.
 
-Tasks:
-- MongoDB Atlas setup:
-  - Collections: users, subjects, notes, flashcard_decks, chats, embeddings
-  - Indexes for efficient querying by subject
-- Authentication middleware (Firebase token verification)
-- Subject management APIs:
-  - Create/read/update/delete subjects
-  - List subjects by user
-- Note upload API:
-  - Upload PDF to Azure Blob Storage (organized by subject)
-  - Store note metadata in MongoDB
-  - Enforce 10-note limit per subject
-- PDF parsing function:
-  - Extract text from uploaded PDFs
-  - Store extracted text with note record
-- Flashcard generation endpoint:
-  - Use Azure OpenAI to generate flashcards from note text
-  - Associate flashcards with specific subject
-  - Store in MongoDB with subject reference
-- Embeddings generation:
-  - Generate embeddings for note content
-  - Store in MongoDB for RAG retrieval
-- Chat endpoint:
-  - Subject-specific RAG retrieval
-  - Context window includes only notes from selected subject
-  - Use Azure OpenAI for responses
-  - Store chat history by subject
+### MongoDB Models & Setup
+- ⬜ Set up MongoDB Atlas cluster and database
+- ⬜ Create `users` collection schema (email, name, createdAt)
+- ⬜ Create `subjects` collection schema (name, color, userId, createdAt)
+- ⬜ Create `notes` collection schema (fileName, blobUrl, textUrl, subjectId, userId, uploadedAt)
+- ⬜ Create `flashcards` collection schema (question, answer, subjectId, noteId, createdAt)
+- ⬜ Create indexes on `userId`, `subjectId` for efficient querying
+- ⬜ Write MongoDB connection utility (with retry logic)
+- ⬜ Test database connections and CRUD operations
+
+### API Routes (Express.js or Azure Functions HTTP Triggers)
+- ⬜ Set up Express.js server or Azure Functions HTTP project
+- ⬜ Implement Firebase Auth token verification middleware
+- ⬜ Create `POST /api/subjects` - Create new subject
+- ⬜ Create `GET /api/subjects` - List all subjects for authenticated user
+- ⬜ Create `GET /api/subjects/:id` - Get single subject details
+- ⬜ Create `PUT /api/subjects/:id` - Update subject (name, color)
+- ⬜ Create `DELETE /api/subjects/:id` - Delete subject (with cascade delete of notes/flashcards)
+- ⬜ Create `GET /api/notes/:subjectId` - Get all notes for a subject
+- ⬜ Create `DELETE /api/notes/:id` - Delete a note (remove from Blob + MongoDB)
+- ⬜ Create `GET /api/flashcards/:subjectId` - Get all flashcards for a subject
+- ⬜ Add error handling middleware (catch all errors, return proper status codes)
+- ⬜ Add request logging middleware
+
+### Azure Blob Storage Integration
+- ⬜ Set up Azure Storage Account and create containers (`notes-raw`, `notes-text`)
+- ⬜ Install Azure Blob Storage SDK (`@azure/storage-blob`)
+- ⬜ Create Blob service client with connection string
+- ⬜ Implement `POST /api/notes/upload` endpoint:
+  - ⬜ Accept file from multipart/form-data
+  - ⬜ Validate file type (PDF only) and size (max 10MB)
+  - ⬜ Check note limit per subject (max 10 notes)
+  - ⬜ Generate unique blob name (userId/subjectId/timestamp-filename.pdf)
+  - ⬜ Upload file to `notes-raw` container
+  - ⬜ Save note metadata to MongoDB (fileName, blobUrl, subjectId, userId)
+  - ⬜ Return note metadata to client
+- ⬜ Implement blob deletion when note is deleted
+- ⬜ Add SAS token generation for secure file access (optional)
+
+### Azure Functions - Text Extraction
+- ⬜ Create Azure Function `ProcessNoteText` (Blob trigger or HTTP trigger)
+- ⬜ Install PDF parsing library (`pdf-parse` or Azure Form Recognizer)
+- ⬜ Implement text extraction logic:
+  - ⬜ Download PDF from Blob Storage
+  - ⬜ Extract text from PDF
+  - ⬜ Upload extracted text to `notes-text` container
+  - ⬜ Update note document in MongoDB with `textUrl`
+- ⬜ Add error handling for corrupted/unreadable PDFs
+- ⬜ Test with sample PDFs
+
+### Azure Functions - Flashcard Generation
+- ⬜ Create Azure Function `GenerateFlashcards` (HTTP trigger)
+- ⬜ Install Azure OpenAI SDK (`@azure/openai`)
+- ⬜ Set up Azure OpenAI client with API key and endpoint
+- ⬜ Implement `POST /api/flashcards/generate` endpoint:
+  - ⬜ Accept `noteId` and `subjectId` in request body
+  - ⬜ Fetch extracted text from Blob Storage
+  - ⬜ Create prompt for GPT-4o-mini: "Generate 10 flashcards from this text..."
+  - ⬜ Call Azure OpenAI API with text + prompt
+  - ⬜ Parse response and extract flashcards (question/answer pairs)
+  - ⬜ Save flashcards to MongoDB with `subjectId`, `noteId`, `userId`
+  - ⬜ Return generated flashcards to client
+- ⬜ Add retry logic for OpenAI API failures
+- ⬜ Handle rate limits and token limits
+
+### Azure Functions - RAG/AI Chat Logic
+- ⬜ Create Azure Function `ChatWithAI` (HTTP trigger)
+- ⬜ Implement `POST /api/ai/chat` endpoint:
+  - ⬜ Accept `message`, `subjectId`, `chatHistory` in request body
+  - ⬜ Fetch all notes for the subject from MongoDB
+  - ⬜ Download extracted text for all subject notes from Blob
+  - ⬜ Combine note texts into context window (chunk if needed)
+  - ⬜ Build RAG prompt: "You are a study assistant. Based on these notes: {context}. User asks: {message}"
+  - ⬜ Call Azure OpenAI with system prompt + user message + chat history
+  - ⬜ Return AI response to client
+- ⬜ Implement chat history storage in MongoDB (optional)
+- ⬜ Add streaming support for real-time responses (optional)
+- ⬜ Test with sample subject notes and questions
+
+### Optional: Azure Cognitive Search (Vector Retrieval)
+- ⬜ Set up Azure Cognitive Search service
+- ⬜ Create search index for note embeddings
+- ⬜ Generate embeddings for note text using Azure OpenAI
+- ⬜ Store embeddings in Cognitive Search
+- ⬜ Implement vector search for relevant note retrieval in RAG
+
+### Testing & Deployment
+- ⬜ Write unit tests for API routes
+- ⬜ Write integration tests for Azure Functions
+- ⬜ Test end-to-end: upload → extract → generate flashcards → chat
+- ⬜ Deploy Azure Functions to Azure
+- ⬜ Deploy Express API to Azure App Service or Container
+- ⬜ Set up environment variables in Azure
+- ⬜ Configure CORS for frontend domain
+- ⬜ Test deployed endpoints from frontend
 
 Outcome:
-Backend supports all core functionality with subject-based organization and data isolation.
+Backend supports all core functionality with subject-based organization, AI-powered flashcards, and RAG chat.
 
 ---
 

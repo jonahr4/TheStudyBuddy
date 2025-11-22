@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import Landing from './pages/Landing';
+import LearnMore from './pages/LearnMore';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
@@ -16,6 +17,7 @@ function App() {
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<Landing />} />
+      <Route path="/learn-more" element={<LearnMore />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
       

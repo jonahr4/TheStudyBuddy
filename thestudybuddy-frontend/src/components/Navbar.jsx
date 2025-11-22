@@ -1,10 +1,13 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
+import { useAuth } from '../firebase/AuthContext';
 
 export default function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const navRef = useRef(null);
   const [indicatorStyle, setIndicatorStyle] = useState({});
+  const { currentUser, logout } = useAuth();
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard' },
@@ -46,13 +49,25 @@ export default function Navbar() {
     return () => window.removeEventListener('resize', updateIndicator);
   }, [location.pathname]);
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Failed to log out:', error);
+    }
+  };
+
   return (
     <nav className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-100 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-              The Study Buddy
+          <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3">
+              <img src="/IMG_3002.png" alt="Logo" className="h-10 w-10 object-contain" />
+              <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+                The Study Buddy
+              </span>
             </Link>
           </div>
           <div className="hidden md:flex items-center space-x-2 relative" ref={navRef}>
@@ -88,9 +103,20 @@ export default function Navbar() {
               );
             })}
             
-            <Link to="/login" className="btn-primary ml-4">
-              Login
-            </Link>
+            {currentUser ? (
+              <div className="ml-4 flex items-center gap-3">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {(currentUser.displayName || currentUser.email).substring(0, 10)}
+                </span>
+                <button onClick={handleLogout} className="btn-secondary text-sm">
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <Link to="/login" className="btn-primary ml-4">
+                Login
+              </Link>
+            )}
           </div>
         </div>
       </div>

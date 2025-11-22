@@ -2,31 +2,50 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../firebase/AuthContext';
 
-export default function Login() {
+export default function SignUp() {
+  const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { login, loginWithGoogle } = useAuth();
+  const { signup, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!email || !password) {
+    if (!firstName || !email || !password || !confirmPassword) {
       setError('Please fill in all fields');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
       return;
     }
 
     try {
       setError('');
       setLoading(true);
-      await login(email, password);
+      await signup(email, password, firstName);
       navigate('/dashboard');
     } catch (err) {
-      setError('Failed to sign in. Please check your credentials.');
+      if (err.code === 'auth/email-already-in-use') {
+        setError('This email is already registered');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Invalid email address');
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password is too weak');
+      } else {
+        setError('Failed to create account. Please try again.');
+      }
       console.error(err);
     } finally {
       setLoading(false);
@@ -40,7 +59,7 @@ export default function Login() {
       await loginWithGoogle();
       navigate('/dashboard');
     } catch (err) {
-      setError('Failed to sign in with Google. Please try again.');
+      setError('Failed to sign up with Google. Please try again.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -54,12 +73,12 @@ export default function Login() {
         <div className="gradient-blur-shape" />
       </div>
 
-      {/* Login form */}
+      {/* Sign up form */}
       <div className="relative w-full max-w-md mx-4">
         <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl ring-1 ring-black/5 dark:ring-white/10">
           <form onSubmit={handleSubmit}>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
-              Sign in to Study Buddy
+              Create your account
             </h2>
 
             {error && (
@@ -67,6 +86,22 @@ export default function Login() {
                 {error}
               </div>
             )}
+
+            <div className="mb-4">
+              <label htmlFor="firstName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                First name
+              </label>
+              <input
+                type="text"
+                id="firstName"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="input"
+                placeholder="John"
+                disabled={loading}
+                required
+              />
+            </div>
 
             <div className="mb-4">
               <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -86,7 +121,7 @@ export default function Login() {
 
             <div className="mb-4">
               <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                Your password
+                Password
               </label>
               <input
                 type="password"
@@ -100,23 +135,20 @@ export default function Login() {
               />
             </div>
 
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center">
-                <input
-                  id="remember"
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
-                  disabled={loading}
-                />
-                <label htmlFor="remember" className="ml-2 text-sm font-medium text-gray-900 dark:text-white">
-                  Remember me
-                </label>
-              </div>
-              <a href="#" className="text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                Lost Password?
-              </a>
+            <div className="mb-6">
+              <label htmlFor="confirm-password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                Confirm password
+              </label>
+              <input
+                type="password"
+                id="confirm-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="input"
+                placeholder="••••••••"
+                disabled={loading}
+                required
+              />
             </div>
 
             <button
@@ -124,7 +156,7 @@ export default function Login() {
               className="btn-primary w-full mb-4"
               disabled={loading}
             >
-              {loading ? 'Signing in...' : 'Login to your account'}
+              {loading ? 'Creating account...' : 'Create account'}
             </button>
 
             <div className="relative my-6">
@@ -160,13 +192,13 @@ export default function Login() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              Sign in with Google
+              Sign up with Google
             </button>
 
             <div className="mt-6 text-sm font-medium text-gray-500 dark:text-gray-400 text-center">
-              Not registered?{' '}
-              <Link to="/signup" className="text-indigo-600 hover:underline dark:text-indigo-400">
-                Create account
+              Already have an account?{' '}
+              <Link to="/login" className="text-indigo-600 hover:underline dark:text-indigo-400">
+                Sign in
               </Link>
             </div>
           </form>

@@ -303,12 +303,15 @@ A fully styled, navigable app with subject-based organization, mock data, and Fi
 Build interactive UI elements and connect Firebase authentication.
 
 Tasks:
-- ⬜ Firebase Auth integration:
-  - ⬜ Create AuthContext for global auth state
-  - ⬜ Wire up Login page (email/password + Google sign-in)
-  - ⬜ Add protected routes for authenticated pages
-  - ⬜ Add logout functionality to navbar
-  - ⬜ Create Sign Up page
+- ✅ Firebase Auth integration:
+  - ✅ Create AuthContext for global auth state
+  - ✅ Wire up Login page (email/password + Google sign-in)
+  - ✅ Add protected routes for authenticated pages (PrivateRoute component)
+  - ✅ Add logout functionality to navbar
+  - ✅ Create Sign Up page with first name field
+  - ✅ Store first name in user profile (displayName)
+  - ✅ Display first name (up to 10 chars) in navbar
+  - ✅ Add logo (IMG_3002.png) to navbar
 - ⬜ Subject management:
   - ⬜ Create new subject modal/form
   - ⬜ Edit subject functionality

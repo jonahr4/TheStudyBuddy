@@ -1,10 +1,17 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, Navigate } from 'react-router-dom';
+import { useSubjects } from '../contexts/SubjectContext';
 
 export default function SubjectDetail() {
   const { subjectId } = useParams();
+  const { getSubject } = useSubjects();
   
-  // Mock data - will be replaced with real data later
-  const subject = { id: subjectId, name: 'Biology 101' };
+  // Get the actual subject from context
+  const subject = getSubject(subjectId);
+  
+  // Redirect to subjects page if subject not found
+  if (!subject) {
+    return <Navigate to="/subjects" replace />;
+  }
   const notes = [
     { id: 1, name: 'Chapter 1 - Cell Structure.pdf', uploadDate: '2025-11-15', size: '2.3 MB' },
     { id: 2, name: 'Chapter 2 - DNA and RNA.pdf', uploadDate: '2025-11-16', size: '1.8 MB' },

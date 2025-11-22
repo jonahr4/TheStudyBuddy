@@ -1,13 +1,8 @@
 import { Link } from 'react-router-dom';
+import { useSubjects } from '../contexts/SubjectContext';
 
 export default function Dashboard() {
-  // Mock data - will be replaced with real data later
-  const subjects = [
-    { id: 1, name: 'Biology 101', color: 'bg-green-500' },
-    { id: 2, name: 'Calculus II', color: 'bg-blue-500' },
-    { id: 3, name: 'World History', color: 'bg-purple-500' },
-    { id: 4, name: 'Chemistry', color: 'bg-red-500' },
-  ];
+  const { subjects } = useSubjects();
 
   const recentDecks = [
     { id: 1, name: 'Cell Structure', subject: 'Biology 101', cardCount: 25 },

@@ -24,12 +24,13 @@ This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and 
 
 # MVP Features
 
-- Upload notes (PDF or text)
-- AI-generated flashcards (Azure OpenAI)
-- AI chatbot that understands your notes
-- Firebase Authentication
-- User dashboard with flashcards, chats, and uploads
-- Deployment on Azure Static Web Apps
+- **Subject-Based Organization** - Create and manage subjects (e.g., Biology 101, Calculus II)
+- **Upload Notes** - Upload up to 10 PDF notes per subject
+- **AI-Generated Flashcards** - Azure OpenAI creates flashcard decks from your notes
+- **Subject-Specific Chat** - AI chatbot that understands your notes, organized by subject
+- **Firebase Authentication** - Secure login with email/password and Google sign-in
+- **Dashboard** - Overview of subjects, flashcard decks, and chat history
+- **Deployment** - Azure Static Web Apps hosting
 
 ---
 
@@ -73,13 +74,15 @@ This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and 
 
 # How It Works
 
-1. User logs in (Firebase)  
-2. Uploads notes → Azure Blob Storage  
-3. Azure Functions extract text  
-4. Azure OpenAI generates flashcards + embeddings  
-5. MongoDB stores decks, chats, and metadata  
-6. Chatbot uses RAG retrieval for accurate answers  
-7. Optional DO worker fetches video/article recommendations  
+1. User logs in (Firebase Auth with email/password or Google)
+2. User creates subjects (e.g., "Biology 101", "Calculus II")
+3. User uploads PDF notes to specific subjects (up to 10 per subject) → Azure Blob Storage
+4. Azure Functions extract text from PDFs
+5. Azure OpenAI generates subject-specific flashcards + embeddings
+6. MongoDB stores subjects, notes, decks, chats, and metadata
+7. User studies flashcards filtered by subject
+8. User chats with AI about specific subject content using RAG retrieval
+9. Optional DO worker fetches video/article recommendations per subject  
 
 ---
 
@@ -206,9 +209,20 @@ TheStudyBuddy/
 ├── thestudybuddy-frontend/     # React + Vite frontend
 │   ├── src/
 │   │   ├── assets/             # Images and static files
-│   │   ├── components/         # Reusable UI components (Navbar, Layout)
-│   │   ├── firebase/           # Firebase config
-│   │   ├── pages/              # Route pages (Landing, Login, Dashboard, etc.)
+│   │   ├── components/         # Reusable UI components
+│   │   │   ├── Navbar.jsx      # Navigation bar with links
+│   │   │   └── Layout.jsx      # Page wrapper with navbar
+│   │   ├── firebase/           # Firebase configuration
+│   │   │   └── config.js       # Firebase initialization and auth setup
+│   │   ├── pages/              # Route pages
+│   │   │   ├── Landing.jsx     # Homepage with hero section
+│   │   │   ├── Login.jsx       # Authentication page
+│   │   │   ├── Dashboard.jsx   # Overview of subjects, decks, and chats
+│   │   │   ├── Subjects.jsx    # List all subjects, create new ones
+│   │   │   ├── SubjectDetail.jsx # Manage notes for a specific subject
+│   │   │   ├── Flashcards.jsx  # Study flashcards (filter by subject)
+│   │   │   ├── Chat.jsx        # AI chat (switch between subjects)
+│   │   │   └── NotFound.jsx    # 404 page
 │   │   ├── App.jsx             # Main app with routes
 │   │   ├── index.css           # Global styles and theming
 │   │   └── main.jsx            # App entry point
@@ -216,6 +230,18 @@ TheStudyBuddy/
 │   └── package.json            # Dependencies
 └── README.md                   # This file
 ```
+
+## Page Navigation Flow
+- **/** - Landing page (hero with call-to-action)
+- **/login** - Sign in with email/password or Google
+- **/dashboard** - Main dashboard showing:
+  - Left: Subjects list (click to manage)
+  - Center: Recent flashcard decks (by subject)
+  - Right: Chat history count
+- **/subjects** - View all subjects, create new ones
+- **/subjects/:id** - Upload and manage up to 10 PDF notes per subject
+- **/flashcards** - Study flashcards (filter by subject using tabs)
+- **/chat** - Chat with AI (switch between subjects)
 
 ## Available Scripts
 - `npm run dev` - Start development server with hot reload
@@ -233,50 +259,85 @@ TheStudyBuddy/
 # Development Phases for TheStudyBuddy
 
 ## Phase 1 — Frontend Skeleton ✅
-Build the structure of the frontend without functionality.
+Build the structure of the frontend with subject-based organization.
 
 Tasks:
 - ✅ Create project with Vite + React + Tailwind
 - ✅ Set up routing with React Router DOM
-- ✅ Create placeholder pages:
-  - ✅ Landing Page (with hero section and gradient background)
-  - ✅ Login Page (complete form with email/password + Google sign-in button)
-  - ✅ Dashboard (three-column card layout)
-  - ✅ Upload Page (drag-and-drop UI placeholder)
-  - ✅ Flashcards Page (flip card interface placeholder)
-  - ✅ Chat Page (chat interface with input)
-  - ✅ Not Found Page
-- ✅ Create basic layout components:
-  - ✅ Navbar (modern indigo branding with navigation links)
-  - ✅ Layout wrapper (removed sidebar per design decision)
+- ✅ Implement subject-based architecture:
+  - ✅ Subjects page - View all subjects, create new ones
+  - ✅ Subject Detail page - Manage up to 10 PDF notes per subject
+  - ✅ Dashboard with three sections:
+    - Left: Subjects list (clickable to navigate to subject detail)
+    - Center: Recent flashcard decks with subject labels
+    - Right: Chat history count with link to chat
+- ✅ Create core pages:
+  - ✅ Landing Page (hero section with gradient background)
+  - ✅ Login Page (email/password form + Google sign-in button)
+  - ✅ Dashboard (three-column layout: subjects, decks, chat)
+  - ✅ Subjects Page (subject cards with note counts and actions)
+  - ✅ Subject Detail Page (drag-and-drop upload UI, note list)
+  - ✅ Flashcards Page (subject selector tabs, deck filtering)
+  - ✅ Chat Page (subject switcher, message interface)
+  - ✅ Not Found Page (404 error page)
+- ✅ Create layout components:
+  - ✅ Navbar (Dashboard, Subjects, Flashcards, Chat, Login)
+  - ✅ Layout wrapper (navbar + content area)
 - ✅ Global theming system:
-  - ✅ Reusable CSS classes (.btn-primary, .btn-secondary, .card, .input, etc.)
+  - ✅ Reusable CSS classes (.btn-primary, .btn-secondary, .card, .input, .badge, etc.)
   - ✅ Gradient background system (pink-to-purple with custom shapes)
   - ✅ Dark mode support configured
   - ✅ Consistent indigo color scheme across all pages
-- ✅ Set up Firebase Auth (UI ready, Firebase SDK not yet integrated)
+- ✅ Firebase Auth setup:
+  - ✅ Firebase SDK installed
+  - ✅ Firebase config with environment variables
+  - ✅ Login UI with email/password and Google sign-in
 - ✅ Initialize GitHub repo and commit
 
 Outcome:
-A fully styled, navigable app with modern UI design, ready for Firebase integration and backend logic.
+A fully styled, navigable app with subject-based organization, mock data, and Firebase Auth configured (not yet functional).
 
 ---
 
-## Phase 2 — Frontend UI Components
-Build all UI elements using mock data.
+## Phase 2 — Frontend UI Components & Firebase Auth Integration
+Build interactive UI elements and connect Firebase authentication.
 
 Tasks:
-- ⬜ Dashboard components (enhance cards with mock data, add deck lists, stats)
-- ⬜ Upload page UI (implement drag-and-drop functionality, add file preview, progress bars)
-- ⬜ Flashcard interface (add flip animation, deck navigation, card counter)
-- ⬜ Chat interface (add message bubbles, timestamps, scroll behavior, typing indicator)
-- ⬜ Add loading states and animations
-- ⬜ Add error handling UI components
-- ⬜ Create reusable modal/dialog components
-- ⬜ Implement responsive design for mobile/tablet
+- ⬜ Firebase Auth integration:
+  - ⬜ Create AuthContext for global auth state
+  - ⬜ Wire up Login page (email/password + Google sign-in)
+  - ⬜ Add protected routes for authenticated pages
+  - ⬜ Add logout functionality to navbar
+  - ⬜ Create Sign Up page
+- ⬜ Subject management:
+  - ⬜ Create new subject modal/form
+  - ⬜ Edit subject functionality
+  - ⬜ Delete subject with confirmation
+- ⬜ Note upload UI:
+  - ⬜ Implement drag-and-drop functionality
+  - ⬜ Add file preview with thumbnails
+  - ⬜ Progress bars for uploads
+  - ⬜ File size/type validation
+  - ⬜ Enforce 10-note limit per subject
+- ⬜ Flashcard interface:
+  - ⬜ Add flip animation
+  - ⬜ Deck navigation (previous/next card)
+  - ⬜ Card counter (e.g., "5 / 25")
+  - ⬜ Mark cards as "mastered"
+- ⬜ Chat interface:
+  - ⬜ Scrollable message history
+  - ⬜ Typing indicator animation
+  - ⬜ Message timestamps
+  - ⬜ Auto-scroll to latest message
+- ⬜ UI polish:
+  - ⬜ Add loading states and skeletons
+  - ⬜ Error handling UI (toasts/alerts)
+  - ⬜ Confirmation modals for destructive actions
+  - ⬜ Responsive design for mobile/tablet
+  - ⬜ Empty states for all pages
 
 Outcome:
-Fully interactive frontend with mock data, polished animations, and edge case handling.
+Fully interactive frontend with Firebase Auth working, mock data for subjects/notes/decks/chats, polished animations, and responsive design.
 
 ---
 
@@ -295,33 +356,74 @@ Publicly accessible frontend site hosted on Azure.
 ---
 
 ## Phase 4 — Backend Development (Azure Functions)
-Build the serverless backend to support core features.
+Build the serverless backend to support core features with subject-based organization.
 
 Tasks:
-- File upload API with Azure Blob Storage
-- Notes parsing function
-- Flashcard generation endpoint using Azure OpenAI
-- Chat endpoint with retrieval logic
-- MongoDB Atlas setup and integration
+- MongoDB Atlas setup:
+  - Collections: users, subjects, notes, flashcard_decks, chats, embeddings
+  - Indexes for efficient querying by subject
 - Authentication middleware (Firebase token verification)
+- Subject management APIs:
+  - Create/read/update/delete subjects
+  - List subjects by user
+- Note upload API:
+  - Upload PDF to Azure Blob Storage (organized by subject)
+  - Store note metadata in MongoDB
+  - Enforce 10-note limit per subject
+- PDF parsing function:
+  - Extract text from uploaded PDFs
+  - Store extracted text with note record
+- Flashcard generation endpoint:
+  - Use Azure OpenAI to generate flashcards from note text
+  - Associate flashcards with specific subject
+  - Store in MongoDB with subject reference
+- Embeddings generation:
+  - Generate embeddings for note content
+  - Store in MongoDB for RAG retrieval
+- Chat endpoint:
+  - Subject-specific RAG retrieval
+  - Context window includes only notes from selected subject
+  - Use Azure OpenAI for responses
+  - Store chat history by subject
 
 Outcome:
-Backend supports all core functionality.
+Backend supports all core functionality with subject-based organization and data isolation.
 
 ---
 
 ## Phase 5 — Connect Frontend and Backend
-Replace mock data with real API results.
+Replace mock data with real API calls and data from MongoDB.
 
 Tasks:
-- Connect upload page to backend
-- Connect flashcard viewer to generated flashcards
-- Connect chat UI to chat API
-- Handle loading states and error states
-- Implement real user data storage
+- Subject management:
+  - Connect Subjects page to subject API (CRUD operations)
+  - Fetch and display real subject data on Dashboard
+- Note upload integration:
+  - Connect Subject Detail page to upload API
+  - Show real note list from MongoDB
+  - Display upload progress and handle errors
+  - Enforce 10-note limit from backend
+- Flashcard integration:
+  - Fetch flashcard decks filtered by subject
+  - Display generated flashcards from Azure OpenAI
+  - Track study progress in MongoDB
+- Chat integration:
+  - Connect chat UI to subject-specific chat API
+  - Send/receive messages with RAG context
+  - Load chat history from MongoDB
+  - Handle streaming responses
+- Global state management:
+  - Implement state management (Context API or Zustand)
+  - Cache subject and deck data
+  - Handle authentication state
+- Loading and error handling:
+  - Add loading spinners for all API calls
+  - Display user-friendly error messages
+  - Implement retry logic for failed requests
+  - Add offline detection
 
 Outcome:
-A functional, end-to-end application.
+A fully functional, end-to-end application with real data and AI features.
 
 ---
 
@@ -329,13 +431,30 @@ A functional, end-to-end application.
 Add advanced functionality after core MVP is stable.
 
 Possible features:
-- AI quiz generation
-- Daily streaks system
-- YouTube video recommendations
-- Relevant article recommendations
-- Mindmap exports
-- Achievements and badge system
-- Background workers using DigitalOcean
+- **AI Quiz Generation** - Generate multiple-choice quizzes from notes (per subject)
+- **Daily Streaks** - Duolingo-style streak tracking for studying
+- **Subject-Specific Resources**:
+  - YouTube video recommendations related to subject topics
+  - Relevant article discovery from trusted sources
+  - Wikipedia summaries for key concepts
+- **Mindmap Exports** - Generate visual mindmaps with ToDiagram
+- **Gamification**:
+  - XP points for studying and completing decks
+  - Achievement badges (e.g., "Study 7 days in a row")
+  - Subject mastery levels
+- **Study Analytics Dashboard**:
+  - Time spent per subject
+  - Flashcard mastery percentage
+  - Study session heatmap
+  - Performance trends over time
+- **Collaboration Features**:
+  - Share subjects/decks with classmates
+  - Study groups
+  - Public subject templates
+- **Background Workers** (DigitalOcean):
+  - Video/article scraping workers
+  - Periodic embeddings updates
+  - Analytics aggregation
 
 Outcome:
-Enhanced product with unique features and additional technical depth.
+Enhanced product with unique features, gamification, and additional technical depth that differentiates from competitors.

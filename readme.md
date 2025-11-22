@@ -344,17 +344,17 @@ Fully interactive frontend with Firebase Auth working, mock data for subjects/no
 
 ---
 
-## Phase 3 — Deploy Frontend
+## Phase 3 — Deploy Frontend ✅
 Deploy the frontend before the backend exists.
 
 Tasks:
-- Create Azure Static Web App
-- Connect GitHub repo
-- Configure build settings
-- Verify automatic deployments on push
+- ✅ Create Azure Static Web App
+- ✅ Connect GitHub repo
+- ✅ Configure build settings
+- ✅ Verify automatic deployments on push
 
 Outcome:
-Publicly accessible frontend site hosted on Azure.
+✅ Publicly accessible frontend site hosted on Azure.
 
 ---
 

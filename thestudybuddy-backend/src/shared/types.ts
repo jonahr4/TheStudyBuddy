@@ -3,7 +3,7 @@
  */
 
 export interface Subject {
-  _id: string;        // subject id (stringified ObjectId or UUID)
+  id: string;         // subject id (stringified ObjectId or UUID)
   name: string;
   color: string;      // e.g. "#4f46e5" or "bg-blue-500"
   userId: string;     // Firebase UID

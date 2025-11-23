@@ -2,15 +2,11 @@ import { Link } from 'react-router-dom';
 import { useSubjects } from '../contexts/SubjectContext';
 
 export default function Dashboard() {
-  const { subjects } = useSubjects();
+  const { subjects, loading } = useSubjects();
 
-  const recentDecks = [
-    { id: 1, name: 'Cell Structure', subject: 'Biology 101', cardCount: 25 },
-    { id: 2, name: 'Derivatives', subject: 'Calculus II', cardCount: 30 },
-    { id: 3, name: 'World War II', subject: 'World History', cardCount: 18 },
-  ];
-
-  const chatCount = 12;
+  // TODO: Replace with real data from API when Notes and Flashcards are implemented
+  const recentDecks = [];
+  const chatCount = 0;
 
   return (
     <div className="gradient-bg min-h-screen">
@@ -33,18 +29,33 @@ export default function Dashboard() {
                 </Link>
               </div>
               
-              <div className="space-y-2">
-                {subjects.map(subject => (
-                  <Link 
-                    key={subject.id}
-                    to={`/subjects/${subject.id}`}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <div className={`w-3 h-3 rounded-full ${subject.color}`}></div>
-                    <span className="text-sm font-medium">{subject.name}</span>
+              {loading ? (
+                <div className="text-center py-6">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : subjects.length === 0 ? (
+                <div className="text-center py-6">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                    No subjects yet
+                  </p>
+                  <Link to="/subjects" className="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                    Create your first subject →
                   </Link>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {subjects.map(subject => (
+                    <Link 
+                      key={subject.id}
+                      to={`/subjects/${subject.id}`}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <div className={`w-3 h-3 rounded-full ${subject.color}`}></div>
+                      <span className="text-sm font-medium">{subject.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
               
               <Link to="/subjects" className="btn-primary w-full mt-4 text-center block">
                 + New Subject
@@ -62,28 +73,42 @@ export default function Dashboard() {
                 </Link>
               </div>
               
-              <div className="space-y-3">
-                {recentDecks.map(deck => (
-                  <div key={deck.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow">
-                    <div className="flex justify-between items-start mb-2">
-                      <h5 className="font-semibold text-gray-900 dark:text-white">
-                        {deck.name}
-                      </h5>
-                      <span className="badge">{deck.cardCount} cards</span>
-                    </div>
-                    <p className="text-xs text-gray-500 mb-3">
-                      {deck.subject}
-                    </p>
-                    <button className="btn-secondary text-sm w-full">
-                      Study Now
-                    </button>
+              {recentDecks.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-4xl mb-3">🃏</div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    No flashcard decks yet
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                    Upload notes to generate flashcards
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-3">
+                    {recentDecks.map(deck => (
+                      <div key={deck.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow">
+                        <div className="flex justify-between items-start mb-2">
+                          <h5 className="font-semibold text-gray-900 dark:text-white">
+                            {deck.name}
+                          </h5>
+                          <span className="badge">{deck.cardCount} cards</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-3">
+                          {deck.subject}
+                        </p>
+                        <button className="btn-secondary text-sm w-full">
+                          Study Now
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              
-              <Link to="/flashcards" className="btn-primary w-full mt-4 text-center block">
-                View All Decks
-              </Link>
+                  
+                  <Link to="/flashcards" className="btn-primary w-full mt-4 text-center block">
+                    View All Decks
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -94,16 +119,24 @@ export default function Dashboard() {
               
               <div className="text-center py-6">
                 <div className="text-4xl mb-3">💬</div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  {chatCount}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                  Total conversations
-                </p>
+                {chatCount > 0 ? (
+                  <>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                      {chatCount}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                      Total conversations
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                    No conversations yet
+                  </p>
+                )}
               </div>
               
               <Link to="/chat" className="btn-primary w-full text-center block">
-                Go to Chat
+                {chatCount > 0 ? 'Go to Chat' : 'Start Chatting'}
               </Link>
             </div>
           </div>

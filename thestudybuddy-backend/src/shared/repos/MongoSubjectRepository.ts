@@ -82,7 +82,7 @@ export class MongoSubjectRepository implements SubjectRepository {
    */
   private toSubject(doc: any): Subject {
     return {
-      _id: doc._id.toString(),
+      id: doc._id.toString(),
       userId: doc.userId,
       name: doc.name,
       color: doc.color,

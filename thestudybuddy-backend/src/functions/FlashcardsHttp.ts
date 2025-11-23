@@ -1,5 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { getUserIdFromRequest } from "../shared/auth";
+import { getUserInfoFromRequest } from "../shared/auth";
 import { flashcardRepo } from "../index";
 import { ErrorResponse } from "../shared/types";
 
@@ -12,7 +12,7 @@ app.http("getFlashcardsBySubject", {
   route: "flashcards/{subjectId}",
   handler: async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
     try {
-      const userId = await getUserIdFromRequest(request);
+      const { userId } = await getUserInfoFromRequest(request);
       const subjectId = request.params.subjectId;
 
       if (!subjectId) {

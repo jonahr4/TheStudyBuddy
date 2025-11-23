@@ -2,6 +2,12 @@ import { app } from "@azure/functions";
 import { MongoSubjectRepository } from "./shared/repos/MongoSubjectRepository";
 import { MongoNoteRepository } from "./shared/repos/MongoNoteRepository";
 import { InMemoryFlashcardRepository } from "./shared/repos/InMemoryFlashcardRepository";
+import { connectMongo } from "./db/connectMongo";
+
+// Connect to MongoDB on startup
+connectMongo().catch(err => {
+  console.error("Failed to connect to MongoDB:", err);
+});
 
 // Initialize singleton repositories
 // Subjects and Notes now use MongoDB!

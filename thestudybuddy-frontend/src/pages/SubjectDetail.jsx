@@ -134,7 +134,7 @@ export default function SubjectDetail() {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  // Upload files to MongoDB
+  // Upload files to MongoDB and Azure Blob Storage
   const handleUpload = async () => {
     if (selectedFiles.length === 0) return;
     
@@ -143,8 +143,9 @@ export default function SubjectDetail() {
     setUploadingFiles(true);
     
     try {
+      // Upload each file with the actual file object
       const uploadPromises = selectedFiles.map(file => 
-        uploadNote(file.name, file.size, subjectId)
+        uploadNote(file, subjectId)
       );
       
       await Promise.all(uploadPromises);
@@ -157,7 +158,7 @@ export default function SubjectDetail() {
       setSuccessMessage(
         `✅ ${fileCount} ${fileCount === 1 ? 'file' : 'files'} successfully uploaded!\n` +
         `📊 MongoDB: Metadata saved\n` +
-        `☁️ Azure Blob Storage: Pending (being implemented)`
+        `☁️ Azure Blob Storage: ✅ PDFs uploaded!`
       );
       
       // Clear success message after 5 seconds

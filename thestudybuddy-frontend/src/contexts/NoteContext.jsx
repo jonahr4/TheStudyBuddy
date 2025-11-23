@@ -28,13 +28,37 @@ export function NoteProvider({ children }) {
   };
 
   /**
-   * Upload a new note
+   * Upload a new note with actual PDF file
    */
-  const uploadNote = async (fileName, fileSize, subjectId) => {
+  const uploadNote = async (file, subjectId) => {
     setError(null);
 
     try {
-      const newNote = await noteApi.upload({ fileName, fileSize, subjectId });
+      // Create FormData with the actual file
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('subjectId', subjectId);
+
+      // Get auth token
+      const { auth } = await import('../firebase/config');
+      const user = auth.currentUser;
+      const token = user ? await user.getIdToken() : '';
+
+      // Send multipart/form-data request
+      const response = await fetch('http://localhost:7071/api/notes/upload', {
+        method: 'POST',
+        headers: {
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+        body: formData, // Don't set Content-Type, browser will set it with boundary
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Upload failed' }));
+        throw new Error(error.message || `HTTP ${response.status}`);
+      }
+
+      const newNote = await response.json();
       
       // Add the new note to the state
       setNotes((prev) => ({

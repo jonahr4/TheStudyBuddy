@@ -3,6 +3,10 @@ import { MongoSubjectRepository } from "./shared/repos/MongoSubjectRepository";
 import { InMemoryNoteRepository } from "./shared/repos/InMemoryNoteRepository";
 import { InMemoryFlashcardRepository } from "./shared/repos/InMemoryFlashcardRepository";
 import { connectMongo } from "./db/connectMongo";
+import { initializeFirebaseAdmin } from "./firebase/admin";
+
+// Initialize Firebase Admin for token verification
+initializeFirebaseAdmin();
 
 // Connect to MongoDB on startup
 connectMongo().catch((err) => {

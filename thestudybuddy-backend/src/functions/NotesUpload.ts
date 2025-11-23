@@ -103,12 +103,13 @@ app.http("uploadNote", {
       // Create Note object with real blob URL
       const note = await noteRepo.createNote(userId, {
         fileName: result.file.filename,
+        fileSize: result.file.data.length, // Size of the uploaded file in bytes
         blobUrl: blobUrl,
         textUrl: null, // TODO: Will be set after text extraction
         subjectId: result.subjectId,
       });
 
-      context.log(`✅ Note created: ${note._id} with blob URL: ${blobUrl}`);
+      context.log(`✅ Note created: ${note.id} with blob URL: ${blobUrl}`);
 
       return {
         status: 201,

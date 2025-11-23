@@ -7,6 +7,7 @@ export interface Subject {
   name: string;
   color: string;      // e.g. "#4f46e5" or "bg-blue-500"
   userId: string;     // Firebase UID
+  userEmail?: string; // User's email (optional for backwards compatibility)
   createdAt: string;  // ISO timestamp
 }
 
@@ -18,6 +19,7 @@ export interface Note {
   fileSize: number;        // file size in bytes
   subjectId: string;       // subject this note belongs to
   userId: string;          // Firebase UID of owner
+  userEmail?: string;      // User's email (optional for backwards compatibility)
   uploadedAt: string;      // ISO timestamp
 }
 

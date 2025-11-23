@@ -1,5 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { getUserIdFromRequest } from "../shared/auth";
+import { getUserInfoFromRequest } from "../shared/auth";
 import { noteRepo } from "../index";
 import { ErrorResponse } from "../shared/types";
 import { uploadPdfToRawContainer } from "../shared/storage/blobClient";
@@ -33,7 +33,7 @@ app.http("uploadNote", {
   route: "notes/upload",
   handler: async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
     try {
-      const userId = await getUserIdFromRequest(request);
+      const { userId, userEmail } = await getUserInfoFromRequest(request);
 
       // Parse multipart/form-data
       const contentType = request.headers.get("content-type");
@@ -107,6 +107,7 @@ app.http("uploadNote", {
         blobUrl: blobUrl,
         textUrl: null, // TODO: Will be set after text extraction
         subjectId: result.subjectId,
+        userEmail,
       });
 
       context.log(`✅ Note created: ${note.id} with blob URL: ${blobUrl}`);

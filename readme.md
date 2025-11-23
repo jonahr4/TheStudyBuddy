@@ -395,23 +395,23 @@ Outcome:
 Build the backend API and serverless functions to support core features with subject-based organization.
 
 ### MongoDB Models & Setup
-- ⬜ Set up MongoDB Atlas cluster and database
+- ✅ Set up MongoDB Atlas cluster and database
 - ⬜ Create `users` collection schema (email, name, createdAt)
-- ⬜ Create `subjects` collection schema (name, color, userId, createdAt)
+- ✅ Create `subjects` collection schema (name, color, userId, createdAt)
 - ⬜ Create `notes` collection schema (fileName, blobUrl, textUrl, subjectId, userId, uploadedAt)
 - ⬜ Create `flashcards` collection schema (question, answer, subjectId, noteId, createdAt)
-- ⬜ Create indexes on `userId`, `subjectId` for efficient querying
-- ⬜ Write MongoDB connection utility (with retry logic)
-- ⬜ Test database connections and CRUD operations
+- ✅ Create indexes on `userId`, `subjectId` for efficient querying
+- ✅ Write MongoDB connection utility (with retry logic)
+- ✅ Test database connections and CRUD operations (subjects working)
 
 ### API Routes (Express.js or Azure Functions HTTP Triggers)
-- ⬜ Set up Express.js server or Azure Functions HTTP project
-- ⬜ Implement Firebase Auth token verification middleware
-- ⬜ Create `POST /api/subjects` - Create new subject
-- ⬜ Create `GET /api/subjects` - List all subjects for authenticated user
-- ⬜ Create `GET /api/subjects/:id` - Get single subject details
-- ⬜ Create `PUT /api/subjects/:id` - Update subject (name, color)
-- ⬜ Create `DELETE /api/subjects/:id` - Delete subject (with cascade delete of notes/flashcards)
+- ✅ Set up Azure Functions HTTP project
+- ✅ Implement Firebase Auth token verification middleware
+- ✅ Create `POST /api/subjects` - Create new subject
+- ✅ Create `GET /api/subjects` - List all subjects for authenticated user
+- ✅ Create `GET /api/subjects/:id` - Get single subject details
+- ✅ Create `PUT /api/subjects/:id` - Update subject (name, color)
+- ✅ Create `DELETE /api/subjects/:id` - Delete subject (with cascade delete of notes/flashcards)
 - ⬜ Create `GET /api/notes/:subjectId` - Get all notes for a subject
 - ⬜ Create `DELETE /api/notes/:id` - Delete a note (remove from Blob + MongoDB)
 - ⬜ Create `GET /api/flashcards/:subjectId` - Get all flashcards for a subject

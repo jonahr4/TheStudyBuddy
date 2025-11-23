@@ -1,11 +1,19 @@
 import { app } from "@azure/functions";
-import { InMemorySubjectRepository } from "./shared/repos/InMemorySubjectRepository";
+import { MongoSubjectRepository } from "./shared/repos/MongoSubjectRepository";
 import { InMemoryNoteRepository } from "./shared/repos/InMemoryNoteRepository";
 import { InMemoryFlashcardRepository } from "./shared/repos/InMemoryFlashcardRepository";
+import { connectMongo } from "./db/connectMongo";
+
+// Connect to MongoDB on startup
+connectMongo().catch((err) => {
+  console.error("Failed to connect to MongoDB:", err);
+  process.exit(1);
+});
 
 // Initialize singleton repositories
-// These will be replaced with Mongo implementations later
-export const subjectRepo = new InMemorySubjectRepository();
+// Subject repository now uses MongoDB!
+export const subjectRepo = new MongoSubjectRepository();
+// Note: Notes and Flashcards still use in-memory for now, will be replaced later
 export const noteRepo = new InMemoryNoteRepository();
 export const flashcardRepo = new InMemoryFlashcardRepository();
 
@@ -14,7 +22,7 @@ import "./functions/SubjectsHttp";
 import "./functions/NotesHttp";
 import "./functions/NotesUpload";
 import "./functions/FlashcardsHttp";
-import "./functions/GenerateFlashcards";
+// import "./functions/GenerateFlashcards"; // TODO: Create this function
 import "./functions/ChatWithAI";
 
 // Export the app for Azure Functions to discover

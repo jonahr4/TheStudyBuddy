@@ -47,3 +47,40 @@ export async function uploadPdfToRawContainer(params: {
   };
 }
 
+/**
+ * Delete a blob from Azure Storage by URL
+ */
+export async function deleteBlobByUrl(blobUrl: string): Promise<void> {
+  if (!blobUrl || blobUrl.startsWith("placeholder://")) {
+    // Skip deletion for placeholder URLs
+    return;
+  }
+
+  try {
+    // Parse blob name from URL
+    // Example URL: https://studybuddystorage.blob.core.windows.net/notes-raw/userId/subjectId/file.pdf
+    const url = new URL(blobUrl);
+    const pathParts = url.pathname.split('/');
+    
+    // Remove the first empty element and container name
+    const containerName = pathParts[1];
+    const blobName = pathParts.slice(2).join('/');
+
+    if (!blobName) {
+      console.warn(`Could not extract blob name from URL: ${blobUrl}`);
+      return;
+    }
+
+    // Get the container client
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+    const blobClient = containerClient.getBlobClient(blobName);
+
+    // Delete the blob
+    await blobClient.deleteIfExists();
+    console.log(`✅ Deleted blob: ${blobName}`);
+  } catch (error) {
+    console.error(`❌ Error deleting blob from URL ${blobUrl}:`, error);
+    // Don't throw - we don't want deletion to fail if blob is already gone
+  }
+}
+

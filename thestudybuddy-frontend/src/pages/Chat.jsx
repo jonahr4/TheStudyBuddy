@@ -1,20 +1,124 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useSubjects } from '../contexts/SubjectContext';
+import { chatApi } from '../services/api';
 
 export default function Chat() {
-  const [selectedSubject, setSelectedSubject] = useState(1);
-  
-  // Mock data - will be replaced with real data later
-  const subjects = [
-    { id: 1, name: 'Biology 101', color: 'bg-green-500' },
-    { id: 2, name: 'Calculus II', color: 'bg-blue-500' },
-    { id: 3, name: 'World History', color: 'bg-purple-500' },
-  ];
+  const { subjects, loading: subjectsLoading } = useSubjects();
+  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef(null);
 
-  const mockMessages = [
-    { id: 1, text: 'What is photosynthesis?', sender: 'user', time: '10:30 AM' },
-    { id: 2, text: 'Photosynthesis is the process by which plants convert light energy into chemical energy...', sender: 'ai', time: '10:30 AM' },
-    { id: 3, text: 'Can you explain it in simpler terms?', sender: 'user', time: '10:31 AM' },
-  ];
+  // Select first subject by default when subjects load
+  useEffect(() => {
+    if (subjects.length > 0 && !selectedSubject) {
+      setSelectedSubject(subjects[0].id);
+    }
+  }, [subjects, selectedSubject]);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Reset messages when subject changes
+  useEffect(() => {
+    setMessages([]);
+  }, [selectedSubject]);
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || !selectedSubject || sending) return;
+
+    const userMessage = {
+      id: Date.now(),
+      text: inputMessage,
+      sender: 'user',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
+    setSending(true);
+
+    try {
+      // Build chat history for context
+      const chatHistory = messages.map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.text,
+      }));
+
+      const response = await chatApi.sendMessage({
+        subjectId: selectedSubject,
+        message: inputMessage,
+        chatHistory,
+      });
+
+      const aiMessage = {
+        id: Date.now() + 1,
+        text: response.reply,
+        sender: 'ai',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      const errorMessage = {
+        id: Date.now() + 1,
+        text: `Error: ${error.message || 'Failed to get AI response. Please try again.'}`,
+        sender: 'ai',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  if (subjectsLoading) {
+    return (
+      <div className="gradient-bg min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading subjects...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (subjects.length === 0) {
+    return (
+      <div className="gradient-bg min-h-screen">
+        <div className="gradient-blur">
+          <div className="gradient-blur-shape" />
+        </div>
+        <div className="p-8">
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📚</div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              No Subjects Yet
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Create a subject and upload some notes to start chatting with AI!
+            </p>
+            <a href="/subjects" className="btn-primary inline-block">
+              Go to Subjects
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const currentSubject = subjects.find(s => s.id === selectedSubject);
 
   return (
     <div className="gradient-bg min-h-screen">
@@ -43,7 +147,10 @@ export default function Chat() {
                       : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
-                  <div className={`w-2 h-2 rounded-full ${subject.color}`}></div>
+                  <div 
+                    className="w-2 h-2 rounded-full" 
+                    style={{ backgroundColor: subject.color }}
+                  ></div>
                   {subject.name}
                 </button>
               ))}
@@ -51,7 +158,7 @@ export default function Chat() {
           </div>
           
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Ask questions about your {subjects.find(s => s.id === selectedSubject)?.name} notes
+            Ask questions about your {currentSubject?.name} notes
           </p>
         </div>
 
@@ -59,7 +166,7 @@ export default function Chat() {
           {/* Chat Messages */}
           <div className="card h-96 mb-4 overflow-y-auto">
             <div className="space-y-4">
-              {mockMessages.map(message => (
+              {messages.map(message => (
                 <div 
                   key={message.id}
                   className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -71,7 +178,7 @@ export default function Chat() {
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
                     }`}
                   >
-                    <p className="text-sm mb-1">{message.text}</p>
+                    <p className="text-sm mb-1 whitespace-pre-wrap">{message.text}</p>
                     <p className={`text-xs ${
                       message.sender === 'user' 
                         ? 'text-indigo-100' 
@@ -83,12 +190,29 @@ export default function Chat() {
                 </div>
               ))}
               
-              {mockMessages.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                  <p className="text-xl mb-2">👋</p>
-                  <p>Start a conversation about {subjects.find(s => s.id === selectedSubject)?.name}</p>
+              {sending && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-100 dark:bg-gray-700 rounded-lg px-4 py-2">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                  </div>
                 </div>
               )}
+              
+              {messages.length === 0 && !sending && (
+                <div className="text-center py-12 text-gray-500">
+                  <p className="text-xl mb-2">👋</p>
+                  <p>Start a conversation about {currentSubject?.name}</p>
+                  <p className="text-sm mt-2 text-gray-400">
+                    I can answer questions based on your uploaded notes
+                  </p>
+                </div>
+              )}
+              
+              <div ref={messagesEndRef} />
             </div>
           </div>
           
@@ -96,11 +220,19 @@ export default function Chat() {
           <div className="flex gap-2">
             <input 
               type="text" 
-              placeholder={`Ask a question about ${subjects.find(s => s.id === selectedSubject)?.name}...`}
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              disabled={sending}
+              placeholder={`Ask a question about ${currentSubject?.name}...`}
               className="input"
             />
-            <button className="btn-primary">
-              Send
+            <button 
+              onClick={handleSendMessage}
+              disabled={sending || !inputMessage.trim()}
+              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {sending ? 'Sending...' : 'Send'}
             </button>
           </div>
         </div>

@@ -116,9 +116,39 @@ export const noteApi = {
 };
 
 /**
+ * Chat API calls
+ */
+export const chatApi = {
+  // Send chat message to AI
+  sendMessage: async (data: { 
+    subjectId: string; 
+    message: string; 
+    chatHistory?: Array<{ role: string; content: string }> 
+  }) => {
+    return apiRequest('/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+};
+
+/**
+ * Text Extraction API calls
+ */
+export const textExtractionApi = {
+  // Trigger text extraction for a note
+  processNote: async (data: { noteId: string; blobUrl: string }) => {
+    return apiRequest('/process-text', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+};
+
+/**
  * Example usage in a React component:
  * 
- * import { subjectApi, noteApi } from './services/api';
+ * import { subjectApi, noteApi, chatApi } from './services/api';
  * 
  * // Get all subjects
  * const subjects = await subjectApi.getAll();
@@ -129,22 +159,10 @@ export const noteApi = {
  *   color: "#A3C1FF"
  * });
  * 
- * // Update a subject
- * await subjectApi.update(subjectId, { name: "Biology 102" });
- * 
- * // Delete a subject
- * await subjectApi.delete(subjectId);
- * 
- * // Get notes for a subject
- * const notes = await noteApi.getBySubject(subjectId);
- * 
- * // Upload note
- * const note = await noteApi.upload({
- *   fileName: "Chapter1.pdf",
- *   fileSize: 1024000,
- *   subjectId: subjectId
+ * // Send chat message
+ * const response = await chatApi.sendMessage({
+ *   subjectId: "123",
+ *   message: "What is photosynthesis?",
+ *   chatHistory: []
  * });
- * 
- * // Delete note
- * await noteApi.delete(noteId);
  */

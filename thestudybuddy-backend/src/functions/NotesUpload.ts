@@ -2,8 +2,23 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/fu
 import { getUserIdFromRequest } from "../shared/auth";
 import { noteRepo } from "../index";
 import { ErrorResponse } from "../shared/types";
+import { uploadPdfToRawContainer } from "../shared/storage/blobClient";
 import Busboy from "busboy";
 import { Readable } from "stream";
+
+// Helper to convert Web ReadableStream to Node.js Buffer
+async function readableStreamToBuffer(stream: ReadableStream): Promise<Buffer> {
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (value) chunks.push(value);
+  }
+  
+  return Buffer.concat(chunks.map(chunk => Buffer.from(chunk)));
+}
 
 /**
  * POST /api/notes/upload - Upload a PDF note
@@ -53,24 +68,47 @@ app.http("uploadNote", {
         };
       }
 
-      // TODO: Upload to Azure Blob Storage
-      // - Upload PDF to blob storage
-      // - Get the blob URL
-      // - Extract text from PDF (using Azure Document Intelligence or pdf-parse)
-      // - Upload extracted text to blob storage
-      // - Get the text blob URL
+      // Optional: Check file size (max 10MB)
+      const maxBytes = 10 * 1024 * 1024;
+      if (result.file.data.byteLength > maxBytes) {
+        return {
+          status: 400,
+          jsonBody: { message: "File size must be <= 10MB" } as ErrorResponse,
+        };
+      }
 
-      // For now, create a placeholder Note with fake URLs
-      const placeholderBlobUrl = `https://example.com/dev/${userId}/${result.subjectId}/${result.file.filename}`;
-      
+      // Upload to Azure Blob Storage
+      let blobUrl: string;
+      let blobName: string;
+
+      try {
+        const uploadResult = await uploadPdfToRawContainer({
+          userId,
+          subjectId: result.subjectId,
+          fileBuffer: result.file.data,
+          originalFileName: result.file.filename,
+        });
+
+        blobUrl = uploadResult.blobUrl;
+        blobName = uploadResult.blobName;
+        context.log(`✅ Uploaded PDF to blob: ${blobName}`);
+      } catch (err) {
+        context.error("❌ Error uploading to Azure Blob Storage:", err);
+        return {
+          status: 500,
+          jsonBody: { message: "Failed to upload file to storage" } as ErrorResponse,
+        };
+      }
+
+      // Create Note object with real blob URL
       const note = await noteRepo.createNote(userId, {
         fileName: result.file.filename,
-        blobUrl: placeholderBlobUrl,
-        textUrl: null, // Will be set after text extraction
+        blobUrl: blobUrl,
+        textUrl: null, // TODO: Will be set after text extraction
         subjectId: result.subjectId,
       });
 
-      context.log(`Note uploaded: ${note._id} (placeholder URL for now)`);
+      context.log(`✅ Note created: ${note._id} with blob URL: ${blobUrl}`);
 
       return {
         status: 201,
@@ -104,7 +142,7 @@ async function parseMultipartForm(
   request: HttpRequest,
   contentType: string
 ): Promise<ParsedFormData> {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     const result: ParsedFormData = {};
     
     const busboy = Busboy({ headers: { "content-type": contentType } });
@@ -141,20 +179,34 @@ async function parseMultipartForm(
       reject(error);
     });
 
-    // Convert request body to stream and pipe to busboy
-    const body = request.body;
-    let bodyBuffer: Buffer;
-    
-    if (body instanceof ArrayBuffer) {
-      bodyBuffer = Buffer.from(body);
-    } else if (typeof body === "string") {
-      bodyBuffer = Buffer.from(body);
-    } else {
-      throw new Error("Unsupported body type");
+    try {
+      // Convert request body to stream and pipe to busboy
+      const body = request.body;
+      let bodyBuffer: Buffer;
+      
+      if (body instanceof ReadableStream) {
+        // Handle Web ReadableStream (Azure Functions v4)
+        bodyBuffer = await readableStreamToBuffer(body);
+      } else if (body instanceof ArrayBuffer) {
+        bodyBuffer = Buffer.from(body);
+      } else if (typeof body === "string") {
+        bodyBuffer = Buffer.from(body);
+      } else if (Buffer.isBuffer(body)) {
+        bodyBuffer = body;
+      } else if (body && typeof body === "object" && "buffer" in body) {
+        // Handle Uint8Array or similar
+        bodyBuffer = Buffer.from(body as any);
+      } else {
+        // Log the actual type for debugging
+        console.error("Unknown body type:", typeof body, body?.constructor?.name);
+        throw new Error(`Unsupported body type: ${typeof body}, constructor: ${body?.constructor?.name}`);
+      }
+      
+      const stream = Readable.from(bodyBuffer);
+      stream.pipe(busboy);
+    } catch (err) {
+      reject(err);
     }
-    
-    const stream = Readable.from(bodyBuffer);
-    stream.pipe(busboy);
   });
 }
 

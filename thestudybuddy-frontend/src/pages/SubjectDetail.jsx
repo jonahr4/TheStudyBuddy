@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { useSubjects } from '../contexts/SubjectContext';
 import { useNotes } from '../contexts/NoteContext';
+import { textExtractionApi } from '../services/api';
 
 export default function SubjectDetail() {
   const { subjectId } = useParams();
@@ -18,6 +19,7 @@ export default function SubjectDetail() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [extractingText, setExtractingText] = useState({});
   
   // Get notes from context
   const notes = getNotesForSubject(subjectId);
@@ -196,6 +198,36 @@ export default function SubjectDetail() {
     }
   };
 
+  // Extract text from PDF
+  const handleExtractText = async (note) => {
+    setError('');
+    setSuccessMessage('');
+    setExtractingText(prev => ({ ...prev, [note.id]: true }));
+
+    try {
+      const response = await textExtractionApi.processNote({
+        noteId: note.id,
+        blobUrl: note.blobUrl,
+      });
+
+      setSuccessMessage(
+        `✅ Text extracted successfully from ${note.fileName}!\n` +
+        `📝 Extracted ${response.textLength} characters\n` +
+        `☁️ Text saved to Azure Blob Storage`
+      );
+
+      // Refresh notes to get updated textUrl
+      await fetchNotesBySubject(subjectId);
+
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(''), 5000);
+    } catch (err) {
+      setError(`Failed to extract text: ${err.message}`);
+    } finally {
+      setExtractingText(prev => ({ ...prev, [note.id]: false }));
+    }
+  };
+
   return (
     <div className="gradient-bg min-h-screen">
       {/* Gradient background blur */}
@@ -347,12 +379,33 @@ export default function SubjectDetail() {
                       <p className="text-sm text-gray-500">
                         {formatFileSize(note.fileSize)} • Uploaded {new Date(note.uploadedAt).toLocaleDateString()}
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {note.blobUrl.startsWith('placeholder') ? '☁️ Azure Blob: Pending upload' : '☁️ Azure Blob: Available'}
-                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-xs text-gray-400">
+                          {note.blobUrl.startsWith('placeholder') ? '☁️ Azure Blob: Pending upload' : '☁️ Azure Blob: Available'}
+                        </p>
+                        {note.textUrl && !note.textUrl.includes('placeholder') && (
+                          <span className="text-xs text-green-600 dark:text-green-400">
+                            • ✅ Text extracted
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    {!note.textUrl || note.textUrl.includes('placeholder') ? (
+                      <button 
+                        onClick={() => handleExtractText(note)}
+                        disabled={note.blobUrl.startsWith('placeholder') || extractingText[note.id]}
+                        className="btn-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={note.blobUrl.startsWith('placeholder') ? 'Wait for file upload to complete' : 'Extract text from PDF for AI chat'}
+                      >
+                        {extractingText[note.id] ? 'Extracting...' : '📝 Extract Text'}
+                      </button>
+                    ) : (
+                      <span className="text-xs text-green-600 dark:text-green-400 font-medium px-3 py-2">
+                        ✓ Ready for Chat
+                      </span>
+                    )}
                     <button 
                       className="btn-secondary text-sm"
                       disabled={note.blobUrl.startsWith('placeholder')}

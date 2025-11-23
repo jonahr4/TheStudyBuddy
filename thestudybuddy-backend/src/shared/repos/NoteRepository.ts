@@ -35,6 +35,15 @@ export interface NoteRepository {
   ): Promise<Note | null>;
 
   /**
+   * Update a note's textUrl (must belong to user)
+   */
+  updateNote(
+    userId: string,
+    noteId: string,
+    data: { textUrl?: string | null }
+  ): Promise<Note | null>;
+
+  /**
    * Delete a note (must belong to user)
    * TODO: In production, also delete blob storage and associated flashcards
    */

@@ -10,6 +10,7 @@ import Subjects from './pages/Subjects';
 import SubjectDetail from './pages/SubjectDetail';
 import Flashcards from './pages/Flashcards';
 import Chat from './pages/Chat';
+import TestBackend from './pages/TestBackend';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
       <Route path="/learn-more" element={<LearnMore />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
+      <Route path="/test-backend" element={<TestBackend />} />
       
       {/* Protected routes */}
       <Route path="/dashboard" element={<Layout><PrivateRoute><Dashboard /></PrivateRoute></Layout>} />

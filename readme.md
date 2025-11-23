@@ -295,7 +295,8 @@ TheStudyBuddy/
 │   │   │   ├── SubjectModal.jsx # Create/edit subject modal
 │   │   │   └── ConfirmDialog.jsx # Delete confirmation dialog
 │   │   ├── contexts/           # React Context providers
-│   │   │   └── SubjectContext.jsx # Subject state management
+│   │   │   ├── SubjectContext.jsx # Subject state management
+│   │   │   └── NoteContext.jsx    # Note state management
 │   │   ├── firebase/           # Firebase configuration
 │   │   │   ├── config.js       # Firebase initialization
 │   │   │   └── AuthContext.jsx # Auth state management
@@ -320,23 +321,35 @@ TheStudyBuddy/
 ├── thestudybuddy-backend/      # Azure Functions + TypeScript backend
 │   ├── src/
 │   │   ├── db/
-│   │   │   └── connectMongo.ts # MongoDB connection utility
+│   │   │   └── connectMongo.ts # MongoDB connection utility with retry logic
 │   │   ├── firebase/
 │   │   │   └── admin.ts        # Firebase Admin SDK initialization
 │   │   ├── functions/
-│   │   │   ├── SubjectsHttp.ts # Subject CRUD API endpoints
-│   │   │   ├── NotesHttp.ts    # Notes API (placeholder)
-│   │   │   ├── FlashcardsHttp.ts # Flashcards API (placeholder)
-│   │   │   └── ChatWithAI.ts   # AI chat API (placeholder)
+│   │   │   ├── SubjectsHttp.ts # Subject CRUD API endpoints (complete)
+│   │   │   ├── NotesHttp.ts    # GET/DELETE notes endpoints
+│   │   │   ├── NotesUpload.ts  # POST /api/notes/upload (multipart/form-data)
+│   │   │   ├── ProcessNoteText.ts # Text extraction (not yet implemented)
+│   │   │   ├── FlashcardsHttp.ts  # Flashcards API (not yet implemented)
+│   │   │   └── ChatWithAI.ts      # AI chat API (not yet implemented)
 │   │   ├── models/
-│   │   │   └── Subject.ts      # Mongoose Subject schema
+│   │   │   ├── Subject.ts      # Mongoose Subject schema
+│   │   │   └── Note.ts         # Mongoose Note schema with indexes
 │   │   ├── shared/
 │   │   │   ├── auth.ts         # Firebase token verification
-│   │   │   ├── types.ts        # TypeScript interfaces
-│   │   │   └── repos/          # Repository pattern implementations
-│   │   │       ├── SubjectRepository.ts # Subject repo interface
-│   │   │       └── MongoSubjectRepository.ts # MongoDB implementation
-│   │   └── index.ts            # Main entry point
+│   │   │   ├── types.ts        # TypeScript interfaces (Subject, Note, etc.)
+│   │   │   ├── apiContracts.md # API documentation
+│   │   │   ├── repos/          # Repository pattern implementations
+│   │   │   │   ├── SubjectRepository.ts # Subject repo interface
+│   │   │   │   ├── MongoSubjectRepository.ts # MongoDB subject implementation
+│   │   │   │   ├── NoteRepository.ts # Note repo interface
+│   │   │   │   ├── MongoNoteRepository.ts # MongoDB note implementation
+│   │   │   │   ├── InMemorySubjectRepository.ts # In-memory subject (dev)
+│   │   │   │   ├── InMemoryNoteRepository.ts    # In-memory note (dev)
+│   │   │   │   ├── FlashcardRepository.ts       # Flashcard repo interface
+│   │   │   │   └── InMemoryFlashcardRepository.ts # In-memory flashcard (dev)
+│   │   │   └── storage/        # Azure Blob Storage utilities
+│   │   │       └── blobClient.ts # Upload/delete blob operations
+│   │   └── index.ts            # Main entry point with MongoDB/Firebase init
 │   ├── local.settings.json     # Azure Functions config (git-ignored)
 │   └── package.json            # Dependencies
 └── README.md                   # This file
@@ -443,12 +456,13 @@ Tasks:
   - ✅ Delete subject with confirmation dialog
   - ✅ Subject cards with note/deck counts
   - ✅ Empty states for no subjects
-- ⬜ Note upload UI:
-  - ⬜ Implement drag-and-drop functionality
-  - ⬜ Add file preview with thumbnails
-  - ⬜ Progress bars for uploads
-  - ⬜ File size/type validation
-  - ⬜ Enforce 10-note limit per subject
+- ✅ Note upload UI:
+  - ✅ Implement drag-and-drop functionality
+  - ✅ Add file preview in selected files list
+  - ✅ File size/type validation (PDF only, 10MB max)
+  - ✅ Enforce 10-note limit per subject
+  - ✅ Upload multiple files at once
+  - ⬜ Progress bars for individual file uploads
 - ⬜ Flashcard interface:
   - ⬜ Add flip animation
   - ⬜ Deck navigation (previous/next card)
@@ -504,7 +518,12 @@ Build the backend API and serverless functions to support core features with sub
   - ✅ Created MongoSubjectRepository with full CRUD operations
   - ✅ Added userId index for fast user-specific queries
   - ✅ Tested with real data - working perfectly!
-- ⬜ Create `notes` collection schema (fileName, blobUrl, textUrl, subjectId, userId, uploadedAt)
+- ✅ **Created `notes` collection schema** (fileName, blobUrl, textUrl, fileSize, subjectId, userId, uploadedAt)
+  - ✅ Implemented Mongoose model with validation
+  - ✅ Created MongoNoteRepository with full CRUD operations
+  - ✅ Added indexes on userId and subjectId for fast queries
+  - ✅ Compound index on (userId, subjectId) for efficient filtering
+  - ✅ Tested with real uploads - working perfectly!
 - ⬜ Create `flashcards` collection schema (question, answer, subjectId, noteId, createdAt)
 - ✅ Write MongoDB connection utility (with retry logic and error handling)
 - ✅ Test database connections and CRUD operations (subjects fully working)
@@ -524,28 +543,32 @@ Build the backend API and serverless functions to support core features with sub
   - ✅ `DELETE /api/subjects/:id` - Delete subject
   - ✅ All routes enforce user ownership validation
   - ✅ Proper error handling with status codes
-- ⬜ Create `GET /api/notes/:subjectId` - Get all notes for a subject
-- ⬜ Create `DELETE /api/notes/:id` - Delete a note (remove from Blob + MongoDB)
+- ✅ **Note API implemented:**
+  - ✅ `GET /api/notes/:subjectId` - Get all notes for a subject (authenticated, sorted by date)
+  - ✅ `POST /api/notes/upload` - Upload PDF to Azure Blob + save metadata to MongoDB
+  - ✅ `DELETE /api/notes/:id` - Delete note from MongoDB AND Azure Blob Storage
+  - ✅ All routes enforce user ownership validation
+  - ✅ Proper cleanup of orphaned blobs on deletion
 - ⬜ Create `GET /api/flashcards/:subjectId` - Get all flashcards for a subject
 - ✅ Add error handling with try/catch blocks
 - ✅ Configure CORS for local development
 
-### Azure Blob Storage Integration ⏳ Coming Next
-- ⬜ Set up Azure Storage Account and create containers (`notes-raw`, `notes-text`)
-- ⬜ Install Azure Blob Storage SDK (`@azure/storage-blob`)
-- ⬜ Create Blob service client with connection string
-- ⬜ Implement `POST /api/notes/upload` endpoint:
-  - ⬜ Accept file from multipart/form-data
-  - ⬜ Validate file type (PDF only) and size (max 10MB)
-  - ⬜ Check note limit per subject (max 10 notes)
-  - ⬜ Generate unique blob name (userId/subjectId/timestamp-filename.pdf)
-  - ⬜ Upload file to `notes-raw` container
-  - ⬜ Save note metadata to MongoDB (fileName, blobUrl, subjectId, userId)
-  - ⬜ Return note metadata to client
-- ⬜ Implement blob deletion when note is deleted
-- ⬜ Add SAS token generation for secure file access (optional)
-
-**Next Steps:** Create Note model and repository following the same pattern as Subjects
+### Azure Blob Storage Integration ✅
+- ✅ **Set up Azure Storage Account** (`studybuddystorage`) with containers:
+  - ✅ `notes-raw` - stores uploaded PDF files
+  - ✅ `notes-text` - ready for extracted text (not yet used)
+- ✅ **Installed Azure Blob Storage SDK** (`@azure/storage-blob`)
+- ✅ **Created blob service client** with connection string in `local.settings.json`
+- ✅ **Implemented `POST /api/notes/upload` endpoint:**
+  - ✅ Accepts file from multipart/form-data
+  - ✅ Validates file type (PDF only) and size (max 10MB)
+  - ✅ Generates unique blob name with timestamp
+  - ✅ Uploads file to `notes-raw` container
+  - ✅ Saves note metadata to MongoDB (fileName, blobUrl, subjectId, userId, fileSize)
+  - ✅ Returns note metadata to client
+- ✅ **Implemented blob deletion** - deletes from Azure Blob Storage when note is deleted
+- ✅ **Created `blobClient.ts`** with `uploadPdfToRawContainer()` and `deleteBlobByUrl()`
+- ⬜ Add SAS token generation for secure file access (pending)
 
 ### Azure Functions - Text Extraction
 - ⬜ Create Azure Function `ProcessNoteText` (Blob trigger or HTTP trigger)

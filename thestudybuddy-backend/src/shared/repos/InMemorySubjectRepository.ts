@@ -15,14 +15,14 @@ export class InMemorySubjectRepository implements SubjectRepository {
     data: { name: string; color: string }
   ): Promise<Subject> {
     const subject: Subject = {
-      _id: randomUUID(),
+      id: randomUUID(),
       name: data.name,
       color: data.color,
       userId,
       createdAt: new Date().toISOString(),
     };
 
-    this.subjects.set(subject._id, subject);
+    this.subjects.set(subject.id, subject);
     return subject;
   }
 

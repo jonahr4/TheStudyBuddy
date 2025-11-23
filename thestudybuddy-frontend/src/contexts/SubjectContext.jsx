@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { subjectApi } from '../services/api';
+import { useAuth } from '../firebase/AuthContext';
 
 const SubjectContext = createContext({});
 
@@ -22,68 +24,147 @@ export const SUBJECT_COLORS = [
   { name: 'Orange', class: 'bg-orange-500', hex: '#f97316' },
 ];
 
-export function SubjectProvider({ children }) {
-  // Initialize subjects from localStorage or use default mock data
-  const [subjects, setSubjects] = useState(() => {
-    const stored = localStorage.getItem('studybuddy_subjects');
-    if (stored) {
-      return JSON.parse(stored);
-    }
-    // Default mock data
-    return [
-      { id: 1, name: 'Biology 101', color: 'bg-green-500', noteCount: 5, deckCount: 3, createdAt: new Date().toISOString() },
-      { id: 2, name: 'Calculus II', color: 'bg-blue-500', noteCount: 8, deckCount: 5, createdAt: new Date().toISOString() },
-      { id: 3, name: 'World History', color: 'bg-purple-500', noteCount: 3, deckCount: 2, createdAt: new Date().toISOString() },
-      { id: 4, name: 'Chemistry', color: 'bg-red-500', noteCount: 0, deckCount: 0, createdAt: new Date().toISOString() },
-    ];
-  });
+// Helper to convert hex color to Tailwind class
+const hexToTailwindClass = (hex) => {
+  const colorMap = {
+    '#10b981': 'bg-green-500',
+    '#3b82f6': 'bg-blue-500',
+    '#a855f7': 'bg-purple-500',
+    '#ef4444': 'bg-red-500',
+    '#eab308': 'bg-yellow-500',
+    '#ec4899': 'bg-pink-500',
+    '#6366f1': 'bg-indigo-500',
+    '#f97316': 'bg-orange-500',
+  };
+  return colorMap[hex.toLowerCase()] || 'bg-blue-500';
+};
 
-  // Persist to localStorage whenever subjects change
+// Helper to convert Tailwind class to hex
+const tailwindClassToHex = (className) => {
+  const color = SUBJECT_COLORS.find(c => c.class === className);
+  return color ? color.hex : '#3b82f6';
+};
+
+export function SubjectProvider({ children }) {
+  const { currentUser } = useAuth();
+  const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch subjects when user changes (login/logout)
   useEffect(() => {
-    localStorage.setItem('studybuddy_subjects', JSON.stringify(subjects));
-  }, [subjects]);
+    if (currentUser) {
+      fetchSubjects();
+    } else {
+      // Clear subjects when logged out
+      setSubjects([]);
+      setLoading(false);
+    }
+  }, [currentUser]); // Re-run when currentUser changes
+
+  const fetchSubjects = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await subjectApi.getAll();
+      
+      // Transform API data to include Tailwind classes and counts
+      const transformedSubjects = data.map(subject => ({
+        ...subject,
+        color: hexToTailwindClass(subject.color),
+        noteCount: subject.noteCount || 0,
+        deckCount: subject.deckCount || 0,
+      }));
+      
+      setSubjects(transformedSubjects);
+    } catch (err) {
+      console.error('Failed to fetch subjects:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Create a new subject
-  const createSubject = (subjectData) => {
-    const newSubject = {
-      id: Date.now(), // Simple ID generation (will be replaced by backend)
-      name: subjectData.name,
-      color: subjectData.color || 'bg-blue-500',
-      noteCount: 0,
-      deckCount: 0,
-      createdAt: new Date().toISOString(),
-    };
-    setSubjects(prev => [...prev, newSubject]);
-    return newSubject;
+  const createSubject = async (subjectData) => {
+    try {
+      const hex = tailwindClassToHex(subjectData.color);
+      const newSubject = await subjectApi.create({
+        name: subjectData.name,
+        color: hex,
+      });
+      
+      // Transform and add to state
+      const transformedSubject = {
+        ...newSubject,
+        color: hexToTailwindClass(newSubject.color),
+        noteCount: 0,
+        deckCount: 0,
+      };
+      
+      setSubjects(prev => [...prev, transformedSubject]);
+      return transformedSubject;
+    } catch (err) {
+      console.error('Failed to create subject:', err);
+      throw err;
+    }
   };
 
   // Update an existing subject
-  const updateSubject = (id, updates) => {
-    setSubjects(prev =>
-      prev.map(subject =>
-        subject.id === id
-          ? { ...subject, ...updates, updatedAt: new Date().toISOString() }
-          : subject
-      )
-    );
+  const updateSubject = async (id, updates) => {
+    try {
+      const hex = updates.color ? tailwindClassToHex(updates.color) : undefined;
+      const updateData = {
+        ...updates,
+        color: hex,
+      };
+      
+      const updatedSubject = await subjectApi.update(id, updateData);
+      
+      // Transform and update state
+      const transformedSubject = {
+        ...updatedSubject,
+        color: hexToTailwindClass(updatedSubject.color),
+      };
+      
+      setSubjects(prev =>
+        prev.map(subject =>
+          subject.id === id ? { ...subject, ...transformedSubject } : subject
+        )
+      );
+      
+      return transformedSubject;
+    } catch (err) {
+      console.error('Failed to update subject:', err);
+      throw err;
+    }
   };
 
   // Delete a subject
-  const deleteSubject = (id) => {
-    setSubjects(prev => prev.filter(subject => subject.id !== id));
+  const deleteSubject = async (id) => {
+    try {
+      await subjectApi.delete(id);
+      setSubjects(prev => prev.filter(subject => subject.id !== id));
+    } catch (err) {
+      console.error('Failed to delete subject:', err);
+      throw err;
+    }
   };
 
   // Get a single subject by ID
   const getSubject = (id) => {
-    return subjects.find(subject => subject.id === parseInt(id));
+    return subjects.find(subject => subject.id === id);
   };
 
   const value = {
     subjects,
+    loading,
+    error,
     createSubject,
     updateSubject,
     deleteSubject,
     getSubject,
+    refetch: fetchSubjects,
   };
 
   return (

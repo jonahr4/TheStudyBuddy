@@ -117,7 +117,7 @@ export default function TestBackend() {
             <div className="space-y-3">
               {subjects.map((subject) => (
                 <div
-                  key={subject._id}
+                  key={subject.id}
                   className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
                 >
                   <div className="flex items-center gap-3">
@@ -128,12 +128,12 @@ export default function TestBackend() {
                     <div>
                       <h3 className="font-semibold">{subject.name}</h3>
                       <p className="text-xs text-gray-500">
-                        ID: {subject._id} | Created: {new Date(subject.createdAt).toLocaleDateString()}
+                        ID: {subject.id} | Created: {new Date(subject.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                   <button
-                    onClick={() => handleDelete(subject._id)}
+                    onClick={() => handleDelete(subject.id)}
                     className="text-red-600 hover:text-red-800 text-sm font-medium"
                   >
                     Delete

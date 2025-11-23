@@ -5,41 +5,66 @@ import SubjectModal from '../components/SubjectModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function Subjects() {
-  const { subjects, createSubject, updateSubject, deleteSubject } = useSubjects();
+  const { subjects, loading, error, createSubject, updateSubject, deleteSubject } = useSubjects();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
   const [deletingSubject, setDeletingSubject] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState(null);
 
   const handleCreateClick = () => {
     setEditingSubject(null);
     setIsModalOpen(true);
+    setActionError(null);
   };
 
   const handleEditClick = (subject) => {
     setEditingSubject(subject);
     setIsModalOpen(true);
+    setActionError(null);
   };
 
   const handleDeleteClick = (subject) => {
     setDeletingSubject(subject);
+    setActionError(null);
   };
 
-  const handleSave = (subjectData) => {
-    if (editingSubject) {
-      // Update existing subject
-      updateSubject(editingSubject.id, subjectData);
-    } else {
-      // Create new subject
-      createSubject(subjectData);
+  const handleSave = async (subjectData) => {
+    try {
+      setActionLoading(true);
+      setActionError(null);
+      
+      if (editingSubject) {
+        // Update existing subject
+        await updateSubject(editingSubject.id, subjectData);
+      } else {
+        // Create new subject
+        await createSubject(subjectData);
+      }
+      
+      setIsModalOpen(false);
+      setEditingSubject(null);
+    } catch (err) {
+      setActionError(err.message || 'Failed to save subject');
+      console.error('Error saving subject:', err);
+    } finally {
+      setActionLoading(false);
     }
-    setIsModalOpen(false);
-    setEditingSubject(null);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deletingSubject) {
-      deleteSubject(deletingSubject.id);
-      setDeletingSubject(null);
+      try {
+        setActionLoading(true);
+        setActionError(null);
+        await deleteSubject(deletingSubject.id);
+        setDeletingSubject(null);
+      } catch (err) {
+        setActionError(err.message || 'Failed to delete subject');
+        console.error('Error deleting subject:', err);
+      } finally {
+        setActionLoading(false);
+      }
     }
   };
 
@@ -58,7 +83,23 @@ export default function Subjects() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Error Alert */}
+        {(error || actionError) && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="text-red-800 dark:text-red-200">
+              {actionError || error}
+            </p>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading subjects...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {subjects.map(subject => (
             <div key={subject.id} className="card hover:shadow-xl transition-shadow">
               <div className="flex items-start justify-between mb-4">
@@ -116,16 +157,17 @@ export default function Subjects() {
             </div>
           ))}
 
-          {/* Empty state if no subjects */}
-          {subjects.length === 0 && (
-            <div className="col-span-full text-center py-12">
-              <p className="text-gray-500 mb-4">No subjects yet. Create your first subject to get started!</p>
-              <button onClick={handleCreateClick} className="btn-primary">
-                + Create New Subject
-              </button>
-            </div>
-          )}
-        </div>
+            {/* Empty state if no subjects */}
+            {subjects.length === 0 && (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500 mb-4">No subjects yet. Create your first subject to get started!</p>
+                <button onClick={handleCreateClick} className="btn-primary">
+                  + Create New Subject
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Create/Edit Modal */}
@@ -142,13 +184,14 @@ export default function Subjects() {
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         isOpen={!!deletingSubject}
-        onClose={() => setDeletingSubject(null)}
+        onClose={() => !actionLoading && setDeletingSubject(null)}
         onConfirm={handleConfirmDelete}
         title="Delete Subject"
         message={`Are you sure you want to delete "${deletingSubject?.name}"? This will also delete all associated notes and flashcards. This action cannot be undone.`}
-        confirmText="Delete"
+        confirmText={actionLoading ? "Deleting..." : "Delete"}
         cancelText="Cancel"
         type="danger"
+        disabled={actionLoading}
       />
     </div>
   );

@@ -1,20 +1,35 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { useSubjects } from '../contexts/SubjectContext';
+import { useNotes } from '../contexts/NoteContext';
 
 export default function SubjectDetail() {
   const { subjectId } = useParams();
   const { getSubject } = useSubjects();
+  const { fetchNotesBySubject, uploadNote, deleteNote, getNotesForSubject, loading } = useNotes();
   const fileInputRef = useRef(null);
   
   // Get the actual subject from context
   const subject = getSubject(subjectId);
   
   // State management
-  const [notes, setNotes] = useState([]); // Will fetch from backend later
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [uploadingFiles, setUploadingFiles] = useState(false);
+  
+  // Get notes from context
+  const notes = getNotesForSubject(subjectId);
+  
+  // Fetch notes on mount
+  useEffect(() => {
+    if (subjectId) {
+      fetchNotesBySubject(subjectId).catch(err => {
+        console.error('Failed to fetch notes:', err);
+      });
+    }
+  }, [subjectId]);
   
   // Redirect to subjects page if subject not found
   if (!subject) {
@@ -119,11 +134,65 @@ export default function SubjectDetail() {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  // Upload files (placeholder for now)
+  // Upload files to MongoDB
   const handleUpload = async () => {
-    // TODO: Implement actual upload to backend
-    console.log('Uploading files:', selectedFiles);
-    setError('Upload functionality coming soon!');
+    if (selectedFiles.length === 0) return;
+    
+    setError('');
+    setSuccessMessage('');
+    setUploadingFiles(true);
+    
+    try {
+      const uploadPromises = selectedFiles.map(file => 
+        uploadNote(file.name, file.size, subjectId)
+      );
+      
+      await Promise.all(uploadPromises);
+      
+      // Clear selected files
+      setSelectedFiles([]);
+      
+      // Show success message with MongoDB and Azure Blob status
+      const fileCount = selectedFiles.length;
+      setSuccessMessage(
+        `✅ ${fileCount} ${fileCount === 1 ? 'file' : 'files'} successfully uploaded!\n` +
+        `📊 MongoDB: Metadata saved\n` +
+        `☁️ Azure Blob Storage: Pending (being implemented)`
+      );
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(''), 5000);
+    } catch (err) {
+      setError(`Failed to upload: ${err.message}`);
+    } finally {
+      setUploadingFiles(false);
+    }
+  };
+  
+  // Delete a note
+  const handleDelete = async (noteId) => {
+    if (!confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
+      return;
+    }
+    
+    setError('');
+    setSuccessMessage('');
+    
+    try {
+      await deleteNote(noteId, subjectId);
+      
+      // Show success message with MongoDB and Azure Blob status
+      setSuccessMessage(
+        `✅ Note successfully deleted!\n` +
+        `📊 MongoDB: Metadata removed\n` +
+        `☁️ Azure Blob Storage: Pending cleanup (being implemented)`
+      );
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(''), 5000);
+    } catch (err) {
+      setError(`Failed to delete: ${err.message}`);
+    }
   };
 
   return (
@@ -159,7 +228,16 @@ export default function SubjectDetail() {
         {error && (
           <div className="max-w-3xl mx-auto mb-6">
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <p className="text-red-800 dark:text-red-200 text-sm">{error}</p>
+              <p className="text-red-800 dark:text-red-200 text-sm whitespace-pre-line">{error}</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Success Message Display */}
+        {successMessage && (
+          <div className="max-w-3xl mx-auto mb-6">
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+              <p className="text-green-800 dark:text-green-200 text-sm whitespace-pre-line font-medium">{successMessage}</p>
             </div>
           </div>
         )}
@@ -215,8 +293,9 @@ export default function SubjectDetail() {
                 <button 
                   onClick={handleUpload}
                   className="btn-primary"
+                  disabled={uploadingFiles}
                 >
-                  Upload {selectedFiles.length} {selectedFiles.length === 1 ? 'File' : 'Files'}
+                  {uploadingFiles ? 'Uploading...' : `Upload ${selectedFiles.length} ${selectedFiles.length === 1 ? 'File' : 'Files'}`}
                 </button>
               </div>
               <div className="space-y-2">
@@ -250,7 +329,11 @@ export default function SubjectDetail() {
         <div className="max-w-3xl mx-auto">
           <h3 className="text-lg font-semibold mb-4">Uploaded Notes</h3>
           
-          {notes.length > 0 ? (
+          {loading[subjectId] ? (
+            <div className="text-center py-8 text-gray-500">
+              Loading notes...
+            </div>
+          ) : notes.length > 0 ? (
             <div className="space-y-3">
               {notes.map(note => (
                 <div key={note.id} className="card flex items-center justify-between hover:shadow-md transition-shadow">
@@ -258,18 +341,28 @@ export default function SubjectDetail() {
                     <div className="text-red-500 text-2xl">📄</div>
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white">
-                        {note.name}
+                        {note.fileName}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {note.size} • Uploaded {note.uploadDate}
+                        {formatFileSize(note.fileSize)} • Uploaded {new Date(note.uploadedAt).toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {note.blobUrl.startsWith('placeholder') ? '☁️ Azure Blob: Pending upload' : '☁️ Azure Blob: Available'}
                       </p>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button className="btn-secondary text-sm">
+                    <button 
+                      className="btn-secondary text-sm"
+                      disabled={note.blobUrl.startsWith('placeholder')}
+                      title={note.blobUrl.startsWith('placeholder') ? 'File not yet available in Azure Blob Storage' : 'View file'}
+                    >
                       View
                     </button>
-                    <button className="text-red-600 hover:text-red-700 text-sm font-medium px-3 py-1">
+                    <button 
+                      onClick={() => handleDelete(note.id)}
+                      className="text-red-600 hover:text-red-700 text-sm font-medium px-3 py-1"
+                    >
                       Delete
                     </button>
                   </div>

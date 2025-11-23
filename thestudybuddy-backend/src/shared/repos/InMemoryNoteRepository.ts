@@ -12,14 +12,16 @@ export class InMemoryNoteRepository implements NoteRepository {
     userId: string,
     data: {
       fileName: string;
+      fileSize: number;
       blobUrl: string;
       textUrl?: string | null;
       subjectId: string;
     }
   ): Promise<Note> {
     const note: Note = {
-      _id: randomUUID(),
+      id: randomUUID(),
       fileName: data.fileName,
+      fileSize: data.fileSize,
       blobUrl: data.blobUrl,
       textUrl: data.textUrl || null,
       subjectId: data.subjectId,
@@ -27,7 +29,7 @@ export class InMemoryNoteRepository implements NoteRepository {
       uploadedAt: new Date().toISOString(),
     };
 
-    this.notes.set(note._id, note);
+    this.notes.set(note.id, note);
     return note;
   }
 

@@ -91,9 +91,34 @@ export const subjectApi = {
 };
 
 /**
+ * Note API calls
+ */
+export const noteApi = {
+  // Get all notes for a subject
+  getBySubject: async (subjectId: string) => {
+    return apiRequest(`/notes/${subjectId}`);
+  },
+
+  // Upload note metadata (file will be uploaded to Azure Blob Storage separately)
+  upload: async (data: { fileName: string; fileSize: number; subjectId: string }) => {
+    return apiRequest('/notes/upload', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Delete note
+  delete: async (noteId: string) => {
+    return apiRequest(`/notes/delete/${noteId}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+/**
  * Example usage in a React component:
  * 
- * import { subjectApi } from './services/api';
+ * import { subjectApi, noteApi } from './services/api';
  * 
  * // Get all subjects
  * const subjects = await subjectApi.getAll();
@@ -109,4 +134,17 @@ export const subjectApi = {
  * 
  * // Delete a subject
  * await subjectApi.delete(subjectId);
+ * 
+ * // Get notes for a subject
+ * const notes = await noteApi.getBySubject(subjectId);
+ * 
+ * // Upload note
+ * const note = await noteApi.upload({
+ *   fileName: "Chapter1.pdf",
+ *   fileSize: 1024000,
+ *   subjectId: subjectId
+ * });
+ * 
+ * // Delete note
+ * await noteApi.delete(noteId);
  */

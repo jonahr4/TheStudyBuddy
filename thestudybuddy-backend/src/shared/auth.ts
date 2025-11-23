@@ -1,31 +1,30 @@
 import { HttpRequest } from "@azure/functions";
+import { getFirebaseAdmin } from "../firebase/admin";
 
 /**
  * Extract and verify user ID from Firebase Auth token
- * 
- * TODO: Implement full Firebase Admin SDK verification
- * - Install firebase-admin
- * - Initialize with service account credentials
- * - Verify ID token from Authorization header
- * - Extract and return the verified UID
- * 
- * For now, this is a stub for local development.
+ * This verifies the token sent from the frontend and returns the user's UID
  */
 export async function getUserIdFromRequest(req: HttpRequest): Promise<string> {
   const authHeader = req.headers.get("authorization");
   
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    // TODO: Verify the token with firebase-admin
-    // const token = authHeader.substring(7);
-    // const decodedToken = await admin.auth().verifyIdToken(token);
-    // return decodedToken.uid;
-    
-    // For now, return a dev user ID for local testing
-    return "dev-user-id";
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    throw new Error("No authorization token provided");
   }
-  
-  // For local development without auth, return a fixed dev user
-  // In production, you might want to return 401 Unauthorized instead
-  return "dev-user-id";
+
+  try {
+    // Extract token from "Bearer <token>"
+    const token = authHeader.substring(7);
+    
+    // Verify the Firebase ID token
+    const admin = getFirebaseAdmin();
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    
+    // Return the verified user ID
+    return decodedToken.uid;
+  } catch (error: any) {
+    console.error("Token verification error:", error.message);
+    throw new Error("Invalid or expired token");
+  }
 }
 

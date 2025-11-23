@@ -10,8 +10,15 @@ const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:7071/api
  * Get Firebase Auth token from current user
  */
 async function getAuthToken() {
-  // TODO: Get Firebase auth token
-  // For now, return empty string (you'll need to add Firebase auth later)
+  // Import Firebase auth
+  const { auth } = await import('../firebase/config');
+  const user = auth.currentUser;
+  
+  if (user) {
+    // Get fresh token from Firebase
+    return await user.getIdToken();
+  }
+  
   return '';
 }
 

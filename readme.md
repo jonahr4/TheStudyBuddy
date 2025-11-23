@@ -11,13 +11,14 @@ This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and 
 - [Stretch Features](#stretch-features)
 - [Tech Stack](#tech-stack-azure-centric)
 - [How It Works](#how-it-works)
+- [Backend Architecture Overview](#backend-architecture-overview)
 - [Local Development Setup](#local-development-setup)
 - [Development Phases](#development-phases-for-thestudybuddy)
   - [Phase 1 — Frontend Skeleton](#phase-1--frontend-skeleton-)
-  - [Phase 2 — Frontend UI Components](#phase-2--frontend-ui-components)
-  - [Phase 3 — Deploy Frontend](#phase-3--deploy-frontend)
-  - [Phase 4 — Backend Development](#phase-4--backend-development-azure-functions)
-  - [Phase 5 — Connect Frontend and Backend](#phase-5--connect-frontend-and-backend)
+  - [Phase 2 — Frontend UI Components & Firebase Auth Integration](#phase-2--frontend-ui-components--firebase-auth-integration-)
+  - [Phase 3 — Deploy Frontend](#phase-3--deploy-frontend-)
+  - [Phase 4 — Backend Development (Azure + MongoDB)](#phase-4--backend-development-azure--mongodb--in-progress)
+  - [Phase 5 — Connect Frontend and Backend](#phase-5--connect-frontend-and-backend--partially-complete)
   - [Phase 6 — Stretch Features](#phase-6--stretch-features)
 
 ---
@@ -192,8 +193,45 @@ If you have access to the Firebase Console:
    - Add authorized domains (localhost is already included)
    - No additional configuration needed for development
 
-### 6. Start the Development Server
+### 6. Set Up Backend (Optional - for full functionality)
+
+To enable Subjects CRUD operations with MongoDB:
+
+**Navigate to backend directory:**
 ```bash
+cd ../thestudybuddy-backend
+npm install
+```
+
+**Contact Jonah for MongoDB credentials!**
+
+Create a `local.settings.json` file in `thestudybuddy-backend`:
+```json
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "MONGODB_URI": "<get_from_jonah>",
+    "FIREBASE_PROJECT_ID": "thestudybuddy-8da15"
+  },
+  "Host": {
+    "CORS": "*"
+  }
+}
+```
+
+**Start the backend:**
+```bash
+npm run start
+```
+
+Backend will run on `http://localhost:7071`
+
+> **Note:** The frontend will work without the backend (using mock data), but Subjects CRUD will only work with the backend running.
+
+### 7. Start the Frontend Development Server
+```bash
+cd ../thestudybuddy-frontend
 npm run dev
 ```
 
@@ -207,15 +245,17 @@ VITE v7.2.4  ready in 500 ms
 
 **The app is now running at** `http://localhost:5173` 🎉
 
-### 7. Verify Installation
+### 8. Verify Installation
 Open your browser to `http://localhost:5173` and you should see:
 - ✅ Landing page with gradient background
 - ✅ Navbar with "Study Buddy" branding
 - ✅ Buttons and navigation working
 - ✅ Login page accessible at `/login`
+- ✅ Create subjects and see them persist (if backend is running)
 
 ## Quick Command Reference
 
+### Frontend Commands (thestudybuddy-frontend)
 ```bash
 # Start development server (with hot reload)
 npm run dev
@@ -228,12 +268,18 @@ npm run preview
 
 # Run linter to check code quality
 npm run lint
+```
 
-# Install a new package (example)
-npm install <package-name>
+### Backend Commands (thestudybuddy-backend)
+```bash
+# Start Azure Functions backend
+npm run start
 
-# Update dependencies
-npm update
+# Build TypeScript
+npm run build
+
+# Watch mode for development
+npm run watch
 ```
 
 ## Project Structure
@@ -244,22 +290,54 @@ TheStudyBuddy/
 │   │   ├── assets/             # Images and static files
 │   │   ├── components/         # Reusable UI components
 │   │   │   ├── Navbar.jsx      # Navigation bar with links
-│   │   │   └── Layout.jsx      # Page wrapper with navbar
+│   │   │   ├── Layout.jsx      # Page wrapper with navbar
+│   │   │   ├── PrivateRoute.jsx # Protected route wrapper
+│   │   │   ├── SubjectModal.jsx # Create/edit subject modal
+│   │   │   └── ConfirmDialog.jsx # Delete confirmation dialog
+│   │   ├── contexts/           # React Context providers
+│   │   │   └── SubjectContext.jsx # Subject state management
 │   │   ├── firebase/           # Firebase configuration
-│   │   │   └── config.js       # Firebase initialization and auth setup
+│   │   │   ├── config.js       # Firebase initialization
+│   │   │   └── AuthContext.jsx # Auth state management
+│   │   ├── services/           # API service layer
+│   │   │   └── api.ts          # Backend API calls with auth
 │   │   ├── pages/              # Route pages
 │   │   │   ├── Landing.jsx     # Homepage with hero section
 │   │   │   ├── Login.jsx       # Authentication page
+│   │   │   ├── SignUp.jsx      # Registration with first name
 │   │   │   ├── Dashboard.jsx   # Overview of subjects, decks, and chats
 │   │   │   ├── Subjects.jsx    # List all subjects, create new ones
 │   │   │   ├── SubjectDetail.jsx # Manage notes for a specific subject
 │   │   │   ├── Flashcards.jsx  # Study flashcards (filter by subject)
 │   │   │   ├── Chat.jsx        # AI chat (switch between subjects)
+│   │   │   ├── TestBackend.jsx # Backend connection test page
 │   │   │   └── NotFound.jsx    # 404 page
 │   │   ├── App.jsx             # Main app with routes
 │   │   ├── index.css           # Global styles and theming
 │   │   └── main.jsx            # App entry point
 │   ├── .env.local              # Environment variables (git-ignored)
+│   └── package.json            # Dependencies
+├── thestudybuddy-backend/      # Azure Functions + TypeScript backend
+│   ├── src/
+│   │   ├── db/
+│   │   │   └── connectMongo.ts # MongoDB connection utility
+│   │   ├── firebase/
+│   │   │   └── admin.ts        # Firebase Admin SDK initialization
+│   │   ├── functions/
+│   │   │   ├── SubjectsHttp.ts # Subject CRUD API endpoints
+│   │   │   ├── NotesHttp.ts    # Notes API (placeholder)
+│   │   │   ├── FlashcardsHttp.ts # Flashcards API (placeholder)
+│   │   │   └── ChatWithAI.ts   # AI chat API (placeholder)
+│   │   ├── models/
+│   │   │   └── Subject.ts      # Mongoose Subject schema
+│   │   ├── shared/
+│   │   │   ├── auth.ts         # Firebase token verification
+│   │   │   ├── types.ts        # TypeScript interfaces
+│   │   │   └── repos/          # Repository pattern implementations
+│   │   │       ├── SubjectRepository.ts # Subject repo interface
+│   │   │       └── MongoSubjectRepository.ts # MongoDB implementation
+│   │   └── index.ts            # Main entry point
+│   ├── local.settings.json     # Azure Functions config (git-ignored)
 │   └── package.json            # Dependencies
 └── README.md                   # This file
 ```
@@ -283,9 +361,22 @@ TheStudyBuddy/
 - `npm run lint` - Run ESLint
 
 ## Troubleshooting
-- **Port already in use?** Change the port in `vite.config.js` or kill the process using port 5173
+
+### Frontend Issues
+- **Port already in use?** Change the port in `vite.config.js` or kill the process using port 5174
 - **Firebase errors?** Double-check your `.env.local` file has all required variables
 - **Module not found?** Run `npm install` again to ensure all dependencies are installed
+
+### Backend Issues
+- **Port 7071 already in use?** Kill the process: `lsof -ti:7071 | xargs kill -9`
+- **MongoDB connection failed?** Verify `MONGODB_URI` in `local.settings.json`
+- **Firebase token verification errors?** Ensure `FIREBASE_PROJECT_ID` matches your frontend project
+- **CORS errors?** Check that `CORS: "*"` is set in `local.settings.json`
+
+### Full Stack Testing
+- Visit `http://localhost:5174/test-backend` to verify backend connection
+- Create a subject to test the full authentication flow
+- Check browser console and terminal for detailed error messages
 
 ---
 
@@ -332,7 +423,7 @@ A fully styled, navigable app with subject-based organization, mock data, and Fi
 
 ---
 
-## Phase 2 — Frontend UI Components & Firebase Auth Integration
+## Phase 2 — Frontend UI Components & Firebase Auth Integration ✅
 Build interactive UI elements and connect Firebase authentication.
 
 Tasks:
@@ -345,10 +436,13 @@ Tasks:
   - ✅ Store first name in user profile (displayName)
   - ✅ Display first name (up to 10 chars) in navbar
   - ✅ Add logo (IMG_3002.png) to navbar
-- ⬜ Subject management:
-  - ⬜ Create new subject modal/form
-  - ⬜ Edit subject functionality
-  - ⬜ Delete subject with confirmation
+  - ✅ Add animated purple indicator to navbar
+- ✅ Subject management UI:
+  - ✅ Create new subject modal with color picker
+  - ✅ Edit subject functionality
+  - ✅ Delete subject with confirmation dialog
+  - ✅ Subject cards with note/deck counts
+  - ✅ Empty states for no subjects
 - ⬜ Note upload UI:
   - ⬜ Implement drag-and-drop functionality
   - ⬜ Add file preview with thumbnails
@@ -365,15 +459,16 @@ Tasks:
   - ⬜ Typing indicator animation
   - ⬜ Message timestamps
   - ⬜ Auto-scroll to latest message
-- ⬜ UI polish:
-  - ⬜ Add loading states and skeletons
-  - ⬜ Error handling UI (toasts/alerts)
-  - ⬜ Confirmation modals for destructive actions
-  - ⬜ Responsive design for mobile/tablet
-  - ⬜ Empty states for all pages
+- ✅ UI polish:
+  - ✅ Add loading states and spinners
+  - ✅ Error handling UI (error alerts)
+  - ✅ Confirmation modals for destructive actions (ConfirmDialog component)
+  - ✅ Responsive design for mobile/tablet
+  - ✅ Empty states for all pages
+  - ✅ Gradient backgrounds with blur effects
 
 Outcome:
-Fully interactive frontend with Firebase Auth working, mock data for subjects/notes/decks/chats, polished animations, and responsive design.
+✅ Fully interactive frontend with Firebase Auth working, Subjects fully functional with real data, mock data remaining for notes/decks/chats, polished animations, and responsive design.
 
 ---
 
@@ -391,34 +486,51 @@ Outcome:
 
 ---
 
-## Phase 4 — Backend Development (Azure + MongoDB)
+## Phase 4 — Backend Development (Azure + MongoDB) 🚧 In Progress
 Build the backend API and serverless functions to support core features with subject-based organization.
 
+### Current Status
+✅ **Subjects fully functional** - Complete end-to-end implementation with authenticated CRUD operations  
+🔄 **Backend running locally** - Azure Functions working on localhost:7071  
+⏳ **Production deployment pending** - Need to deploy Azure Functions to cloud  
+⏳ **Notes, Flashcards, Chat** - Not yet implemented (coming next)
+
 ### MongoDB Models & Setup
-- ✅ Set up MongoDB Atlas cluster and database
+- ✅ Set up MongoDB Atlas cluster (`studybuddy` database)
+- ✅ Connected MongoDB to backend with connection pooling
 - ⬜ Create `users` collection schema (email, name, createdAt)
-- ✅ Create `subjects` collection schema (name, color, userId, createdAt)
+- ✅ **Created `subjects` collection schema** (name, color, userId, createdAt)
+  - ✅ Implemented Mongoose model with validation
+  - ✅ Created MongoSubjectRepository with full CRUD operations
+  - ✅ Added userId index for fast user-specific queries
+  - ✅ Tested with real data - working perfectly!
 - ⬜ Create `notes` collection schema (fileName, blobUrl, textUrl, subjectId, userId, uploadedAt)
 - ⬜ Create `flashcards` collection schema (question, answer, subjectId, noteId, createdAt)
-- ✅ Create indexes on `userId`, `subjectId` for efficient querying
-- ✅ Write MongoDB connection utility (with retry logic)
-- ✅ Test database connections and CRUD operations (subjects working)
+- ✅ Write MongoDB connection utility (with retry logic and error handling)
+- ✅ Test database connections and CRUD operations (subjects fully working)
 
-### API Routes (Express.js or Azure Functions HTTP Triggers)
-- ✅ Set up Azure Functions HTTP project
-- ✅ Implement Firebase Auth token verification middleware
-- ✅ Create `POST /api/subjects` - Create new subject
-- ✅ Create `GET /api/subjects` - List all subjects for authenticated user
-- ✅ Create `GET /api/subjects/:id` - Get single subject details
-- ✅ Create `PUT /api/subjects/:id` - Update subject (name, color)
-- ✅ Create `DELETE /api/subjects/:id` - Delete subject (with cascade delete of notes/flashcards)
+### API Routes (Azure Functions HTTP Triggers)
+- ✅ **Set up Azure Functions v4 TypeScript project**
+- ✅ **Implemented Firebase Admin SDK for token verification**
+  - ✅ Extracts Bearer token from Authorization header
+  - ✅ Verifies token with Firebase Admin
+  - ✅ Returns actual user's Firebase UID
+  - ✅ Ensures users only see their own data
+- ✅ **Subject API fully implemented:**
+  - ✅ `POST /api/subjects` - Create new subject (authenticated)
+  - ✅ `GET /api/subjects` - List all subjects for authenticated user
+  - ✅ `GET /api/subjects/:id` - Get single subject details
+  - ✅ `PUT /api/subjects/:id` - Update subject (name, color)
+  - ✅ `DELETE /api/subjects/:id` - Delete subject
+  - ✅ All routes enforce user ownership validation
+  - ✅ Proper error handling with status codes
 - ⬜ Create `GET /api/notes/:subjectId` - Get all notes for a subject
 - ⬜ Create `DELETE /api/notes/:id` - Delete a note (remove from Blob + MongoDB)
 - ⬜ Create `GET /api/flashcards/:subjectId` - Get all flashcards for a subject
-- ⬜ Add error handling middleware (catch all errors, return proper status codes)
-- ⬜ Add request logging middleware
+- ✅ Add error handling with try/catch blocks
+- ✅ Configure CORS for local development
 
-### Azure Blob Storage Integration
+### Azure Blob Storage Integration ⏳ Coming Next
 - ⬜ Set up Azure Storage Account and create containers (`notes-raw`, `notes-text`)
 - ⬜ Install Azure Blob Storage SDK (`@azure/storage-blob`)
 - ⬜ Create Blob service client with connection string
@@ -432,6 +544,8 @@ Build the backend API and serverless functions to support core features with sub
   - ⬜ Return note metadata to client
 - ⬜ Implement blob deletion when note is deleted
 - ⬜ Add SAS token generation for secure file access (optional)
+
+**Next Steps:** Create Note model and repository following the same pattern as Subjects
 
 ### Azure Functions - Text Extraction
 - ⬜ Create Azure Function `ProcessNoteText` (Blob trigger or HTTP trigger)
@@ -481,53 +595,81 @@ Build the backend API and serverless functions to support core features with sub
 - ⬜ Implement vector search for relevant note retrieval in RAG
 
 ### Testing & Deployment
+- ✅ **Local testing fully working:**
+  - ✅ Created test page at `/test-backend` for API validation
+  - ✅ Backend running on localhost:7071
+  - ✅ Frontend running on localhost:5174
+  - ✅ CORS configured for local development
+  - ✅ Subjects CRUD operations tested and working
+  - ✅ User authentication and isolation verified
 - ⬜ Write unit tests for API routes
 - ⬜ Write integration tests for Azure Functions
 - ⬜ Test end-to-end: upload → extract → generate flashcards → chat
-- ⬜ Deploy Azure Functions to Azure
-- ⬜ Deploy Express API to Azure App Service or Container
-- ⬜ Set up environment variables in Azure
-- ⬜ Configure CORS for frontend domain
-- ⬜ Test deployed endpoints from frontend
+- ⬜ **Deploy Azure Functions to Azure Cloud** (currently only running locally)
+- ⬜ Set up environment variables in Azure Portal
+- ⬜ Configure CORS for production frontend domain
+- ⬜ Update frontend `VITE_API_URL` to point to deployed Azure Functions
+- ⬜ Test deployed endpoints from production frontend
 
-Outcome:
+**Current Status:** Backend is fully functional locally but not yet deployed to Azure cloud. Production frontend uses mock data until backend is deployed.
+
+Outcome (when complete):
 Backend supports all core functionality with subject-based organization, AI-powered flashcards, and RAG chat.
 
 ---
 
-## Phase 5 — Connect Frontend and Backend
+## Phase 5 — Connect Frontend and Backend 🚧 Partially Complete
 Replace mock data with real API calls and data from MongoDB.
 
-Tasks:
-- Subject management:
-  - Connect Subjects page to subject API (CRUD operations)
-  - Fetch and display real subject data on Dashboard
-- Note upload integration:
-  - Connect Subject Detail page to upload API
-  - Show real note list from MongoDB
-  - Display upload progress and handle errors
-  - Enforce 10-note limit from backend
-- Flashcard integration:
-  - Fetch flashcard decks filtered by subject
-  - Display generated flashcards from Azure OpenAI
-  - Track study progress in MongoDB
-- Chat integration:
-  - Connect chat UI to subject-specific chat API
-  - Send/receive messages with RAG context
-  - Load chat history from MongoDB
-  - Handle streaming responses
-- Global state management:
-  - Implement state management (Context API or Zustand)
-  - Cache subject and deck data
-  - Handle authentication state
-- Loading and error handling:
-  - Add loading spinners for all API calls
-  - Display user-friendly error messages
-  - Implement retry logic for failed requests
-  - Add offline detection
+### Completed Tasks:
+- ✅ **Subject management fully integrated:**
+  - ✅ Created SubjectContext with React Context API
+  - ✅ Connected Subjects page to subject API (full CRUD)
+  - ✅ Dashboard displays real subject data from MongoDB
+  - ✅ Context refetches subjects on user login/logout
+  - ✅ Create, update, delete subjects working perfectly
+  - ✅ Color conversion between Tailwind classes and hex
+  - ✅ Loading states and error handling implemented
+- ✅ **API Service Layer:**
+  - ✅ Created `services/api.ts` with authentication
+  - ✅ Automatic Firebase token injection in requests
+  - ✅ Graceful degradation when backend unavailable (production)
+  - ✅ Environment-aware API URL (dev vs production)
+- ✅ **Authentication integration:**
+  - ✅ SubjectContext listens to auth state changes
+  - ✅ Subjects cleared on logout
+  - ✅ Subjects refetched on login
+  - ✅ Each user only sees their own subjects
+- ✅ **Loading and error handling:**
+  - ✅ Loading spinners for all subject API calls
+  - ✅ User-friendly error messages
+  - ✅ Action loading states (create/update/delete)
+  - ✅ Empty states when no subjects exist
 
-Outcome:
+### Remaining Tasks:
+- ⬜ Note upload integration:
+  - ⬜ Connect Subject Detail page to upload API
+  - ⬜ Show real note list from MongoDB
+  - ⬜ Display upload progress and handle errors
+  - ⬜ Enforce 10-note limit from backend
+- ⬜ Flashcard integration:
+  - ⬜ Fetch flashcard decks filtered by subject
+  - ⬜ Display generated flashcards from Azure OpenAI
+  - ⬜ Track study progress in MongoDB
+- ⬜ Chat integration:
+  - ⬜ Connect chat UI to subject-specific chat API
+  - ⬜ Send/receive messages with RAG context
+  - ⬜ Load chat history from MongoDB
+  - ⬜ Handle streaming responses
+- ⬜ Final polish:
+  - ⬜ Implement retry logic for failed requests
+  - ⬜ Add offline detection
+  - ⬜ Update Dashboard to show real deck and chat counts
+
+Outcome (when complete):
 A fully functional, end-to-end application with real data and AI features.
+
+**Current Status:** Subjects feature is 100% complete with full backend integration. Notes, Flashcards, and Chat still using mock data.
 
 ---
 

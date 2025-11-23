@@ -1,13 +1,13 @@
 import { app } from "@azure/functions";
-import { InMemorySubjectRepository } from "./shared/repos/InMemorySubjectRepository";
-import { InMemoryNoteRepository } from "./shared/repos/InMemoryNoteRepository";
+import { MongoSubjectRepository } from "./shared/repos/MongoSubjectRepository";
+import { MongoNoteRepository } from "./shared/repos/MongoNoteRepository";
 import { InMemoryFlashcardRepository } from "./shared/repos/InMemoryFlashcardRepository";
 
 // Initialize singleton repositories
-// Using in-memory implementations for now
-// Will be replaced with MongoDB implementations later
-export const subjectRepo = new InMemorySubjectRepository();
-export const noteRepo = new InMemoryNoteRepository();
+// Subjects and Notes now use MongoDB!
+export const subjectRepo = new MongoSubjectRepository();
+export const noteRepo = new MongoNoteRepository();
+// Note: Flashcards still use in-memory for now, will be replaced later
 export const flashcardRepo = new InMemoryFlashcardRepository();
 
 // Import all HTTP functions

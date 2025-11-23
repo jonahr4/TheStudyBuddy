@@ -11,6 +11,7 @@ export interface NoteRepository {
     userId: string,
     data: {
       fileName: string;
+      fileSize: number;
       blobUrl: string;
       textUrl?: string | null;
       subjectId: string;

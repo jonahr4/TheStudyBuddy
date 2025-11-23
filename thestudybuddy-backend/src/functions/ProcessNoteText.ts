@@ -98,7 +98,7 @@ app.http("processNoteText", {
       }
 
       // 4. Upload the text to notes-text container
-      const textBlobName = `${note.userId}/${note.subjectId}/${note._id}.txt`;
+      const textBlobName = `${note.userId}/${note.subjectId}/${note.id}.txt`;
       context.log(`Uploading text to blob: ${textBlobName}`);
       const blockBlobClient = textContainerClient.getBlockBlobClient(textBlobName);
 
@@ -110,7 +110,7 @@ app.http("processNoteText", {
       context.log(`✅ Text uploaded to: ${textUrl}`);
 
       // 5. Update the note's textUrl
-      const updatedNote = await noteRepo.updateNote(note.userId, note._id, { textUrl });
+      const updatedNote = await noteRepo.updateNote(note.userId, note.id, { textUrl });
       if (!updatedNote) {
         throw new Error("Failed to update note with textUrl");
       }

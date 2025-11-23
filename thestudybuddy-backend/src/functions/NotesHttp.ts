@@ -1,5 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { getUserIdFromRequest } from "../shared/auth";
+import { getUserInfoFromRequest } from "../shared/auth";
 import { noteRepo } from "../index";
 import { ErrorResponse } from "../shared/types";
 
@@ -12,7 +12,7 @@ app.http("getNotesBySubject", {
   route: "notes/{subjectId}",
   handler: async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
     try {
-      const userId = await getUserIdFromRequest(request);
+      const { userId } = await getUserInfoFromRequest(request);
       const subjectId = request.params.subjectId;
 
       if (!subjectId) {
@@ -47,7 +47,7 @@ app.http("deleteNote", {
   route: "notes/delete/{id}",
   handler: async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
     try {
-      const userId = await getUserIdFromRequest(request);
+      const { userId } = await getUserInfoFromRequest(request);
       const id = request.params.id;
 
       if (!id) {

@@ -14,10 +14,11 @@ export class MongoNoteRepository implements NoteRepository {
    */
   async createNote(
     userId: string,
-    data: { fileName: string; fileSize: number; blobUrl: string; textUrl?: string | null; subjectId: string }
+    data: { fileName: string; fileSize: number; blobUrl: string; textUrl?: string | null; subjectId: string; userEmail?: string }
   ): Promise<Note> {
     const noteData: any = {
       userId,
+      userEmail: data.userEmail,
       subjectId: data.subjectId,
       fileName: data.fileName,
       fileSize: data.fileSize,
@@ -93,6 +94,7 @@ export class MongoNoteRepository implements NoteRepository {
     return {
       id: doc._id.toString(),
       userId: doc.userId,
+      userEmail: doc.userEmail,
       subjectId: doc.subjectId,
       fileName: doc.fileName,
       fileSize: doc.fileSize,

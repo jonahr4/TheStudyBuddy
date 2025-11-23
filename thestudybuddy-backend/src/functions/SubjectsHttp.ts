@@ -1,5 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { getUserIdFromRequest } from "../shared/auth";
+import { getUserInfoFromRequest } from "../shared/auth";
 import { subjectRepo } from "../index";
 import { CreateSubjectRequest, UpdateSubjectRequest, ErrorResponse } from "../shared/types";
 
@@ -12,7 +12,7 @@ app.http("getSubjects", {
   route: "subjects",
   handler: async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
     try {
-      const userId = await getUserIdFromRequest(request);
+      const { userId } = await getUserInfoFromRequest(request);
       const subjects = await subjectRepo.getSubjectsByUser(userId);
       
       return {
@@ -38,7 +38,7 @@ app.http("createSubject", {
   route: "subjects",
   handler: async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
     try {
-      const userId = await getUserIdFromRequest(request);
+      const { userId, userEmail } = await getUserInfoFromRequest(request);
       const body = await request.json() as CreateSubjectRequest;
 
       // Validate required fields
@@ -52,6 +52,7 @@ app.http("createSubject", {
       const subject = await subjectRepo.createSubject(userId, {
         name: body.name,
         color: body.color,
+        userEmail,
       });
 
       return {
@@ -77,7 +78,7 @@ app.http("getSubject", {
   route: "subjects/{id}",
   handler: async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
     try {
-      const userId = await getUserIdFromRequest(request);
+      const { userId } = await getUserInfoFromRequest(request);
       const id = request.params.id;
 
       if (!id) {
@@ -119,7 +120,7 @@ app.http("updateSubject", {
   route: "subjects/{id}",
   handler: async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
     try {
-      const userId = await getUserIdFromRequest(request);
+      const { userId } = await getUserInfoFromRequest(request);
       const id = request.params.id;
 
       if (!id) {
@@ -162,7 +163,7 @@ app.http("deleteSubject", {
   route: "subjects/{id}",
   handler: async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
     try {
-      const userId = await getUserIdFromRequest(request);
+      const { userId } = await getUserInfoFromRequest(request);
       const id = request.params.id;
 
       if (!id) {

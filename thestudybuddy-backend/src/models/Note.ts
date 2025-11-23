@@ -6,6 +6,7 @@ import mongoose, { Schema, Document } from "mongoose";
  */
 export interface INote extends Document {
   userId: string;          // Firebase UID of the owner
+  userEmail?: string;      // User's email address (for easier debugging/admin)
   subjectId: string;       // ID of the subject this note belongs to
   fileName: string;        // Original filename (e.g., "Chapter1.pdf")
   blobUrl: string;         // Azure Blob Storage URL for the PDF (placeholder for now)
@@ -22,6 +23,10 @@ const NoteSchema: Schema = new Schema({
     type: String,
     required: true,
     index: true, // Index for fast user queries
+  },
+  userEmail: {
+    type: String,
+    required: false, // Optional for backwards compatibility
   },
   subjectId: {
     type: String,

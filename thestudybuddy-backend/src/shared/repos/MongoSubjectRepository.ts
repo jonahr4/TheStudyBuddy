@@ -1,6 +1,7 @@
 import { SubjectRepository } from "./SubjectRepository";
 import { Subject } from "../types";
 import SubjectModel from "../../models/Subject";
+import NoteModel from "../../models/Note";
 
 /**
  * MongoDB implementation of SubjectRepository
@@ -31,7 +32,15 @@ export class MongoSubjectRepository implements SubjectRepository {
    */
   async getSubjectsByUser(userId: string): Promise<Subject[]> {
     const subjects = await SubjectModel.find({ userId }).sort({ createdAt: -1 });
-    return subjects.map(this.toSubject);
+    const subjectsWithCounts = await Promise.all(
+      subjects.map(async (subject) => {
+        const noteCount = await NoteModel.countDocuments({ userId, subjectId: subject._id.toString() });
+        const subjectData = this.toSubject(subject);
+        subjectData.noteCount = noteCount;
+        return subjectData;
+      })
+    );
+    return subjectsWithCounts;
   }
 
   /**

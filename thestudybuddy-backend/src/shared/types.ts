@@ -9,6 +9,7 @@ export interface Subject {
   userId: string;     // Firebase UID
   userEmail?: string; // User's email (optional for backwards compatibility)
   createdAt: string;  // ISO timestamp
+  noteCount?: number; // Number of notes in this subject
 }
 
 export interface Note {

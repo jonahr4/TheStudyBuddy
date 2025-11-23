@@ -1,6 +1,6 @@
 import { app } from "@azure/functions";
 import { MongoSubjectRepository } from "./shared/repos/MongoSubjectRepository";
-import { InMemoryNoteRepository } from "./shared/repos/InMemoryNoteRepository";
+import { MongoNoteRepository } from "./shared/repos/MongoNoteRepository";
 import { InMemoryFlashcardRepository } from "./shared/repos/InMemoryFlashcardRepository";
 import { connectMongo } from "./db/connectMongo";
 import { initializeFirebaseAdmin } from "./firebase/admin";
@@ -15,16 +15,16 @@ connectMongo().catch((err) => {
 });
 
 // Initialize singleton repositories
-// Subject repository now uses MongoDB!
+// Subjects and Notes now use MongoDB!
 export const subjectRepo = new MongoSubjectRepository();
-// Note: Notes and Flashcards still use in-memory for now, will be replaced later
-export const noteRepo = new InMemoryNoteRepository();
+export const noteRepo = new MongoNoteRepository();
+// Note: Flashcards still use in-memory for now, will be replaced later
 export const flashcardRepo = new InMemoryFlashcardRepository();
 
 // Import all HTTP functions
 import "./functions/SubjectsHttp";
 import "./functions/NotesHttp";
-import "./functions/NotesUpload";
+// import "./functions/NotesUpload"; // Deprecated - upload endpoint moved to NotesHttp
 import "./functions/FlashcardsHttp";
 // import "./functions/GenerateFlashcards"; // TODO: Create this function
 import "./functions/ChatWithAI";

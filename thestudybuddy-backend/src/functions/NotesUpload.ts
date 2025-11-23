@@ -65,12 +65,13 @@ app.http("uploadNote", {
       
       const note = await noteRepo.createNote(userId, {
         fileName: result.file.filename,
+        fileSize: result.file.data.length, // Size of the uploaded file in bytes
         blobUrl: placeholderBlobUrl,
         textUrl: null, // Will be set after text extraction
         subjectId: result.subjectId,
       });
 
-      context.log(`Note uploaded: ${note._id} (placeholder URL for now)`);
+      context.log(`Note uploaded: ${note.id} (placeholder URL for now)`);
 
       return {
         status: 201,

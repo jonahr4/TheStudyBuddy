@@ -11,12 +11,13 @@ export interface Subject {
 }
 
 export interface Note {
-  _id: string;
+  id: string;              // note id (stringified ObjectId)
   fileName: string;        // original filename.pdf
-  blobUrl: string;         // Azure Blob URL for the PDF (or placeholder for now)
+  blobUrl: string;         // Azure Blob URL for the PDF (placeholder until blob storage ready)
   textUrl?: string | null; // Azure Blob URL for extracted text, if available
-  subjectId: string;
-  userId: string;
+  fileSize: number;        // file size in bytes
+  subjectId: string;       // subject this note belongs to
+  userId: string;          // Firebase UID of owner
   uploadedAt: string;      // ISO timestamp
 }
 

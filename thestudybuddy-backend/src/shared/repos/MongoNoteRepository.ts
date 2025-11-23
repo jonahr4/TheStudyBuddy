@@ -1,6 +1,7 @@
 import { NoteRepository } from "./NoteRepository";
 import { Note } from "../types";
 import NoteModel from "../../models/Note";
+import { deleteBlobByUrl } from "../storage/blobClient";
 
 /**
  * MongoDB implementation of NoteRepository
@@ -71,16 +72,29 @@ export class MongoNoteRepository implements NoteRepository {
 
   /**
    * Delete a note (must belong to user)
-   * TODO: In production, also delete from Azure Blob Storage and associated flashcards
+   * Also deletes associated files from Azure Blob Storage
    */
   async deleteNote(
     userId: string,
     noteId: string
   ): Promise<void> {
-    await NoteModel.deleteOne({ _id: noteId, userId });
+    // First, get the note to find blob URLs before deleting
+    const note = await NoteModel.findOne({ _id: noteId, userId });
     
-    // TODO: Delete from Azure Blob Storage
-    // await blobService.deleteBlob(blobUrl);
+    if (!note) {
+      return; // Note doesn't exist or doesn't belong to user
+    }
+
+    // Delete from Azure Blob Storage
+    if (note.blobUrl) {
+      await deleteBlobByUrl(note.blobUrl);
+    }
+    if (note.textUrl) {
+      await deleteBlobByUrl(note.textUrl);
+    }
+
+    // Delete from MongoDB
+    await NoteModel.deleteOne({ _id: noteId, userId });
     
     // TODO: Delete associated flashcards
     // await FlashcardModel.deleteMany({ noteId });

@@ -53,6 +53,22 @@ export class MongoNoteRepository implements NoteRepository {
   }
 
   /**
+   * Update a note's textUrl (must belong to user)
+   */
+  async updateNote(
+    userId: string,
+    noteId: string,
+    data: { textUrl?: string | null }
+  ): Promise<Note | null> {
+    const note = await NoteModel.findOneAndUpdate(
+      { _id: noteId, userId },
+      { $set: data },
+      { new: true }
+    );
+    return note ? this.toNote(note) : null;
+  }
+
+  /**
    * Delete a note (must belong to user)
    * TODO: In production, also delete from Azure Blob Storage and associated flashcards
    */

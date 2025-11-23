@@ -50,6 +50,25 @@ export class InMemoryNoteRepository implements NoteRepository {
     return note;
   }
 
+  async updateNote(
+    userId: string,
+    noteId: string,
+    data: { textUrl?: string | null }
+  ): Promise<Note | null> {
+    const note = await this.getNoteById(userId, noteId);
+    if (!note) {
+      return null;
+    }
+
+    // Update the note
+    if (data.textUrl !== undefined) {
+      note.textUrl = data.textUrl;
+    }
+
+    this.notes.set(noteId, note);
+    return note;
+  }
+
   async deleteNote(userId: string, noteId: string): Promise<void> {
     const note = await this.getNoteById(userId, noteId);
     if (note) {

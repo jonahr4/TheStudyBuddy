@@ -1,5 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { getUserIdFromRequest } from "../shared/auth";
+import { getUserInfoFromRequest } from "../shared/auth";
 import { noteRepo } from "../index";
 import { ChatRequest, ChatResponse, ErrorResponse } from "../shared/types";
 
@@ -18,7 +18,7 @@ app.http("chatWithAI", {
   route: "ai/chat",
   handler: async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
     try {
-      const userId = await getUserIdFromRequest(request);
+      const { userId } = await getUserInfoFromRequest(request);
       const body = await request.json() as ChatRequest;
 
       // Validate required fields

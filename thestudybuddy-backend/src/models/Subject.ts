@@ -6,6 +6,7 @@ import mongoose, { Schema, Document } from "mongoose";
  */
 export interface ISubject extends Document {
   userId: string;      // Firebase UID of the user who owns this subject
+  userEmail?: string;  // User's email address (for easier debugging/admin)
   name: string;        // Subject name (e.g., "Biology 101")
   color: string;       // Hex color for UI display (e.g., "#6481b9ff")
   createdAt: Date;     // Timestamp when subject was created
@@ -20,6 +21,10 @@ const SubjectSchema = new Schema<ISubject>({
     type: String, 
     required: true,
     index: true  // Add index for faster queries by userId
+  },
+  userEmail: {
+    type: String,
+    required: false  // Optional for backwards compatibility
   },
   name: { 
     type: String, 

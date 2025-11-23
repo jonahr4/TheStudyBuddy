@@ -13,10 +13,11 @@ export class MongoSubjectRepository implements SubjectRepository {
    */
   async createSubject(
     userId: string,
-    data: { name: string; color: string }
+    data: { name: string; color: string; userEmail?: string }
   ): Promise<Subject> {
     const subject = await SubjectModel.create({
       userId,
+      userEmail: data.userEmail,
       name: data.name,
       color: data.color,
     });
@@ -84,6 +85,7 @@ export class MongoSubjectRepository implements SubjectRepository {
     return {
       id: doc._id.toString(),
       userId: doc.userId,
+      userEmail: doc.userEmail,
       name: doc.name,
       color: doc.color,
       createdAt: doc.createdAt.toISOString(),

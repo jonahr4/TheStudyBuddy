@@ -159,6 +159,40 @@ export const textExtractionApi = {
 };
 
 /**
+ * Flashcard API calls
+ */
+export const flashcardApi = {
+  // Get all flashcard sets for a subject
+  getBySubject: async (subjectId: string) => {
+    return apiRequest(`/flashcards/${subjectId}`);
+  },
+
+  // Get a specific flashcard set
+  getSet: async (setId: string) => {
+    return apiRequest(`/flashcards/set/${setId}`);
+  },
+
+  // Generate flashcards using AI
+  generate: async (data: { 
+    subjectId: string; 
+    name: string; 
+    description?: string 
+  }) => {
+    return apiRequest('/flashcards/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Delete a flashcard set
+  deleteSet: async (setId: string) => {
+    return apiRequest(`/flashcards/set/${setId}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+/**
  * Example usage in a React component:
  * 
  * import { subjectApi, noteApi, chatApi } from './services/api';

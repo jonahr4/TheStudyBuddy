@@ -3,6 +3,7 @@ import { useParams, Link, Navigate } from 'react-router-dom';
 import { useSubjects } from '../contexts/SubjectContext';
 import { useNotes } from '../contexts/NoteContext';
 import { textExtractionApi } from '../services/api';
+import VideoRecommendations from '../components/VideoRecommendations';
 
 export default function SubjectDetail() {
   const { subjectId } = useParams();
@@ -24,6 +25,9 @@ export default function SubjectDetail() {
   // Get notes from context
   const notes = getNotesForSubject(subjectId);
   
+  // State for video search query
+  const [videoSearchQuery, setVideoSearchQuery] = useState('');
+  
   // Fetch notes on mount
   useEffect(() => {
     if (subjectId) {
@@ -32,6 +36,22 @@ export default function SubjectDetail() {
       });
     }
   }, [subjectId]);
+  
+  // Generate video search query from notes
+  useEffect(() => {
+    if (notes.length > 0) {
+      // Extract keywords from note filenames (remove .pdf extension and combine)
+      const noteKeywords = notes
+        .map(note => note.fileName.replace('.pdf', '').replace(/_/g, ' '))
+        .slice(0, 3) // Use first 3 note names
+        .join(' ');
+      
+      // Combine subject name with note keywords
+      setVideoSearchQuery(`${subject.name} ${noteKeywords}`);
+    } else {
+      setVideoSearchQuery('');
+    }
+  }, [notes, subject.name]);
   
   // Redirect to subjects page if subject not found
   if (!subject) {
@@ -359,7 +379,7 @@ export default function SubjectDetail() {
         )}
 
         {/* Notes List */}
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-3xl mx-auto mb-12">
           <h3 className="text-lg font-semibold mb-4">Uploaded Notes</h3>
           
           {loading[subjectId] ? (
@@ -429,6 +449,17 @@ export default function SubjectDetail() {
             </div>
           )}
         </div>
+
+        {/* YouTube Video Recommendations - Only show if there are notes */}
+        {notes.length > 0 && videoSearchQuery && (
+          <div className="max-w-6xl mx-auto mb-12">
+            <VideoRecommendations 
+              searchQuery={videoSearchQuery}
+              title={`Recommended Videos Based on Your Notes`}
+              maxResults={3}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

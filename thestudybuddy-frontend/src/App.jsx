@@ -1,7 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
-import Landing from './pages/Landing';
 import LearnMore from './pages/LearnMore';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
@@ -19,8 +18,7 @@ function App() {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<Landing />} />
-      <Route path="/learn-more" element={<LearnMore />} />
+      <Route path="/" element={<LearnMore />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/test-backend" element={<TestBackend />} />

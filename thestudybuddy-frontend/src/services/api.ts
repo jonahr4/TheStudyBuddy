@@ -244,6 +244,16 @@ export const userApi = {
 };
 
 /**
+ * YouTube Recommendations API calls
+ */
+export const youtubeApi = {
+  // Get YouTube video recommendations for a search query
+  getRecommendations: async (query: string, maxResults: number = 6) => {
+    return apiRequest(`/youtube/recommendations?query=${encodeURIComponent(query)}&maxResults=${maxResults}`);
+  },
+};
+
+/**
  * Example usage in a React component:
  * 
  * import { subjectApi, noteApi, chatApi, userApi } from './services/api';

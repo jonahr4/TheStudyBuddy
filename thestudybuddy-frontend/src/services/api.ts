@@ -130,6 +130,19 @@ export const chatApi = {
       body: JSON.stringify(data),
     });
   },
+
+  // Get chat history for a subject
+  getHistory: async (subjectId: string, limit?: number) => {
+    const params = limit ? `?limit=${limit}` : '';
+    return apiRequest(`/chat/history/${subjectId}${params}`);
+  },
+
+  // Clear chat history for a subject
+  clearHistory: async (subjectId: string) => {
+    return apiRequest(`/chat/history/${subjectId}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 /**

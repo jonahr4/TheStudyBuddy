@@ -24,6 +24,7 @@ import "./functions/ProcessNoteText";
 import "./functions/FlashcardsHttp";
 // import "./functions/GenerateFlashcards"; // TODO: Create this function
 import "./functions/ChatWithAI";
+import "./functions/GetChatHistory";
 
 // Export the app for Azure Functions to discover
 export default app;

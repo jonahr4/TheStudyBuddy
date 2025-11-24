@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSubjects } from '../contexts/SubjectContext';
+import { useAuth } from '../firebase/AuthContext';
 import { chatApi } from '../services/api';
 
 export default function Chat() {
   const { subjects, loading: subjectsLoading } = useSubjects();
+  const { currentUser } = useAuth();
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -200,24 +202,54 @@ export default function Chat() {
 
         <div className="max-w-4xl mx-auto">
           {/* Chat Messages */}
-          <div className="card h-96 mb-4 overflow-y-auto">
-            <div className="space-y-4">
+          <div className="card h-[calc(100vh-400px)] mb-4 overflow-y-auto">
+            <div className="space-y-6">
               {messages.map(message => (
                 <div 
                   key={message.id}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex flex-col ${message.sender === 'user' ? 'items-end' : 'items-start'}`}
                 >
+                  {/* Sender Label */}
+                  <div className="flex items-center gap-2 mb-1 px-1">
+                    {message.sender === 'user' ? (
+                      <>
+                        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                          {currentUser?.displayName || currentUser?.email?.split('@')[0] || 'You'}
+                        </span>
+                        <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-semibold">
+                          {(currentUser?.displayName || currentUser?.email || 'U').charAt(0).toUpperCase()}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-xs font-semibold">
+                          SB
+                        </div>
+                        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                          Study Buddy
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  
+                  {/* Message Bubble */}
                   <div 
-                    className={`max-w-[70%] rounded-lg px-4 py-2 ${
+                    className={`max-w-[70%] rounded-lg px-4 py-3 shadow-sm ${
                       message.sender === 'user'
                         ? 'bg-indigo-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
+                        : 'bg-gray-100 dark:bg-gray-700'
                     }`}
                   >
-                    <p className="text-sm mb-1 whitespace-pre-wrap">{message.text}</p>
+                    <p className={`text-sm mb-2 whitespace-pre-wrap ${
+                      message.sender === 'user' 
+                        ? 'text-white' 
+                        : 'text-gray-900 dark:text-white'
+                    }`}>
+                      {message.text}
+                    </p>
                     <p className={`text-xs ${
                       message.sender === 'user' 
-                        ? 'text-indigo-100' 
+                        ? 'text-indigo-200' 
                         : 'text-gray-500 dark:text-gray-400'
                     }`}>
                       {message.time}
@@ -227,8 +259,19 @@ export default function Chat() {
               ))}
               
               {sending && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-100 dark:bg-gray-700 rounded-lg px-4 py-2">
+                <div className="flex flex-col items-start">
+                  {/* Sender Label */}
+                  <div className="flex items-center gap-2 mb-1 px-1">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-xs font-semibold">
+                      SB
+                    </div>
+                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                      Study Buddy
+                    </span>
+                  </div>
+                  
+                  {/* Typing Indicator */}
+                  <div className="bg-gray-100 dark:bg-gray-700 rounded-lg px-4 py-3 shadow-sm">
                     <div className="flex gap-1">
                       <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                       <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>

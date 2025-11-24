@@ -2,6 +2,7 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/fu
 import { getUserInfoFromRequest } from "../shared/auth";
 import { noteRepo } from "../index";
 import { ErrorResponse } from "../shared/types";
+import { deleteBlobsForNote } from "../shared/services/textExtraction";
 
 /**
  * GET /api/notes/{subjectId} - List all notes for a subject
@@ -57,8 +58,27 @@ app.http("deleteNote", {
         };
       }
 
-      // TODO: Also delete blob storage (PDF and text) and associated flashcards
+      // Get the note first so we can delete its blobs
+      const note = await noteRepo.getNoteById(userId, id);
+      if (!note) {
+        return {
+          status: 404,
+          jsonBody: { message: "Note not found" } as ErrorResponse,
+        };
+      }
+
+      // Delete blob storage (PDF and text)
+      context.log(`Deleting blobs for note: ${id}`);
+      try {
+        await deleteBlobsForNote(note, (msg) => context.log(msg));
+      } catch (error) {
+        context.error("Error deleting blobs:", error);
+        // Continue with note deletion even if blob deletion fails
+      }
+
+      // Delete the note from database
       await noteRepo.deleteNote(userId, id);
+      context.log(`✅ Note deleted: ${id}`);
 
       return {
         status: 204,

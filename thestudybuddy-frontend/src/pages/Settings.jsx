@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../firebase/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { userApi } from '../services/api';
 
 export default function Settings() {
   const { currentUser, logout } = useAuth();
@@ -15,6 +16,14 @@ export default function Settings() {
     setError('');
     
     try {
+      // Delete user from MongoDB first
+      try {
+        await userApi.deleteUser();
+      } catch (mongoError) {
+        console.error('Failed to delete user from MongoDB:', mongoError);
+        // Continue with Firebase deletion even if MongoDB fails
+      }
+      
       // Delete user from Firebase
       await currentUser.delete();
       

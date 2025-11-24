@@ -9,6 +9,7 @@ import {
   updateProfile
 } from 'firebase/auth';
 import { auth } from './config';
+import { userApi } from '../services/api';
 
 const AuthContext = createContext({});
 
@@ -25,6 +26,25 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Sync user data with MongoDB
+  const syncUserData = async (user) => {
+    try {
+      await userApi.syncUser({
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        emailVerified: user.emailVerified,
+        provider: user.providerData[0]?.providerId || 'email',
+        metadata: {
+          creationTime: user.metadata.creationTime,
+          lastSignInTime: user.metadata.lastSignInTime,
+        },
+      });
+    } catch (error) {
+      console.error('Failed to sync user data with MongoDB:', error);
+      // Don't throw - we don't want to block login/signup if MongoDB sync fails
+    }
+  };
+
   // Sign up with email and password
   const signup = async (email, password, firstName) => {
     try {
@@ -34,6 +54,8 @@ export function AuthProvider({ children }) {
       await updateProfile(result.user, {
         displayName: firstName
       });
+      // Sync user data with MongoDB
+      await syncUserData(result.user);
       return result;
     } catch (err) {
       setError(err.message);
@@ -46,6 +68,8 @@ export function AuthProvider({ children }) {
     try {
       setError(null);
       const result = await signInWithEmailAndPassword(auth, email, password);
+      // Sync user data with MongoDB
+      await syncUserData(result.user);
       return result;
     } catch (err) {
       setError(err.message);
@@ -59,6 +83,8 @@ export function AuthProvider({ children }) {
       setError(null);
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
+      // Sync user data with MongoDB
+      await syncUserData(result.user);
       return result;
     } catch (err) {
       setError(err.message);

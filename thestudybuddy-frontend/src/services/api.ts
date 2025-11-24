@@ -201,9 +201,52 @@ export const flashcardApi = {
 };
 
 /**
+ * User API calls
+ */
+export const userApi = {
+  // Sync user data with MongoDB (call after login/signup)
+  syncUser: async (userData: {
+    displayName?: string;
+    photoURL?: string;
+    emailVerified?: boolean;
+    provider?: string;
+    metadata?: any;
+  }) => {
+    return apiRequest('/users/sync', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  },
+
+  // Get current user data from MongoDB
+  getCurrentUser: async () => {
+    return apiRequest('/users/me');
+  },
+
+  // Update current user data
+  updateUser: async (data: {
+    displayName?: string;
+    photoURL?: string;
+    emailVerified?: boolean;
+  }) => {
+    return apiRequest('/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Delete current user from MongoDB
+  deleteUser: async () => {
+    return apiRequest('/users/me', {
+      method: 'DELETE',
+    });
+  },
+};
+
+/**
  * Example usage in a React component:
  * 
- * import { subjectApi, noteApi, chatApi } from './services/api';
+ * import { subjectApi, noteApi, chatApi, userApi } from './services/api';
  * 
  * // Get all subjects
  * const subjects = await subjectApi.getAll();
@@ -219,5 +262,12 @@ export const flashcardApi = {
  *   subjectId: "123",
  *   message: "What is photosynthesis?",
  *   chatHistory: []
+ * });
+ * 
+ * // Sync user data after login
+ * await userApi.syncUser({
+ *   displayName: "John Doe",
+ *   emailVerified: true,
+ *   provider: "google"
  * });
  */

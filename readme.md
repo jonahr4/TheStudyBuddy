@@ -463,16 +463,21 @@ Tasks:
   - ✅ Enforce 10-note limit per subject
   - ✅ Upload multiple files at once
   - ⬜ Progress bars for individual file uploads
-- ⬜ Flashcard interface:
-  - ⬜ Add flip animation
-  - ⬜ Deck navigation (previous/next card)
-  - ⬜ Card counter (e.g., "5 / 25")
-  - ⬜ Mark cards as "mastered"
-- ⬜ Chat interface:
-  - ⬜ Scrollable message history
-  - ⬜ Typing indicator animation
-  - ⬜ Message timestamps
-  - ⬜ Auto-scroll to latest message
+- ✅ **Flashcard interface:**
+  - ✅ Click-to-flip card animation
+  - ✅ Previous/Next navigation buttons
+  - ✅ Keyboard controls (← → arrows, Space/Enter to flip)
+  - ✅ Card counter (e.g., "Card 5 of 25")
+  - ✅ Back to flashcard list button
+  - ⬜ Mark cards as "mastered" (future enhancement)
+- ✅ **Chat interface:**
+  - ✅ Scrollable message history
+  - ✅ Auto-scroll to latest message
+  - ✅ Subject switcher tabs
+  - ✅ Clear chat button
+  - ✅ Loading states during AI response
+  - ⬜ Typing indicator animation (future enhancement)
+  - ⬜ Message timestamps (future enhancement)
 - ✅ UI polish:
   - ✅ Add loading states and spinners
   - ✅ Error handling UI (error alerts)
@@ -504,10 +509,12 @@ Outcome:
 Build the backend API and serverless functions to support core features with subject-based organization.
 
 ### Current Status
-✅ **Subjects fully functional** - Complete end-to-end implementation with authenticated CRUD operations  
-🔄 **Backend running locally** - Azure Functions working on localhost:7071  
-⏳ **Production deployment pending** - Need to deploy Azure Functions to cloud  
-⏳ **Notes, Flashcards, Chat** - Not yet implemented (coming next)
+✅ **All core features implemented** - Subjects, Notes, AI Flashcards, and AI Chat fully functional  
+✅ **Backend running locally** - Azure Functions working on localhost:7071 with all endpoints operational  
+✅ **AI integration complete** - Azure OpenAI (gpt-5-nano) powering flashcard generation and RAG chat  
+✅ **Persistent storage working** - MongoDB Atlas storing all user data, chat history, and flashcard sets  
+✅ **PDF processing functional** - Text extraction from PDFs using pdf-parse  
+⏳ **Production deployment pending** - Backend needs to be deployed to Azure Cloud
 
 ### MongoDB Models & Setup
 - ✅ Set up MongoDB Atlas cluster (`studybuddy` database)
@@ -524,7 +531,16 @@ Build the backend API and serverless functions to support core features with sub
   - ✅ Added indexes on userId and subjectId for fast queries
   - ✅ Compound index on (userId, subjectId) for efficient filtering
   - ✅ Tested with real uploads - working perfectly!
-- ⬜ Create `flashcards` collection schema (question, answer, subjectId, noteId, createdAt)
+- ✅ **Created `flashcardsets` collection schema** (userId, subjectId, name, description, flashcards array)
+  - ✅ Implemented Mongoose FlashcardSet model
+  - ✅ Each flashcard has `front` and `back` text fields
+  - ✅ Indexed on userId and subjectId for fast queries
+  - ✅ Tested with AI-generated flashcards - working perfectly!
+- ✅ **Created `chatmessages` collection schema** (userId, subjectId, role, content, timestamp)
+  - ✅ Implemented Mongoose ChatMessage model
+  - ✅ Stores user, assistant, and system messages
+  - ✅ Indexed on userId, subjectId, and timestamp for efficient history queries
+  - ✅ Tested with persistent chat history - working perfectly!
 - ✅ Write MongoDB connection utility (with retry logic and error handling)
 - ✅ Test database connections and CRUD operations (subjects fully working)
 
@@ -547,16 +563,27 @@ Build the backend API and serverless functions to support core features with sub
   - ✅ `GET /api/notes/:subjectId` - Get all notes for a subject (authenticated, sorted by date)
   - ✅ `POST /api/notes/upload` - Upload PDF to Azure Blob + save metadata to MongoDB
   - ✅ `DELETE /api/notes/:id` - Delete note from MongoDB AND Azure Blob Storage
+  - ✅ `POST /api/notes/extract-text/:id` - Extract text from PDF and save to Blob Storage
   - ✅ All routes enforce user ownership validation
   - ✅ Proper cleanup of orphaned blobs on deletion
-- ⬜ Create `GET /api/flashcards/:subjectId` - Get all flashcards for a subject
+- ✅ **Flashcard API implemented:**
+  - ✅ `POST /api/flashcards/generate` - Generate flashcards with AI from subject notes
+  - ✅ `GET /api/flashcards/{subjectId}` - Get all flashcard sets for a subject
+  - ✅ `GET /api/flashcards/set/{setId}` - Get specific flashcard set with all cards
+  - ✅ `DELETE /api/flashcards/set/{setId}` - Delete a flashcard set
+  - ✅ All routes enforce user ownership validation
+- ✅ **Chat API implemented:**
+  - ✅ `POST /api/chat` - Send message and get AI response with RAG context
+  - ✅ `GET /api/chat/history/{subjectId}` - Load persistent chat history
+  - ✅ `DELETE /api/chat/history/{subjectId}` - Clear chat history for subject
+  - ✅ All routes enforce user ownership validation
 - ✅ Add error handling with try/catch blocks
 - ✅ Configure CORS for local development
 
 ### Azure Blob Storage Integration ✅
 - ✅ **Set up Azure Storage Account** (`studybuddystorage`) with containers:
   - ✅ `notes-raw` - stores uploaded PDF files
-  - ✅ `notes-text` - ready for extracted text (not yet used)
+  - ✅ `notes-text` - stores extracted text from PDFs
 - ✅ **Installed Azure Blob Storage SDK** (`@azure/storage-blob`)
 - ✅ **Created blob service client** with connection string in `local.settings.json`
 - ✅ **Implemented `POST /api/notes/upload` endpoint:**
@@ -570,45 +597,77 @@ Build the backend API and serverless functions to support core features with sub
 - ✅ **Created `blobClient.ts`** with `uploadPdfToRawContainer()` and `deleteBlobByUrl()`
 - ⬜ Add SAS token generation for secure file access (pending)
 
-### Azure Functions - Text Extraction
-- ⬜ Create Azure Function `ProcessNoteText` (Blob trigger or HTTP trigger)
-- ⬜ Install PDF parsing library (`pdf-parse` or Azure Form Recognizer)
-- ⬜ Implement text extraction logic:
-  - ⬜ Download PDF from Blob Storage
-  - ⬜ Extract text from PDF
-  - ⬜ Upload extracted text to `notes-text` container
-  - ⬜ Update note document in MongoDB with `textUrl`
-- ⬜ Add error handling for corrupted/unreadable PDFs
-- ⬜ Test with sample PDFs
+### Azure Functions - Text Extraction ✅
+- ✅ **Created Azure Function `ProcessNoteText`** (HTTP trigger)
+- ✅ **Installed PDF parsing library** (`pdf-parse`)
+- ✅ **Implemented text extraction logic:**
+  - ✅ Download PDF from `notes-raw` Blob Storage
+  - ✅ Extract text from PDF using pdf-parse
+  - ✅ Upload extracted text to `notes-text` container
+  - ✅ Update note document in MongoDB with `textUrl`
+- ✅ **Added error handling** for corrupted/unreadable PDFs
+- ✅ **Tested with real PDFs** - extraction working perfectly
+- ✅ **Added "Extract Text" button** to Subject Detail page UI
 
-### Azure Functions - Flashcard Generation
-- ⬜ Create Azure Function `GenerateFlashcards` (HTTP trigger)
-- ⬜ Install Azure OpenAI SDK (`@azure/openai`)
-- ⬜ Set up Azure OpenAI client with API key and endpoint
-- ⬜ Implement `POST /api/flashcards/generate` endpoint:
-  - ⬜ Accept `noteId` and `subjectId` in request body
-  - ⬜ Fetch extracted text from Blob Storage
-  - ⬜ Create prompt for GPT-4o-mini: "Generate 10 flashcards from this text..."
-  - ⬜ Call Azure OpenAI API with text + prompt
-  - ⬜ Parse response and extract flashcards (question/answer pairs)
-  - ⬜ Save flashcards to MongoDB with `subjectId`, `noteId`, `userId`
-  - ⬜ Return generated flashcards to client
-- ⬜ Add retry logic for OpenAI API failures
-- ⬜ Handle rate limits and token limits
+### Azure OpenAI Integration ✅
+- ✅ **Set up Azure OpenAI resource** with gpt-5-nano deployment
+- ✅ **Installed Azure OpenAI SDK** (`openai` package)
+- ✅ **Configured Azure OpenAI client:**
+  - ✅ Endpoint: `https://jonah-mic9jlpb-eastus2.cognitiveservices.azure.com/`
+  - ✅ Deployment: `gpt-5-nano` (reasoning model)
+  - ✅ API Version: `2024-12-01-preview`
+- ✅ **Handled reasoning model specifics:**
+  - ✅ Used `max_completion_tokens` instead of `max_tokens`
+  - ✅ Set high token budget (4000-8000) for reasoning + response
+  - ✅ Handled empty `content` by checking reasoning output
 
-### Azure Functions - RAG/AI Chat Logic
-- ⬜ Create Azure Function `ChatWithAI` (HTTP trigger)
-- ⬜ Implement `POST /api/ai/chat` endpoint:
-  - ⬜ Accept `message`, `subjectId`, `chatHistory` in request body
-  - ⬜ Fetch all notes for the subject from MongoDB
-  - ⬜ Download extracted text for all subject notes from Blob
-  - ⬜ Combine note texts into context window (chunk if needed)
-  - ⬜ Build RAG prompt: "You are a study assistant. Based on these notes: {context}. User asks: {message}"
-  - ⬜ Call Azure OpenAI with system prompt + user message + chat history
-  - ⬜ Return AI response to client
-- ⬜ Implement chat history storage in MongoDB (optional)
-- ⬜ Add streaming support for real-time responses (optional)
-- ⬜ Test with sample subject notes and questions
+### Azure Functions - Flashcard Generation ✅
+- ✅ **Created Azure Function `GenerateFlashcards`** (HTTP trigger)
+- ✅ **Created `FlashcardSet` MongoDB model** with schema:
+  - ✅ `userId`, `subjectId`, `name`, `description`
+  - ✅ `flashcards` array with `front` and `back` fields
+  - ✅ Indexed on `userId` and `subjectId` for fast queries
+- ✅ **Implemented `POST /api/flashcards/generate` endpoint:**
+  - ✅ Accepts `subjectId`, `name`, and optional `description` (focus)
+  - ✅ Fetches all note texts for the subject from Blob Storage
+  - ✅ Builds AI prompt: "Create 10-15 flashcards from these notes..."
+  - ✅ Calls Azure OpenAI with system prompt + note context
+  - ✅ Parses JSON response and extracts flashcards
+  - ✅ Saves flashcard set to MongoDB with user and subject association
+  - ✅ Returns generated flashcard set to client
+- ✅ **Implemented flashcard CRUD endpoints:**
+  - ✅ `GET /api/flashcards/{subjectId}` - Get all sets for a subject
+  - ✅ `GET /api/flashcards/set/{setId}` - Get specific flashcard set
+  - ✅ `DELETE /api/flashcards/set/{setId}` - Delete a flashcard set
+- ✅ **Added error handling** for OpenAI API failures and parsing errors
+- 🔄 **Token limit tuning in progress** - optimizing max_completion_tokens for reasoning model
+
+### Azure Functions - RAG/AI Chat Logic ✅
+- ✅ **Created Azure Function `ChatWithAI`** (HTTP trigger)
+- ✅ **Created `ChatMessage` MongoDB model** for persistent chat history:
+  - ✅ Schema: `userId`, `subjectId`, `role` (user/assistant/system), `content`, `timestamp`
+  - ✅ Indexed on `userId`, `subjectId`, and `timestamp` for efficient queries
+- ✅ **Implemented `POST /api/chat` endpoint:**
+  - ✅ Accepts `message` and `subjectId` in request body
+  - ✅ Loads last 20 chat messages from MongoDB (persistent history)
+  - ✅ Fetches all note texts for the subject from Blob Storage
+  - ✅ Builds comprehensive system prompt with Study Buddy personality:
+    - "You are **The Study Buddy**, a friendly AI tutor..."
+    - 10 rules including: quote from notes, keep answers short, end with questions
+  - ✅ Includes full note context in system message (RAG implementation)
+  - ✅ Sends: system prompt + last 20 messages + new user message to Azure OpenAI
+  - ✅ Uses `max_completion_tokens: 4000` for reasoning model
+  - ✅ Saves both user message and AI response to MongoDB
+  - ✅ Returns AI response to client
+- ✅ **Implemented chat history management:**
+  - ✅ `GET /api/chat/history/{subjectId}` - Load chat history for subject
+  - ✅ `DELETE /api/chat/history/{subjectId}` - Clear chat history for subject
+- ✅ **Frontend integration:**
+  - ✅ Chat UI loads history from MongoDB on subject switch
+  - ✅ Messages persist across page refreshes
+  - ✅ "Clear Chat" button to reset conversation
+  - ✅ No longer sends chat history in request (backend loads from DB)
+- ✅ **Tested with real notes and questions** - RAG retrieval working perfectly
 
 ### Optional: Azure Cognitive Search (Vector Retrieval)
 - ⬜ Set up Azure Cognitive Search service
@@ -624,17 +683,24 @@ Build the backend API and serverless functions to support core features with sub
   - ✅ Frontend running on localhost:5174
   - ✅ CORS configured for local development
   - ✅ Subjects CRUD operations tested and working
-  - ✅ User authentication and isolation verified
+  - ✅ Notes upload/delete/extract tested and working
+  - ✅ AI flashcard generation tested with real PDFs
+  - ✅ AI chat with RAG tested with real note context
+  - ✅ User authentication and data isolation verified
+  - ✅ Persistent chat history tested across sessions
+- ✅ **End-to-end testing complete:**
+  - ✅ Upload PDF → Extract text → Generate flashcards → Study cards
+  - ✅ Upload notes → Chat with AI → Get responses with note context
+  - ✅ Create subjects → Upload notes → Generate sets → View/flip cards
 - ⬜ Write unit tests for API routes
 - ⬜ Write integration tests for Azure Functions
-- ⬜ Test end-to-end: upload → extract → generate flashcards → chat
 - ⬜ **Deploy Azure Functions to Azure Cloud** (currently only running locally)
 - ⬜ Set up environment variables in Azure Portal
 - ⬜ Configure CORS for production frontend domain
 - ⬜ Update frontend `VITE_API_URL` to point to deployed Azure Functions
 - ⬜ Test deployed endpoints from production frontend
 
-**Current Status:** Backend is fully functional locally but not yet deployed to Azure cloud. Production frontend uses mock data until backend is deployed.
+**Current Status:** All features fully functional locally with end-to-end testing complete. Backend deployment to Azure cloud is the final step.
 
 Outcome (when complete):
 Backend supports all core functionality with subject-based organization, AI-powered flashcards, and RAG chat.
@@ -669,30 +735,52 @@ Replace mock data with real API calls and data from MongoDB.
   - ✅ Action loading states (create/update/delete)
   - ✅ Empty states when no subjects exist
 
-### Remaining Tasks:
-- ⬜ Note upload integration:
-  - ⬜ Connect Subject Detail page to upload API
-  - ⬜ Show real note list from MongoDB
-  - ⬜ Display upload progress and handle errors
-  - ⬜ Enforce 10-note limit from backend
-- ⬜ Flashcard integration:
-  - ⬜ Fetch flashcard decks filtered by subject
-  - ⬜ Display generated flashcards from Azure OpenAI
-  - ⬜ Track study progress in MongoDB
-- ⬜ Chat integration:
-  - ⬜ Connect chat UI to subject-specific chat API
-  - ⬜ Send/receive messages with RAG context
-  - ⬜ Load chat history from MongoDB
-  - ⬜ Handle streaming responses
-- ⬜ Final polish:
+### Completed Integration Tasks:
+- ✅ **Note upload integration:**
+  - ✅ Connected Subject Detail page to upload API
+  - ✅ Shows real note list from MongoDB
+  - ✅ Displays upload progress and handles errors
+  - ✅ Enforces 10-note limit from backend
+  - ✅ "Extract Text" button triggers PDF text extraction
+  - ✅ Real-time note list updates after upload/delete
+- ✅ **Flashcard integration:**
+  - ✅ Created Flashcards.jsx list page with subject filtering
+  - ✅ "+ Create Flashcard Set" modal with subject selector
+  - ✅ AI generates 10-15 flashcards from notes via Azure OpenAI
+  - ✅ Displays flashcard sets filtered by subject
+  - ✅ Shows card count and creation date for each set
+  - ✅ Delete flashcard sets
+  - 🔄 **Created FlashcardStudy.jsx viewer component:**
+    - ✅ Displays flashcards with front/back
+    - ✅ Click to flip animation
+    - ✅ Previous/Next navigation buttons
+    - ✅ Keyboard controls (← → arrows, Space/Enter to flip)
+    - ✅ Card counter (e.g., "Card 5 of 25")
+    - ✅ Back to list button
+    - ⬜ Track study progress/mastered cards (pending)
+- ✅ **Chat integration:**
+  - ✅ Connected chat UI to subject-specific chat API
+  - ✅ Sends/receives messages with RAG context from notes
+  - ✅ Loads chat history from MongoDB on subject switch
+  - ✅ Messages persist across page refreshes
+  - ✅ "Clear Chat" button clears conversation
+  - ✅ Auto-scrolls to latest message
+  - ⬜ Streaming responses (pending)
+- ⬜ **Final polish:**
   - ⬜ Implement retry logic for failed requests
   - ⬜ Add offline detection
-  - ⬜ Update Dashboard to show real deck and chat counts
+  - ⬜ Update Dashboard to show real deck and chat counts from MongoDB
 
-Outcome (when complete):
-A fully functional, end-to-end application with real data and AI features.
+Outcome:
+**90% Complete** - Core features fully functional! Subjects, Notes, AI Flashcards, and AI Chat all working with real data. Flashcard study viewer created. Minor polish remaining.
 
-**Current Status:** Subjects feature is 100% complete with full backend integration. Notes, Flashcards, and Chat still using mock data.
+**Current Status:** 
+- ✅ Subjects: 100% complete
+- ✅ Notes: 100% complete (upload, list, delete, text extraction)
+- ✅ AI Chat: 100% complete (RAG with persistent history)
+- 🔄 Flashcards: 95% complete (generation, list, study viewer working; mastery tracking pending)
+- ⬜ Dashboard: Needs real data counts
+- ⬜ Production Deployment: Backend running locally only
 
 ---
 

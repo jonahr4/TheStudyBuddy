@@ -2,6 +2,7 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/fu
 import { noteRepo } from "../index";
 import { ErrorResponse } from "../shared/types";
 import { BlobServiceClient } from "@azure/storage-blob";
+import { getUserInfoFromRequest } from "../shared/auth";
 
 const connectionString = process.env.STORAGE_CONNECTION_STRING;
 const rawContainerName = process.env.STORAGE_NOTES_RAW_CONTAINER;
@@ -40,6 +41,9 @@ app.http("processNoteText", {
   route: "process-text",
   handler: async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
     try {
+      // Get authenticated user
+      const { userId } = await getUserInfoFromRequest(request);
+      
       // Parse request body
       const body = await request.json() as { noteId?: string; blobUrl?: string };
       const { noteId, blobUrl } = body;
@@ -51,11 +55,10 @@ app.http("processNoteText", {
         };
       }
 
-      context.log(`Processing text extraction for note: ${noteId}`);
+      context.log(`Processing text extraction for note: ${noteId} (user: ${userId})`);
 
       // 1. Fetch the note from the repo
-      // TODO: Replace "dev-user-id" with real userId from auth
-      const note = await noteRepo.getNoteById("dev-user-id", noteId);
+      const note = await noteRepo.getNoteById(userId, noteId);
       if (!note) {
         return {
           status: 404,

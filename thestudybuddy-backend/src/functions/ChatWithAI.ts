@@ -4,6 +4,7 @@ import { noteRepo } from "../index";
 import { ChatRequest, ChatResponse, ErrorResponse } from "../shared/types";
 import { AzureOpenAI } from "openai";
 import { BlobServiceClient } from "@azure/storage-blob";
+import ChatMessage from "../models/ChatMessage";
 
 // Azure OpenAI configuration
 const openaiEndpoint = process.env.AZURE_OPENAI_ENDPOINT;
@@ -88,7 +89,18 @@ app.http("chatWithAI", {
       context.log(`Chat request for subject ${body.subjectId}`);
       context.log(`User message: ${body.message}`);
 
-      // 1. Fetch all notes for the subject
+      // 1. Load chat history from MongoDB (last 20 messages)
+      const chatHistory = await ChatMessage.find({
+        userId,
+        subjectId: body.subjectId,
+      })
+        .sort({ timestamp: 1 })
+        .limit(20)
+        .exec();
+
+      context.log(`Loaded ${chatHistory.length} previous messages from database`);
+
+      // 2. Fetch all notes for the subject
       const notes = await noteRepo.getNotesForSubject(userId, body.subjectId);
       
       if (notes.length === 0) {
@@ -102,7 +114,7 @@ app.http("chatWithAI", {
 
       context.log(`Found ${notes.length} notes for this subject`);
 
-      // 2. Fetch extracted text from all notes with textUrl
+      // 3. Fetch extracted text from all notes with textUrl
       const noteTexts: string[] = [];
       for (const note of notes) {
         if (note.textUrl && !note.textUrl.includes('placeholder')) {
@@ -124,12 +136,12 @@ app.http("chatWithAI", {
 
       context.log(`Successfully fetched text from ${noteTexts.length} notes`);
 
-      // 3. Build context from all note texts
+      // 4. Build context from all note texts
       const contextText = noteTexts.join('\n\n');
       const contextPreview = contextText.substring(0, 500);
       context.log(`Context preview: ${contextPreview}...`);
 
-      // 4. Build messages for Azure OpenAI
+      // 5. Build messages for Azure OpenAI
       const messages: any[] = [
         {
           role: "system",
@@ -141,14 +153,12 @@ ${contextText}`,
         },
       ];
 
-      // Add chat history if provided
-      if (body.chatHistory && body.chatHistory.length > 0) {
-        for (const msg of body.chatHistory) {
-          messages.push({
-            role: msg.role,
-            content: msg.content,
-          });
-        }
+      // Add chat history from database
+      for (const msg of chatHistory) {
+        messages.push({
+          role: msg.role,
+          content: msg.content,
+        });
       }
 
       // Add current user message
@@ -157,7 +167,7 @@ ${contextText}`,
         content: body.message,
       });
 
-      // 5. Call Azure OpenAI Chat Completions
+      // 6. Call Azure OpenAI Chat Completions
       context.log(`Calling Azure OpenAI with deployment: ${openaiDeploymentName}`);
       
       const completion = await openaiClient.chat.completions.create({
@@ -175,6 +185,25 @@ ${contextText}`,
       const aiReply = completion.choices[0]?.message?.content || "Sorry, I couldn't generate a response.";
       
       context.log(`AI response: ${aiReply.substring(0, 100)}...`);
+
+      // 7. Save both user message and AI response to database
+      await ChatMessage.create({
+        userId,
+        subjectId: body.subjectId,
+        role: 'user',
+        content: body.message,
+        timestamp: new Date(),
+      });
+
+      await ChatMessage.create({
+        userId,
+        subjectId: body.subjectId,
+        role: 'assistant',
+        content: aiReply,
+        timestamp: new Date(),
+      });
+
+      context.log('✅ Chat messages saved to database');
 
       return {
         status: 200,

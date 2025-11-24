@@ -22,9 +22,31 @@ export default function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Reset messages when subject changes
+  // Load chat history when subject changes
   useEffect(() => {
-    setMessages([]);
+    const loadChatHistory = async () => {
+      if (!selectedSubject) return;
+      
+      try {
+        const response = await chatApi.getHistory(selectedSubject);
+        const loadedMessages = response.messages.map(msg => ({
+          id: msg.timestamp,
+          text: msg.content,
+          sender: msg.role === 'user' ? 'user' : 'ai',
+          time: new Date(msg.timestamp).toLocaleTimeString([], { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+        }));
+        setMessages(loadedMessages);
+      } catch (error) {
+        console.error('Failed to load chat history:', error);
+        // If loading fails, start with empty history
+        setMessages([]);
+      }
+    };
+
+    loadChatHistory();
   }, [selectedSubject]);
 
   const handleSendMessage = async () => {
@@ -42,16 +64,10 @@ export default function Chat() {
     setSending(true);
 
     try {
-      // Build chat history for context
-      const chatHistory = messages.map(msg => ({
-        role: msg.sender === 'user' ? 'user' : 'assistant',
-        content: msg.text,
-      }));
-
+      // Chat history is now loaded from MongoDB by the backend
       const response = await chatApi.sendMessage({
         subjectId: selectedSubject,
         message: inputMessage,
-        chatHistory,
       });
 
       const aiMessage = {
@@ -132,29 +148,49 @@ export default function Chat() {
           <h2 className="mb-4">AI Chat</h2>
           
           {/* Subject Switcher */}
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Chat about:
-            </span>
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {subjects.map(subject => (
-                <button
-                  key={subject.id}
-                  onClick={() => setSelectedSubject(subject.id)}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${
-                    selectedSubject === subject.id
-                      ? 'bg-indigo-600 text-white shadow-md'
-                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <div 
-                    className="w-2 h-2 rounded-full" 
-                    style={{ backgroundColor: subject.color }}
-                  ></div>
-                  {subject.name}
-                </button>
-              ))}
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3 flex-1 overflow-hidden">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                Chat about:
+              </span>
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {subjects.map(subject => (
+                  <button
+                    key={subject.id}
+                    onClick={() => setSelectedSubject(subject.id)}
+                    className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${
+                      selectedSubject === subject.id
+                        ? 'bg-indigo-600 text-white shadow-md'
+                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <div 
+                      className="w-2 h-2 rounded-full" 
+                      style={{ backgroundColor: subject.color }}
+                    ></div>
+                    {subject.name}
+                  </button>
+                ))}
+              </div>
             </div>
+            {messages.length > 0 && (
+              <button
+                onClick={async () => {
+                  if (confirm('Clear all chat history for this subject?')) {
+                    try {
+                      await chatApi.clearHistory(selectedSubject);
+                      setMessages([]);
+                    } catch (error) {
+                      console.error('Failed to clear chat history:', error);
+                      alert('Failed to clear chat history');
+                    }
+                  }
+                }}
+                className="px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors whitespace-nowrap"
+              >
+                Clear Chat
+              </button>
+            )}
           </div>
           
           <p className="text-sm text-gray-600 dark:text-gray-400">

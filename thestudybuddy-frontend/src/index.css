@@ -4,6 +4,10 @@
 
 /* Global theming with modern look */
 @layer base {
+  html, body {
+    @apply m-0 p-0 w-full h-full overflow-hidden;
+  }
+  
   body {
     @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-white;
   }
@@ -66,7 +70,7 @@
   
   /* Gradient background wrapper */
   .gradient-bg {
-    @apply relative isolate overflow-hidden;
+    @apply relative isolate h-screen overflow-y-auto;
   }
   
   /* Gradient blur effect */

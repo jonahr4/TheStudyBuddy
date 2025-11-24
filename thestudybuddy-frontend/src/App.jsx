@@ -11,6 +11,7 @@ import SubjectDetail from './pages/SubjectDetail';
 import Flashcards from './pages/Flashcards';
 import FlashcardStudy from './pages/FlashcardStudy';
 import Chat from './pages/Chat';
+import Settings from './pages/Settings';
 import TestBackend from './pages/TestBackend';
 import NotFound from './pages/NotFound';
 
@@ -31,6 +32,7 @@ function App() {
       <Route path="/flashcards" element={<Layout><PrivateRoute><Flashcards /></PrivateRoute></Layout>} />
       <Route path="/flashcards/study/:setId" element={<Layout><PrivateRoute><FlashcardStudy /></PrivateRoute></Layout>} />
       <Route path="/chat" element={<Layout><PrivateRoute><Chat /></PrivateRoute></Layout>} />
+      <Route path="/settings" element={<Layout><PrivateRoute><Settings /></PrivateRoute></Layout>} />
       
       {/* 404 */}
       <Route path="*" element={<NotFound />} />

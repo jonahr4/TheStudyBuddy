@@ -3,6 +3,7 @@ import { getUserInfoFromRequest } from "../shared/auth";
 import { noteRepo } from "../index";
 import { ErrorResponse } from "../shared/types";
 import { uploadPdfToRawContainer } from "../shared/storage/blobClient";
+import { extractTextFromNote } from "../shared/services/textExtraction";
 import Busboy from "busboy";
 import { Readable } from "stream";
 
@@ -105,12 +106,29 @@ app.http("uploadNote", {
         fileName: result.file.filename,
         fileSize: result.file.data.length, // Size of the uploaded file in bytes
         blobUrl: blobUrl,
-        textUrl: null, // TODO: Will be set after text extraction
+        textUrl: null, // Will be set after text extraction
         subjectId: result.subjectId,
         userEmail,
       });
 
       context.log(`✅ Note created: ${note.id} with blob URL: ${blobUrl}`);
+
+      // Automatically extract text from the PDF
+      context.log(`🔄 Starting automatic text extraction...`);
+      const extractionResult = await extractTextFromNote(
+        note.id,
+        userId,
+        blobUrl,
+        (msg) => context.log(msg)
+      );
+
+      if (extractionResult.success) {
+        context.log(`✅ Text extraction completed: ${extractionResult.textLength} characters`);
+        // Update note with textUrl
+        note.textUrl = extractionResult.textUrl;
+      } else {
+        context.warn(`⚠️ Text extraction failed: ${extractionResult.error}`);
+      }
 
       return {
         status: 201,

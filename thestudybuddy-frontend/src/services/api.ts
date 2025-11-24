@@ -190,6 +190,14 @@ export const flashcardApi = {
       method: 'DELETE',
     });
   },
+
+  // Update studied status of a flashcard
+  updateStudied: async (setId: string, cardIndex: number, studied: boolean) => {
+    return apiRequest(`/flashcards/set/${setId}/card/${cardIndex}/studied`, {
+      method: 'PATCH',
+      body: JSON.stringify({ studied }),
+    });
+  },
 };
 
 /**

@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IFlashcard {
   front: string;
   back: string;
+  studied?: boolean;
 }
 
 export interface IFlashcardSet extends Document {
@@ -23,6 +24,10 @@ const FlashcardSchema = new Schema({
   back: {
     type: String,
     required: true,
+  },
+  studied: {
+    type: Boolean,
+    default: false,
   },
 });
 

@@ -133,3 +133,73 @@ app.http("deleteFlashcardSet", {
   },
 });
 
+/**
+ * PATCH /api/flashcards/set/{setId}/card/{cardIndex}/studied - Update studied status of a flashcard
+ */
+app.http("updateFlashcardStudied", {
+  methods: ["PATCH"],
+  authLevel: "anonymous",
+  route: "flashcards/set/{setId}/card/{cardIndex}/studied",
+  handler: async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
+    try {
+      const { userId } = await getUserInfoFromRequest(request);
+      const setId = request.params.setId;
+      const cardIndex = parseInt(request.params.cardIndex || '0');
+
+      if (!setId) {
+        return {
+          status: 400,
+          jsonBody: { message: "Set ID is required" } as ErrorResponse,
+        };
+      }
+
+      const body = await request.json() as { studied: boolean };
+      
+      if (typeof body.studied !== 'boolean') {
+        return {
+          status: 400,
+          jsonBody: { message: "studied field must be a boolean" } as ErrorResponse,
+        };
+      }
+
+      // Find the flashcard set
+      const flashcardSet = await FlashcardSet.findOne({ _id: setId, userId }).exec();
+
+      if (!flashcardSet) {
+        return {
+          status: 404,
+          jsonBody: { message: "Flashcard set not found" } as ErrorResponse,
+        };
+      }
+
+      // Validate card index
+      if (cardIndex < 0 || cardIndex >= flashcardSet.flashcards.length) {
+        return {
+          status: 400,
+          jsonBody: { message: "Invalid card index" } as ErrorResponse,
+        };
+      }
+
+      // Update the studied status
+      flashcardSet.flashcards[cardIndex].studied = body.studied;
+      await flashcardSet.save();
+
+      context.log(`✅ Updated flashcard ${cardIndex} studied status to ${body.studied}`);
+
+      return {
+        status: 200,
+        jsonBody: flashcardSet,
+      };
+    } catch (error: any) {
+      context.error("Error in updateFlashcardStudied:", error);
+      return {
+        status: 500,
+        jsonBody: { 
+          message: "Failed to update flashcard studied status",
+          error: error.message 
+        } as ErrorResponse,
+      };
+    }
+  },
+});
+

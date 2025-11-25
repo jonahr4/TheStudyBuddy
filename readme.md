@@ -13,6 +13,14 @@ This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and 
 - [How It Works](#how-it-works)
 - [Backend Architecture Overview](#backend-architecture-overview)
 - [Local Development Setup](#local-development-setup)
+  - [Prerequisites](#prerequisites)
+  - [Installation Steps](#installation-steps)
+  - [Quick Command Reference](#quick-command-reference)
+- [Production Deployment](#production-deployment)
+  - [Frontend Deployment (DigitalOcean)](#frontend-deployment-digitalocean)
+  - [Backend Deployment (AWS Elastic Beanstalk)](#backend-deployment-aws-elastic-beanstalk)
+- [Project Structure](#project-structure)
+- [Page Navigation Flow](#page-navigation-flow)
 - [Development Phases](#development-phases-for-thestudybuddy)
   - [Phase 1 — Frontend Skeleton](#phase-1--frontend-skeleton-)
   - [Phase 2 — Frontend UI Components & Firebase Auth Integration](#phase-2--frontend-ui-components--firebase-auth-integration-)
@@ -193,9 +201,11 @@ If you have access to the Firebase Console:
    - Add authorized domains (localhost is already included)
    - No additional configuration needed for development
 
-### 6. Set Up Backend (Optional - for full functionality)
+### 6. Set Up Backend (Required for full functionality)
 
-To enable Subjects CRUD operations with MongoDB:
+The backend uses **Azure Functions** for local development and **AWS Elastic Beanstalk** for production deployment.
+
+#### Local Development Setup
 
 **Navigate to backend directory:**
 ```bash
@@ -203,31 +213,49 @@ cd ../thestudybuddy-backend
 npm install
 ```
 
-**Contact Jonah for MongoDB credentials!**
+**Install Azure Functions Core Tools:**
+```bash
+# macOS
+brew tap azure/functions
+brew install azure-functions-core-tools@4
+
+# Windows (via npm)
+npm install -g azure-functions-core-tools@4 --unsafe-perm true
+```
+
+**Contact Jonah for credentials!**
 
 Create a `local.settings.json` file in `thestudybuddy-backend`:
 ```json
 {
   "IsEncrypted": false,
   "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "node",
     "MONGODB_URI": "<get_from_jonah>",
-    "FIREBASE_PROJECT_ID": "thestudybuddy-8da15"
+    "STORAGE_CONNECTION_STRING": "<azure_blob_storage_connection>",
+    "STORAGE_NOTES_RAW_CONTAINER": "notes-raw",
+    "STORAGE_NOTES_TEXT_CONTAINER": "notes-text",
+    "AZURE_OPENAI_ENDPOINT": "<azure_openai_endpoint>",
+    "AZURE_OPENAI_API_KEY": "<azure_openai_key>",
+    "AZURE_OPENAI_DEPLOYMENT_NAME": "gpt-5-nano",
+    "YOUTUBE_API_KEY": "<youtube_api_key>"
   },
   "Host": {
-    "CORS": "*"
+    "CORS": "http://localhost:5173",
+    "CORSCredentials": true
   }
 }
 ```
 
-**Start the backend:**
+**Start the Azure Functions backend:**
 ```bash
-npm run start
+npm run start:dev
 ```
 
 Backend will run on `http://localhost:7071`
 
-> **Note:** The frontend will work without the backend (using mock data), but Subjects CRUD will only work with the backend running.
+> **Note:** The frontend will work without the backend (using mock data), but all features require the backend running.
 
 ### 7. Start the Frontend Development Server
 ```bash
@@ -272,15 +300,117 @@ npm run lint
 
 ### Backend Commands (thestudybuddy-backend)
 ```bash
-# Start Azure Functions backend
-npm run start
+# Start Azure Functions backend (local development)
+npm run start:dev
 
 # Build TypeScript
 npm run build
 
 # Watch mode for development
 npm run watch
+
+# Test Express server locally (before deployment)
+npm run dev
 ```
+
+---
+
+## Production Deployment
+
+The Study Buddy is deployed with a split architecture:
+- **Frontend**: DigitalOcean App Platform (https://thestudybuddy.app)
+- **Backend**: AWS Elastic Beanstalk (Express.js wrapper around Azure Functions)
+
+### Frontend Deployment (DigitalOcean)
+
+**Automatic deployment from GitHub:**
+1. Push changes to the `dev` branch
+2. DigitalOcean automatically builds and deploys
+3. Available at: https://thestudybuddy.app
+
+**Manual deployment:**
+1. Go to DigitalOcean App Platform dashboard
+2. Select the app → Click "Deploy"
+3. Monitor build logs for success
+
+**Environment Variables (set in DigitalOcean):**
+```
+VITE_API_URL = http://thestudybuddy-production.eba-ukitft4b.us-east-1.elasticbeanstalk.com
+VITE_FIREBASE_API_KEY = <firebase_api_key>
+VITE_FIREBASE_AUTH_DOMAIN = thestudybuddy-8da15.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID = thestudybuddy-8da15
+VITE_FIREBASE_STORAGE_BUCKET = thestudybuddy-8da15.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID = <sender_id>
+VITE_FIREBASE_APP_ID = <app_id>
+VITE_FIREBASE_MEASUREMENT_ID = <measurement_id>
+```
+
+### Backend Deployment (AWS Elastic Beanstalk)
+
+**Prerequisites:**
+1. Install AWS CLI: `brew install awscli`
+2. Install EB CLI: `brew install awsebcli`
+3. Configure AWS credentials: `aws configure`
+
+**Deployment Steps:**
+
+```bash
+# Navigate to backend directory
+cd thestudybuddy-backend
+
+# Build TypeScript (must be done before deployment)
+npm run build
+
+# Deploy to AWS Elastic Beanstalk
+eb deploy
+
+# Check deployment status
+eb status
+
+# View logs if there are issues
+eb logs
+```
+
+**Environment Variables (set via EB CLI):**
+```bash
+# Set all environment variables at once
+bash set-env-vars.sh
+
+# Or set individually
+eb setenv MONGODB_URI="<your_mongodb_uri>" \
+          STORAGE_CONNECTION_STRING="<azure_storage>" \
+          AZURE_OPENAI_ENDPOINT="<openai_endpoint>" \
+          AZURE_OPENAI_API_KEY="<openai_key>" \
+          AZURE_OPENAI_DEPLOYMENT_NAME="gpt-5-nano" \
+          YOUTUBE_API_KEY="<youtube_key>" \
+          NODE_ENV="production"
+```
+
+**Important Notes:**
+- ✅ Always run `npm run build` before deploying
+- ✅ The `dist/` folder must be included in deployment
+- ✅ Backend runs on Node.js 20 with Express.js
+- ✅ Local development still uses Azure Functions (`npm run start:dev`)
+- ✅ Production uses Express wrapper (`npm start`)
+
+**Backend Architecture:**
+- **Local Development**: Azure Functions on port 7071
+- **Production**: Express.js server on AWS Elastic Beanstalk
+- **Database**: MongoDB Atlas (shared between local and production)
+- **AI Services**: Azure OpenAI (shared between local and production)
+
+**Cost Estimate:**
+- AWS EB: $0/month (free tier for 12 months, then ~$10-15/month)
+- DigitalOcean: $0-5/month (static site)
+- MongoDB Atlas: $0/month (free tier)
+- Total: ~$0-20/month
+
+**Deployment Documentation:**
+- Full deployment guide: `DEPLOYMENT_COMPLETE.md`
+- AWS credentials setup: `AWS_CREDENTIALS_SETUP.md`
+- Production connection guide: `PRODUCTION_DEPLOYMENT_COMPLETE.md`
+
+---
 
 ## Project Structure
 ```
@@ -320,8 +450,10 @@ TheStudyBuddy/
 │   │   └── main.jsx            # App entry point
 │   ├── .env.local              # Environment variables (git-ignored)
 │   └── package.json            # Dependencies
-├── thestudybuddy-backend/      # Azure Functions + TypeScript backend
+├── thestudybuddy-backend/      # Azure Functions + Express.js backend
 │   ├── src/
+│   │   ├── server.ts           # Express server for AWS Elastic Beanstalk
+│   │   ├── index.ts            # Azure Functions entry point (local dev)
 │   │   ├── db/
 │   │   │   └── connectMongo.ts # MongoDB connection utility with retry logic
 │   │   ├── firebase/
@@ -363,9 +495,26 @@ TheStudyBuddy/
 │   │   │   │   └── blobClient.ts # Upload/delete blob operations
 │   │   │   └── services/       # Additional service utilities
 │   │   │       └── textExtraction.ts # PDF text extraction service
-│   │   └── index.ts            # Main entry point with MongoDB/Firebase init
+│   ├── dist/                   # Compiled TypeScript (for deployment)
+│   ├── .elasticbeanstalk/      # AWS EB configuration
+│   │   └── config.yml          # EB environment config
+│   ├── .ebextensions/          # EB deployment settings
+│   │   └── nodecommand.config  # Node.js startup configuration
+│   ├── docs/                   # Backend documentation
+│   │   ├── BACKEND-SETUP-COMPLETE.md
+│   │   ├── BACKEND-V4-COMPLETE.md
+│   │   └── MONGODB_INTEGRATION_COMPLETE.md
+│   ├── Procfile                # EB process definition (web: npm start)
+│   ├── .ebignore               # Files to exclude from EB deployment
 │   ├── local.settings.json     # Azure Functions config (git-ignored)
-│   └── package.json            # Dependencies
+│   ├── set-env-vars.sh         # Script to set EB environment variables
+│   ├── host.json               # Azure Functions host config
+│   ├── tsconfig.json           # TypeScript compiler configuration
+│   └── package.json            # Dependencies and scripts
+├── DEPLOYMENT_COMPLETE.md      # AWS Elastic Beanstalk deployment guide
+├── AWS_CREDENTIALS_SETUP.md    # AWS IAM user setup guide
+├── PRODUCTION_DEPLOYMENT_COMPLETE.md # Frontend + Backend connection guide
+├── ELASTIC_BEANSTALK_DEPLOYMENT.md   # Detailed EB deployment steps
 └── README.md                   # This file
 ```
 

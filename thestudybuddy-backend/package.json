@@ -7,8 +7,9 @@
     "build": "tsc",
     "watch": "tsc --watch",
     "clean": "rimraf dist",
-    "prestart": "npm run build",
-    "start": "func start",
+    "start:dev": "func start",
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {

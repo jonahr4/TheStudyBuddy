@@ -119,6 +119,11 @@ export const noteApi = {
  * Chat API calls
  */
 export const chatApi = {
+  // Get chat statistics for current user
+  getStats: async () => {
+    return apiRequest('/chat/stats');
+  },
+
   // Send chat message to AI
   sendMessage: async (data: { 
     subjectId: string; 
@@ -162,6 +167,11 @@ export const textExtractionApi = {
  * Flashcard API calls
  */
 export const flashcardApi = {
+  // Get all flashcard sets for current user
+  getAll: async () => {
+    return apiRequest('/flashcards');
+  },
+
   // Get all flashcard sets for a subject
   getBySubject: async (subjectId: string) => {
     return apiRequest(`/flashcards/${subjectId}`);
@@ -258,6 +268,24 @@ export const youtubeApi = {
       method: 'POST',
       body: JSON.stringify({ subjectId, subjectName }),
     });
+  },
+};
+
+/**
+ * Reports API calls
+ */
+export const reportApi = {
+  // Submit a bug report or feature request
+  submit: async (data: { type: 'bug' | 'feature' | 'improvement' | 'other', description: string }) => {
+    return apiRequest('/reports', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Get user's reports
+  getAll: async () => {
+    return apiRequest('/reports');
   },
 };
 

@@ -4,6 +4,61 @@ import ChatMessage from "../models/ChatMessage";
 import { ErrorResponse } from "../shared/types";
 
 /**
+ * GET /api/chat/stats
+ * Get chat statistics for current user
+ */
+app.http("getChatStats", {
+  methods: ["GET"],
+  authLevel: "anonymous",
+  route: "chat/stats",
+  handler: async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
+    try {
+      const { userId } = await getUserInfoFromRequest(request);
+
+      // Count total messages
+      const totalMessages = await ChatMessage.countDocuments({ userId });
+
+      // Count unique subjects with chat history
+      const uniqueSubjects = await ChatMessage.distinct('subjectId', { userId });
+
+      // Get recent conversations (grouped by subject)
+      const recentChats = await ChatMessage.aggregate([
+        { $match: { userId } },
+        { $sort: { timestamp: -1 } },
+        { 
+          $group: {
+            _id: '$subjectId',
+            lastMessage: { $first: '$content' },
+            lastTimestamp: { $first: '$timestamp' },
+            messageCount: { $sum: 1 }
+          }
+        },
+        { $sort: { lastTimestamp: -1 } },
+        { $limit: 5 }
+      ]);
+
+      return {
+        status: 200,
+        jsonBody: {
+          totalMessages,
+          totalConversations: uniqueSubjects.length,
+          recentChats,
+        },
+      };
+    } catch (error: any) {
+      context.error("Error fetching chat stats:", error);
+      return {
+        status: 500,
+        jsonBody: { 
+          message: "Failed to fetch chat statistics", 
+          error: error.message 
+        } as ErrorResponse,
+      };
+    }
+  },
+});
+
+/**
  * GET /api/chat/history/:subjectId
  * Get chat history for a specific subject
  */

@@ -251,6 +251,14 @@ export const youtubeApi = {
   getRecommendations: async (query: string, maxResults: number = 6) => {
     return apiRequest(`/youtube/recommendations?query=${encodeURIComponent(query)}&maxResults=${maxResults}`);
   },
+
+  // Generate AI-powered search terms from subject notes
+  generateSearchTerms: async (subjectId: string, subjectName: string) => {
+    return apiRequest('/youtube/generate-search-terms', {
+      method: 'POST',
+      body: JSON.stringify({ subjectId, subjectName }),
+    });
+  },
 };
 
 /**

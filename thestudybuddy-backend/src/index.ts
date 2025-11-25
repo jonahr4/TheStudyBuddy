@@ -25,6 +25,7 @@ import "./functions/GetChatHistory";
 import "./functions/FlashcardsHttp";
 import "./functions/GenerateFlashcards";
 import "./functions/YouTubeRecommendations";
+import "./functions/GenerateYouTubeSearchTerms";
 
 // Export the app for Azure Functions to discover
 export default app;

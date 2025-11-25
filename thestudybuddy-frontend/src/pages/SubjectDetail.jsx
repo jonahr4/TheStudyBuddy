@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { useSubjects } from '../contexts/SubjectContext';
 import { useNotes } from '../contexts/NoteContext';
-import { textExtractionApi } from '../services/api';
+import { textExtractionApi, youtubeApi } from '../services/api';
 import VideoRecommendations from '../components/VideoRecommendations';
 
 export default function SubjectDetail() {
@@ -27,6 +27,7 @@ export default function SubjectDetail() {
   
   // State for video search query
   const [videoSearchQuery, setVideoSearchQuery] = useState('');
+  const [generatingSearchTerms, setGeneratingSearchTerms] = useState(false);
   
   // Fetch notes on mount
   useEffect(() => {
@@ -37,21 +38,55 @@ export default function SubjectDetail() {
     }
   }, [subjectId]);
   
-  // Generate video search query from notes
+  // Generate AI-powered video search query from notes
   useEffect(() => {
-    if (notes.length > 0) {
-      // Extract keywords from note filenames (remove .pdf extension and combine)
-      const noteKeywords = notes
-        .map(note => note.fileName.replace('.pdf', '').replace(/_/g, ' '))
-        .slice(0, 3) // Use first 3 note names
-        .join(' ');
-      
-      // Combine subject name with note keywords
-      setVideoSearchQuery(`${subject.name} ${noteKeywords}`);
-    } else {
-      setVideoSearchQuery('');
-    }
-  }, [notes, subject.name]);
+    const generateSearchQuery = async () => {
+      if (notes.length === 0) {
+        setVideoSearchQuery('');
+        return;
+      }
+
+      // Check if any notes have extracted text
+      const hasExtractedText = notes.some(note => 
+        note.textUrl && !note.textUrl.includes('placeholder')
+      );
+
+      if (!hasExtractedText) {
+        // Fallback: Use note filenames if no text is extracted yet
+        const noteKeywords = notes
+          .map(note => note.fileName.replace('.pdf', '').replace(/_/g, ' '))
+          .slice(0, 3)
+          .join(' ');
+        setVideoSearchQuery(`${subject.name} ${noteKeywords}`);
+        return;
+      }
+
+      // Use AI to generate search terms from note content
+      try {
+        setGeneratingSearchTerms(true);
+        console.log('Generating AI-powered search terms for:', subject.name);
+        
+        const response = await youtubeApi.generateSearchTerms(subjectId, subject.name);
+        
+        console.log('AI generated search terms:', response);
+        
+        if (response.combinedQuery) {
+          setVideoSearchQuery(response.combinedQuery);
+        } else {
+          // Fallback to subject name
+          setVideoSearchQuery(subject.name);
+        }
+      } catch (err) {
+        console.error('Failed to generate AI search terms:', err);
+        // Fallback: Use subject name
+        setVideoSearchQuery(subject.name);
+      } finally {
+        setGeneratingSearchTerms(false);
+      }
+    };
+
+    generateSearchQuery();
+  }, [notes, subject.name, subjectId]);
   
   // Redirect to subjects page if subject not found
   if (!subject) {
@@ -451,13 +486,30 @@ export default function SubjectDetail() {
         </div>
 
         {/* YouTube Video Recommendations - Only show if there are notes */}
-        {notes.length > 0 && videoSearchQuery && (
+        {notes.length > 0 && (
           <div className="max-w-6xl mx-auto mb-12">
-            <VideoRecommendations 
-              searchQuery={videoSearchQuery}
-              title={`Recommended Videos Based on Your Notes`}
-              maxResults={3}
-            />
+            {generatingSearchTerms ? (
+              <div className="card text-center py-8">
+                <div className="animate-pulse">
+                  <div className="text-4xl mb-4">🤖</div>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    AI is analyzing your notes to find the best videos...
+                  </p>
+                </div>
+              </div>
+            ) : videoSearchQuery ? (
+              <VideoRecommendations 
+                searchQuery={videoSearchQuery}
+                title={`Recommended Videos Based on Your Notes`}
+                maxResults={3}
+              />
+            ) : (
+              <div className="card text-center py-8">
+                <p className="text-gray-600 dark:text-gray-400">
+                  Extract text from your notes to get AI-powered video recommendations
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

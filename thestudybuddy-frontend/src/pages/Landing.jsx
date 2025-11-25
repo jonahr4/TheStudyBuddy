@@ -20,10 +20,6 @@ export default function Landing() {
               <p className="mb-6">
                 Transform your homework notes into interactive flashcards and chat with an AI that understands your content. Study smarter, not harder.
               </p>
-              <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
-                Created by Jonah Rothman & Sean Tomany :)
-              </p>
-
               <div className="flex items-center gap-x-6">
                 <a href="/login" className="btn-primary">
                   Get Started & Login

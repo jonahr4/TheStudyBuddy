@@ -1,12 +1,34 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useSubjects } from '../contexts/SubjectContext';
+import { flashcardApi } from '../services/api.ts';
 
 export default function Dashboard() {
   const { subjects, loading } = useSubjects();
-
-  // TODO: Replace with real data from API when Notes and Flashcards are implemented
-  const recentDecks = [];
+  const [recentDecks, setRecentDecks] = useState([]);
+  const [loadingDecks, setLoadingDecks] = useState(true);
+  
+  // TODO: Replace with real data from API when Chat History is implemented
   const chatCount = 0;
+
+  // Fetch flashcard sets
+  useEffect(() => {
+    const fetchFlashcards = async () => {
+      try {
+        setLoadingDecks(true);
+        const sets = await flashcardApi.getAll();
+        // Get the 5 most recent sets
+        setRecentDecks(sets.slice(0, 5));
+      } catch (error) {
+        console.error('Failed to fetch flashcard sets:', error);
+        setRecentDecks([]);
+      } finally {
+        setLoadingDecks(false);
+      }
+    };
+
+    fetchFlashcards();
+  }, []);
 
   return (
     <div className="gradient-bg min-h-screen">
@@ -73,7 +95,11 @@ export default function Dashboard() {
                 </Link>
               </div>
               
-              {recentDecks.length === 0 ? (
+              {loadingDecks ? (
+                <div className="text-center py-12">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : recentDecks.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="text-4xl mb-3">🃏</div>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
@@ -87,20 +113,26 @@ export default function Dashboard() {
                 <>
                   <div className="space-y-3">
                     {recentDecks.map(deck => (
-                      <div key={deck.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow">
+                      <Link
+                        key={deck._id}
+                        to={`/flashcards/${deck._id}/study`}
+                        className="block p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow"
+                      >
                         <div className="flex justify-between items-start mb-2">
                           <h5 className="font-semibold text-gray-900 dark:text-white">
                             {deck.name}
                           </h5>
-                          <span className="badge">{deck.cardCount} cards</span>
+                          <span className="badge">{deck.flashcards.length} cards</span>
                         </div>
-                        <p className="text-xs text-gray-500 mb-3">
-                          {deck.subject}
-                        </p>
-                        <button className="btn-secondary text-sm w-full">
-                          Study Now
-                        </button>
-                      </div>
+                        {deck.subjectId?.name && (
+                          <p className="text-xs text-gray-500 mb-3">
+                            {deck.subjectId.name}
+                          </p>
+                        )}
+                        <div className="text-sm text-indigo-600 dark:text-indigo-400 font-medium">
+                          Study Now →
+                        </div>
+                      </Link>
                     ))}
                   </div>
                   

@@ -162,6 +162,11 @@ export const textExtractionApi = {
  * Flashcard API calls
  */
 export const flashcardApi = {
+  // Get all flashcard sets for current user
+  getAll: async () => {
+    return apiRequest('/flashcards');
+  },
+
   // Get all flashcard sets for a subject
   getBySubject: async (subjectId: string) => {
     return apiRequest(`/flashcards/${subjectId}`);

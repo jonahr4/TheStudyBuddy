@@ -4,6 +4,39 @@ import FlashcardSet from "../models/FlashcardSet";
 import { ErrorResponse } from "../shared/types";
 
 /**
+ * GET /api/flashcards - Get all flashcard sets for current user
+ */
+app.http("getAllFlashcardSets", {
+  methods: ["GET"],
+  authLevel: "anonymous",
+  route: "flashcards",
+  handler: async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
+    try {
+      const { userId } = await getUserInfoFromRequest(request);
+
+      const flashcardSets = await FlashcardSet.find({ userId })
+        .sort({ createdAt: -1 })
+        .populate('subjectId', 'name color')
+        .exec();
+
+      return {
+        status: 200,
+        jsonBody: flashcardSets,
+      };
+    } catch (error: any) {
+      context.error("Error in getAllFlashcardSets:", error);
+      return {
+        status: 500,
+        jsonBody: { 
+          message: "Failed to fetch flashcard sets",
+          error: error.message 
+        } as ErrorResponse,
+      };
+    }
+  },
+});
+
+/**
  * GET /api/flashcards/{subjectId} - Get all flashcard sets for a subject
  */
 app.http("getFlashcardSetsBySubject", {

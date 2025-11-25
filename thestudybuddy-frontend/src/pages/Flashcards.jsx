@@ -17,6 +17,11 @@ export default function Flashcards() {
     description: '',
   });
 
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     loadFlashcardSets();
   }, [selectedSubject, subjects]);
@@ -82,9 +87,9 @@ export default function Flashcards() {
 
   if (subjectsLoading) {
     return (
-      <div className="gradient-bg min-h-screen flex items-center justify-center">
+      <div className="gradient-bg h-full w-full flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-200 dark:border-purple-800 border-t-purple-600 dark:border-t-purple-400 mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
       </div>
@@ -93,12 +98,12 @@ export default function Flashcards() {
 
   if (subjects.length === 0) {
     return (
-      <div className="gradient-bg min-h-screen">
+      <div className="gradient-bg h-full w-full overflow-hidden">
         <div className="gradient-blur">
           <div className="gradient-blur-shape" />
         </div>
-        <div className="p-8">
-          <div className="text-center py-12">
+        <div className="h-full flex items-center justify-center p-8">
+          <div className="text-center">
             <div className="text-6xl mb-4">📚</div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               No Subjects Yet
@@ -116,20 +121,26 @@ export default function Flashcards() {
   }
 
   return (
-    <div className="gradient-bg min-h-screen">
+    <div className="gradient-bg h-full w-full overflow-hidden">
       <div aria-hidden="true" className="gradient-blur">
         <div className="gradient-blur-shape" />
       </div>
       
-      <div className="p-8">
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2>Flashcards</h2>
+      <div className="h-full w-full flex flex-col p-4 md:p-6">
+        <div className="mb-4 flex-shrink-0">
+          <div className="flex justify-between items-center mb-3">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">Flashcards</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Study with AI-generated flashcards</p>
+            </div>
             <button 
               onClick={() => setShowCreateModal(true)}
-              className="btn-primary"
+              className="btn-primary bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 flex items-center gap-2"
             >
-              + Create Flashcard Set
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Create Set
             </button>
           </div>
           
@@ -165,14 +176,17 @@ export default function Flashcards() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Loading flashcard sets...</p>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-200 dark:border-purple-800 border-t-purple-600 dark:border-t-purple-400 mx-auto mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-400">Loading flashcard sets...</p>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex-1 overflow-y-auto min-h-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 pb-6">
             {flashcardSets.map(set => (
-              <div key={set._id} className="card hover:shadow-xl transition-shadow">
+              <div key={set._id} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-200/50 dark:border-gray-700/50 hover:border-purple-500/50 dark:hover:border-purple-400/50 transition-all duration-300 hover:shadow-xl">
                 <div className="mb-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div 
@@ -219,7 +233,7 @@ export default function Flashcards() {
 
             {flashcardSets.length === 0 && !loading && (
               <div className="col-span-full text-center py-12">
-                <div className="text-4xl mb-4">🃏</div>
+                <div className="text-5xl mb-4">🃏</div>
                 <p className="text-gray-500 dark:text-gray-400 mb-4">
                   No flashcard sets yet.
                 </p>
@@ -231,6 +245,7 @@ export default function Flashcards() {
                 </button>
               </div>
             )}
+            </div>
           </div>
         )}
       </div>

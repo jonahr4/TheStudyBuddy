@@ -80,9 +80,9 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-100 dark:border-gray-800 w-full">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      <div className="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="flex justify-between h-16 w-full">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-5">
             <Link to={currentUser ? "/dashboard" : "/"} className="flex items-center gap-3">
               <img src="/IMG_3002.png" alt="Logo" className="h-10 w-10 object-contain" />
               <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
@@ -110,19 +110,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop menu */}
-          <div className="hidden md:flex items-center space-x-2 relative" ref={navRef}>
-            {/* Animated indicator - purple matching gradient background */}
-            <div
-              className="absolute rounded-md shadow-sm transition-all duration-300 ease-out"
-              style={{
-                ...indicatorStyle,
-                height: '40px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: '#9089fc',
-              }}
-            />
-            
+          <div className="hidden md:flex items-center space-x-2 relative ml-8" ref={navRef}>
             {navItems.map((item) => {
               const isActive = location.pathname === item.path || 
                               (item.path === '/subjects' && location.pathname.startsWith('/subjects/'));
@@ -132,10 +120,10 @@ export default function Navbar() {
                   key={item.path}
                   to={item.path}
                   data-nav-item
-                  className={`px-3.5 py-2.5 text-sm font-semibold relative z-10 rounded-md transition-colors ${
+                  className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all ${
                     isActive 
-                      ? 'text-white' 
-                      : 'text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400'
+                      ? 'bg-indigo-600 text-white shadow-md hover:text-black' 
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
                   {item.label}

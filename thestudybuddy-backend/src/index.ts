@@ -26,6 +26,7 @@ import "./functions/FlashcardsHttp";
 import "./functions/GenerateFlashcards";
 import "./functions/YouTubeRecommendations";
 import "./functions/GenerateYouTubeSearchTerms";
+import "./functions/ReportsHttp";
 
 // Export the app for Azure Functions to discover
 export default app;

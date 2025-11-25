@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useSubjects } from '../contexts/SubjectContext';
 import SubjectModal from '../components/SubjectModal';
@@ -11,6 +11,11 @@ export default function Subjects() {
   const [deletingSubject, setDeletingSubject] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState(null);
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleCreateClick = () => {
     setEditingSubject(null);
@@ -69,17 +74,23 @@ export default function Subjects() {
   };
 
   return (
-    <div className="gradient-bg min-h-screen">
+    <div className="gradient-bg h-full w-full overflow-hidden">
       {/* Gradient background blur */}
       <div aria-hidden="true" className="gradient-blur">
         <div className="gradient-blur-shape" />
       </div>
       
-      <div className="p-8">
-        <div className="flex justify-between items-center mb-8">
-          <h2>My Subjects</h2>
-          <button onClick={handleCreateClick} className="btn-primary">
-            + Create New Subject
+      <div className="h-full w-full flex flex-col p-4 md:p-6">
+        <div className="flex justify-between items-center mb-4 flex-shrink-0">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">My Subjects</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Organize your study materials by subject</p>
+          </div>
+          <button onClick={handleCreateClick} className="btn-primary bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            New Subject
           </button>
         </div>
 
@@ -94,14 +105,17 @@ export default function Subjects() {
 
         {/* Loading State */}
         {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading subjects...</p>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 dark:border-t-indigo-400"></div>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading subjects...</p>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex-1 overflow-y-auto min-h-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 pb-6">
           {subjects.map(subject => (
-            <div key={subject.id} className="card hover:shadow-xl transition-shadow">
+            <div key={subject.id} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-200/50 dark:border-gray-700/50 hover:border-indigo-500/50 dark:hover:border-indigo-400/50 transition-all duration-300 hover:shadow-xl">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className={`w-4 h-4 rounded-full ${subject.color}`}></div>
@@ -160,12 +174,14 @@ export default function Subjects() {
             {/* Empty state if no subjects */}
             {subjects.length === 0 && (
               <div className="col-span-full text-center py-12">
-                <p className="text-gray-500 mb-4">No subjects yet. Create your first subject to get started!</p>
+                <div className="text-5xl mb-4">📚</div>
+                <p className="text-gray-500 dark:text-gray-400 mb-4">No subjects yet. Create your first subject to get started!</p>
                 <button onClick={handleCreateClick} className="btn-primary">
                   + Create New Subject
                 </button>
               </div>
             )}
+            </div>
           </div>
         )}
       </div>

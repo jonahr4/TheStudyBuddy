@@ -10,6 +10,11 @@ export default function Dashboard() {
   const [chatStats, setChatStats] = useState(null);
   const [loadingChat, setLoadingChat] = useState(true);
 
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Fetch flashcard sets
   useEffect(() => {
     const fetchFlashcards = async () => {

@@ -33,6 +33,33 @@ const blobServiceClient = BlobServiceClient.fromConnectionString(storageConnecti
 const textContainerClient = blobServiceClient.getContainerClient(textContainerName);
 
 /**
+ * Retry logic for rate-limited API calls
+ */
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  context?: InvocationContext
+): Promise<T> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      const isRateLimit = error?.status === 429 || error?.code === 'RateLimitReached';
+      const retryAfter = parseInt(error?.headers?.['retry-after'] || '60');
+      
+      if (isRateLimit && attempt < maxRetries) {
+        const waitTime = Math.min(retryAfter * 1000, 120000); // Max 2 minutes
+        context?.warn(`Rate limit hit. Retrying in ${waitTime/1000} seconds... (Attempt ${attempt}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      } else {
+        throw error; // Not rate limit or max retries reached
+      }
+    }
+  }
+  throw new Error('Max retries reached');
+}
+
+/**
  * Fetch text content from Azure Blob Storage
  */
 async function fetchNoteText(textUrl: string): Promise<string> {
@@ -118,8 +145,45 @@ app.http("generateFlashcards", {
         };
       }
 
-      const contextText = noteTexts.join('\n\n');
-      context.log(`Using text from ${noteTexts.length} notes`);
+      let contextText = noteTexts.join('\n\n');
+      const originalLength = contextText.length;
+      context.log(`Using text from ${noteTexts.length} notes (${originalLength} chars)`);
+
+      // Smart truncation for flashcard generation
+      // For flashcards, we need less context than chat since we're creating specific Q&A
+      const MAX_CONTEXT_CHARS = 30000; // ~7.5K tokens, leave room for reasoning + response
+      const BEGINNING_CHARS = 12000;   // Introduction and key concepts
+      const END_CHARS = 12000;         // Summary and conclusions
+      const MIDDLE_SAMPLE_CHARS = 6000; // Sample from middle
+      
+      let truncationNote = "";
+      
+      if (contextText.length > MAX_CONTEXT_CHARS) {
+        context.warn(`Context too large for flashcards (${contextText.length} chars). Applying smart truncation...`);
+        
+        const beginning = contextText.substring(0, BEGINNING_CHARS);
+        const end = contextText.substring(contextText.length - END_CHARS);
+        
+        // Sample from middle section
+        const middleStart = BEGINNING_CHARS;
+        const middleEnd = contextText.length - END_CHARS;
+        const middleLength = middleEnd - middleStart;
+        
+        let middle = "";
+        if (middleLength > 0) {
+          const sampleSize = Math.floor(MIDDLE_SAMPLE_CHARS / 2);
+          const half = middleStart + Math.floor(middleLength * 0.5);
+          
+          middle = contextText.substring(half, half + sampleSize);
+        }
+        
+        contextText = beginning + "\n\n[... middle content sampled ...]\n\n" + 
+                      middle + "\n\n[... continuing to end ...]\n\n" + end;
+        
+        truncationNote = "\nNote: Created flashcards from beginning, key middle sections, and ending of notes.";
+        
+        context.log(`✂️ Truncated from ${originalLength} to ${contextText.length} chars for flashcard generation`);
+      }
 
       // Build AI prompt
       const focusInstruction = body.description 
@@ -140,25 +204,33 @@ Return ONLY a valid JSON array in this exact format:
 
 Here are the student's notes:
 ${contextText}
+${truncationNote}
 
 Return ONLY the JSON array, no other text.`;
 
       context.log('Calling Azure OpenAI to generate flashcards...');
 
-      const completion = await openaiClient.chat.completions.create({
-        model: openaiDeploymentName!,
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful tutor creating study flashcards. Always respond with valid JSON only.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        max_completion_tokens: 8000, // Increased to allow for reasoning tokens + actual response
-      });
+      // Use retry logic for rate-limited calls
+      const completion = await retryWithBackoff(
+        () => openaiClient.chat.completions.create({
+          model: openaiDeploymentName!,
+          messages: [
+            {
+              role: "system",
+              content: "You are a helpful tutor creating study flashcards. Always respond with valid JSON only.",
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          max_completion_tokens: 4000,
+          // Disable reasoning to get actual response content
+          reasoning_effort: "none" as any,
+        }),
+        3,
+        context
+      );
 
       // Debug: Log the full completion object structure
       context.log('Full completion object:', JSON.stringify(completion, null, 2));

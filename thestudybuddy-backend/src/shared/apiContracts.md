@@ -356,18 +356,119 @@ All errors return a JSON object with a `message` field:
 
 ---
 
+## YouTube Recommendations API
+
+### GET /api/youtube/recommendations
+**Description:** Search YouTube for educational videos
+
+**Request:**
+- Method: GET
+- Query parameters:
+  - `query`: string (required) - Search query
+  - `maxResults`: number (optional, default: 6) - Number of videos to return
+- Headers: Authorization (optional for now)
+
+**Response:**
+- Status: 200 OK
+- Body: YouTube API v3 search response
+
+**Example:**
+```json
+{
+  "items": [
+    {
+      "id": { "videoId": "abc123" },
+      "snippet": {
+        "title": "Introduction to Biology",
+        "description": "Learn the basics...",
+        "channelTitle": "Khan Academy",
+        "publishedAt": "2024-01-01T00:00:00Z",
+        "thumbnails": {
+          "high": { "url": "https://...", "width": 480, "height": 360 }
+        }
+      }
+    }
+  ]
+}
+```
+
+**Errors:**
+- 400 Bad Request if `query` is missing
+- 503 Service Unavailable if YouTube API key not configured
+
+---
+
+### POST /api/youtube/generate-search-terms
+**Description:** Generate AI-powered YouTube search terms from subject notes
+
+**Request:**
+- Method: POST
+- Headers: Authorization (optional for now), Content-Type: application/json
+- Body:
+```json
+{
+  "subjectId": "string",
+  "subjectName": "string"
+}
+```
+
+**Response:**
+- Status: 200 OK
+- Body:
+```json
+{
+  "searchTerms": ["topic 1", "topic 2", "topic 3"],
+  "combinedQuery": "Biology 101 mitosis cell division"
+}
+```
+
+**Example Use Case:**
+```json
+Request:
+{
+  "subjectId": "uuid-123",
+  "subjectName": "Biology 101"
+}
+
+Response:
+{
+  "searchTerms": [
+    "mitosis cell division",
+    "DNA replication",
+    "gene expression"
+  ],
+  "combinedQuery": "Biology 101 mitosis cell division"
+}
+```
+
+**Behavior:**
+- Fetches all notes with extracted text for the subject
+- Analyzes up to 50,000 characters of note content using Azure OpenAI
+- AI identifies 3-5 key topics/concepts from the notes
+- Returns structured search terms optimized for YouTube
+- Falls back to subject name if no notes or AI fails
+
+**Errors:**
+- 400 Bad Request if `subjectId` or `subjectName` is missing
+- 500 Internal Server Error if AI generation fails (returns fallback)
+
+**Note:** Requires notes to have extracted text via ProcessNoteText function
+
+---
+
 ## Future Enhancements
 
 ### Planned Integrations:
-1. **Firebase Auth** - Real token verification
-2. **Azure Blob Storage** - Real file uploads for PDFs and extracted text
-3. **Azure Document Intelligence** - PDF text extraction
-4. **Azure OpenAI** - Flashcard generation and RAG chat
-5. **MongoDB Atlas** - Replace in-memory repositories
+1. **Firebase Auth** - Real token verification ✅ COMPLETED
+2. **Azure Blob Storage** - Real file uploads for PDFs and extracted text ✅ COMPLETED
+3. **Azure Document Intelligence** - PDF text extraction ✅ COMPLETED
+4. **Azure OpenAI** - Flashcard generation and RAG chat ✅ COMPLETED
+5. **MongoDB Atlas** - Replace in-memory repositories ✅ COMPLETED
+6. **YouTube Data API v3** - Video recommendations ✅ COMPLETED
 
 ### Additional Endpoints (Potential):
 - `PUT /api/flashcards/{id}` - Update a flashcard
 - `DELETE /api/flashcards/{id}` - Delete a flashcard
 - `GET /api/subjects/{id}/stats` - Get subject statistics
-- `POST /api/notes/{id}/extract-text` - Trigger text extraction
+- `POST /api/notes/{id}/extract-text` - Trigger text extraction ✅ COMPLETED
 

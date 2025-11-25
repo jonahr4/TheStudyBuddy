@@ -63,41 +63,148 @@ export default function LearnMore() {
 
   return (
     <div className="min-h-screen gradient-bg relative overflow-x-hidden">
+      {/* Simple Logo Nav */}
+      <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-16">
+            <Link to="/" className="flex items-center gap-3">
+              <img src="/IMG_3002.png" alt="Logo" className="h-10 w-10 object-contain" />
+              <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+                The Study Buddy
+              </span>
+            </Link>
+            
+            {/* Auth Buttons */}
+            <div className="flex items-center gap-3">
+              <Link 
+                to="/login" 
+                className="px-5 py-2 rounded-lg font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-300"
+              >
+                Login
+              </Link>
+              <Link 
+                to="/signup" 
+                className="px-5 py-2 rounded-lg font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:border-indigo-500 dark:hover:border-indigo-400 transition-all duration-300"
+              >
+                Sign Up
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+      
       {/* Gradient background blur */}
       <div aria-hidden="true" className="gradient-blur">
         <div className="gradient-blur-shape" />
       </div>
 
       {/* Landing Page Hero Section */}
-      <div className="relative mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8 z-10">
-        <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-12 gap-y-16 sm:gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-[65%_35%] lg:items-center">
+      <div className="relative mx-auto max-w-7xl px-6 py-6 sm:py-8 lg:px-8 z-10" style={{maxHeight: '80vh'}}>
+        <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-12 gap-y-6 sm:gap-y-8 lg:mx-0 lg:max-w-none lg:grid-cols-[65%_35%] lg:items-center" style={{maxHeight: '80vh'}}>
           {/* Left side - Text content */}
           <div className="lg:pr-8">
             <div className="w-full">
-              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 tracking-tight">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
                 The Study Buddy
               </h1>
-              <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+              <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
                 Transform your homework notes into interactive flashcards and chat with an AI that understands your content. Study smarter, not harder.
               </p>
-              <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
-                Created by Jonah Rothman & Sean Tomany
-              </p>
+
+              {/* Key highlights */}
+              <div className="space-y-3 mb-6">
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-3 h-3 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Free to Join & Use</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Completely free platform accessible to all students</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-3 h-3 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">AI-Powered Learning</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Generate flashcards and get instant answers from your materials</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-3 h-3 text-pink-600 dark:text-pink-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Simple 3-Step Process</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Create a subject → Upload PDFs → Generate flashcards or chat</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-3 h-3 text-cyan-600 dark:text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Organized by Subject</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Keep all your study materials separated and easily accessible</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-3 h-3 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Secure & Private</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Your notes are encrypted and stored safely in the cloud</p>
+                  </div>
+                </div>
+              </div>
 
               <div className="flex items-center gap-x-6">
                 <Link to="/login" className="btn-primary">
                   Get Started & Login
                 </Link>
               </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
+                <div>
+                  <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">AI</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Powered</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">10</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">PDFs per subject</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-pink-600 dark:text-pink-400">24/7</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Study Access</div>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Right side - Screenshot */}
-          <div className="relative lg:-mr-8">
+          <div className="relative lg:-mr-8 flex items-start">
             <img
               alt="Study Buddy Dashboard Screenshot"
               src={homepageImage}
-              className="w-full max-w-none rounded-2xl shadow-[0_40px_80px_-1px_rgba(0,0,0,0.5)] ring-1 ring-white/10 lg:w-[60rem]"
+              className="w-full max-w-none rounded-2xl shadow-[0_40px_80px_-1px_rgba(0,0,0,0.5)] ring-1 ring-white/10 lg:w-[60rem] h-auto object-contain"
+              style={{maxHeight: '60vh'}}
             />
           </div>
         </div>

@@ -272,6 +272,24 @@ export const youtubeApi = {
 };
 
 /**
+ * Reports API calls
+ */
+export const reportApi = {
+  // Submit a bug report or feature request
+  submit: async (data: { type: 'bug' | 'feature' | 'improvement' | 'other', description: string }) => {
+    return apiRequest('/reports', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Get user's reports
+  getAll: async () => {
+    return apiRequest('/reports');
+  },
+};
+
+/**
  * Example usage in a React component:
  * 
  * import { subjectApi, noteApi, chatApi, userApi } from './services/api';

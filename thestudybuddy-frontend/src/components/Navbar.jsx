@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../firebase/AuthContext';
+import ReportModal from './ReportModal';
 
 export default function Navbar() {
   const location = useLocation();
@@ -10,6 +11,7 @@ export default function Navbar() {
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const [showDropdown, setShowDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const { currentUser, logout } = useAuth();
 
   const navItems = [
@@ -132,11 +134,25 @@ export default function Navbar() {
             })}
             
             {currentUser ? (
-              <div className="ml-4 relative" ref={dropdownRef}>
+              <>
+                {/* Report Button */}
                 <button
-                  onClick={() => setShowDropdown(!showDropdown)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  onClick={() => setShowReportModal(true)}
+                  className="ml-4 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center gap-2"
+                  title="Report bugs or suggest features"
                 >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <span className="hidden lg:inline">Report</span>
+                </button>
+
+                {/* User Dropdown */}
+                <div className="ml-2 relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setShowDropdown(!showDropdown)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
                   <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold">
                     {(currentUser.displayName || currentUser.email).charAt(0).toUpperCase()}
                   </div>
@@ -193,7 +209,8 @@ export default function Navbar() {
                     </button>
                   </div>
                 )}
-              </div>
+                </div>
+              </>
             ) : (
               <Link to="/login" className="btn-primary ml-4">
                 Login
@@ -263,6 +280,9 @@ export default function Navbar() {
           </div>
         )}
       </div>
+
+      {/* Report Modal */}
+      <ReportModal isOpen={showReportModal} onClose={() => setShowReportModal(false)} />
     </nav>
   );
 }

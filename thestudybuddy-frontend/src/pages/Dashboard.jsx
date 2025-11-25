@@ -1,15 +1,14 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useSubjects } from '../contexts/SubjectContext';
-import { flashcardApi } from '../services/api.ts';
+import { flashcardApi, chatApi } from '../services/api.ts';
 
 export default function Dashboard() {
   const { subjects, loading } = useSubjects();
   const [recentDecks, setRecentDecks] = useState([]);
   const [loadingDecks, setLoadingDecks] = useState(true);
-  
-  // TODO: Replace with real data from API when Chat History is implemented
-  const chatCount = 0;
+  const [chatStats, setChatStats] = useState(null);
+  const [loadingChat, setLoadingChat] = useState(true);
 
   // Fetch flashcard sets
   useEffect(() => {
@@ -28,6 +27,24 @@ export default function Dashboard() {
     };
 
     fetchFlashcards();
+  }, []);
+
+  // Fetch chat statistics
+  useEffect(() => {
+    const fetchChatStats = async () => {
+      try {
+        setLoadingChat(true);
+        const stats = await chatApi.getStats();
+        setChatStats(stats);
+      } catch (error) {
+        console.error('Failed to fetch chat stats:', error);
+        setChatStats({ totalConversations: 0, totalMessages: 0, recentChats: [] });
+      } finally {
+        setLoadingChat(false);
+      }
+    };
+
+    fetchChatStats();
   }, []);
 
   return (
@@ -115,7 +132,7 @@ export default function Dashboard() {
                     {recentDecks.map(deck => (
                       <Link
                         key={deck._id}
-                        to={`/flashcards/${deck._id}/study`}
+                        to={`/flashcards/study/${deck._id}`}
                         className="block p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow"
                       >
                         <div className="flex justify-between items-start mb-2">
@@ -149,27 +166,38 @@ export default function Dashboard() {
             <div className="card">
               <h4 className="mb-4">Chat History</h4>
               
-              <div className="text-center py-6">
-                <div className="text-4xl mb-3">💬</div>
-                {chatCount > 0 ? (
-                  <>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                      {chatCount}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                      Total conversations
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-                    No conversations yet
-                  </p>
-                )}
-              </div>
-              
-              <Link to="/chat" className="btn-primary w-full text-center block">
-                {chatCount > 0 ? 'Go to Chat' : 'Start Chatting'}
-              </Link>
+              {loadingChat ? (
+                <div className="text-center py-6">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : (
+                <>
+                  <div className="text-center py-6">
+                    <div className="text-4xl mb-3">💬</div>
+                    {chatStats?.totalConversations > 0 ? (
+                      <>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                          {chatStats.totalConversations}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          {chatStats.totalConversations === 1 ? 'Conversation' : 'Conversations'}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
+                          {chatStats.totalMessages} total messages
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                        No conversations yet
+                      </p>
+                    )}
+                  </div>
+                  
+                  <Link to="/chat" className="btn-primary w-full text-center block">
+                    {chatStats?.totalConversations > 0 ? 'Continue Chatting' : 'Start Chatting'}
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

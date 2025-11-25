@@ -119,6 +119,11 @@ export const noteApi = {
  * Chat API calls
  */
 export const chatApi = {
+  // Get chat statistics for current user
+  getStats: async () => {
+    return apiRequest('/chat/stats');
+  },
+
   // Send chat message to AI
   sendMessage: async (data: { 
     subjectId: string; 

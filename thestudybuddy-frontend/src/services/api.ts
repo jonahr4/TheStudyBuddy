@@ -1,10 +1,11 @@
 /**
- * API Service for calling backend Azure Functions
- * Base URL points to local Azure Functions during development
+ * API Service for calling backend API
+ * Base URL points to Cloudflare-proxied AWS backend in production
+ * Falls back to local Azure Functions during development
  */
 
 // @ts-ignore - Vite env variables
-const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:7071/api';
+const API_BASE_URL = import.meta.env?.VITE_API_URL || 'https://api.thestudybuddy.app';
 
 /**
  * Get Firebase Auth token from current user

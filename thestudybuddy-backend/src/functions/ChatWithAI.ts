@@ -137,7 +137,50 @@ app.http("chatWithAI", {
       context.log(`Successfully fetched text from ${noteTexts.length} notes`);
 
       // 4. Build context from all note texts
-      const contextText = noteTexts.join('\n\n');
+      let contextText = noteTexts.join('\n\n');
+      const originalLength = contextText.length;
+      
+      // Dynamic Context Window: Smart truncation for large texts
+      // Phi-4 limit: 16K tokens (~12K chars safe for input, leaving room for response)
+      const MAX_CONTEXT_CHARS = 40000; // ~10K tokens
+      const BEGINNING_CHARS = 15000;   // Keep intro/overview
+      const END_CHARS = 15000;         // Keep conclusion/summary
+      const MIDDLE_SAMPLE_CHARS = 10000; // Sample from middle
+      
+      let truncationNote = "";
+      
+      if (contextText.length > MAX_CONTEXT_CHARS) {
+        context.warn(`Context too large (${contextText.length} chars). Applying smart truncation...`);
+        
+        const beginning = contextText.substring(0, BEGINNING_CHARS);
+        const end = contextText.substring(contextText.length - END_CHARS);
+        
+        // Sample from middle section
+        const middleStart = BEGINNING_CHARS;
+        const middleEnd = contextText.length - END_CHARS;
+        const middleLength = middleEnd - middleStart;
+        
+        let middle = "";
+        if (middleLength > 0) {
+          // Take samples from 25%, 50%, 75% of middle section
+          const sampleSize = Math.floor(MIDDLE_SAMPLE_CHARS / 3);
+          const quarter = middleStart + Math.floor(middleLength * 0.25);
+          const half = middleStart + Math.floor(middleLength * 0.5);
+          const threeQuarter = middleStart + Math.floor(middleLength * 0.75);
+          
+          middle = contextText.substring(quarter, quarter + sampleSize) + "\n...\n" +
+                   contextText.substring(half, half + sampleSize) + "\n...\n" +
+                   contextText.substring(threeQuarter, threeQuarter + sampleSize);
+        }
+        
+        contextText = beginning + "\n\n[... middle sections sampled ...]\n\n" + 
+                      middle + "\n\n[... continuing to end ...]\n\n" + end;
+        
+        truncationNote = `\n\nNOTE: These notes are very long (${originalLength} characters). I'm analyzing the beginning, key middle sections, and ending. If you need information from a specific section, please ask!`;
+        
+        context.log(`✂️ Truncated from ${originalLength} to ${contextText.length} chars (beginning + middle samples + end)`);
+      }
+      
       const contextPreview = contextText.substring(0, 500);
       context.log(`Context preview: ${contextPreview}...`);
 
@@ -159,6 +202,7 @@ app.http("chatWithAI", {
           Your identity:
           You are **The Study Buddy**, a helpful study partner created by two BU students Jonah Rothman and Sean Tomany to make learning easier. Here are the student's notes:
           ${contextText}
+          ${truncationNote}
 
           Now begin acting as The Study Buddy.`;
 

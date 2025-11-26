@@ -6,34 +6,49 @@ on:
       - dev
   workflow_dispatch:
 
-env:
-  AZURE_FUNCTIONAPP_NAME: 'thestudybuddyFA'
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'thestudybuddy-backend'
-  NODE_VERSION: '22.x'
-
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 'Checkout repository'
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 'Setup Node.js ${{ env.NODE_VERSION }}'
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '22.x'
 
-      - name: 'Install dependencies and build'
-        shell: bash
-        working-directory: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+      - name: Install backend deps + build
+        working-directory: ./thestudybuddy-backend
         run: |
           npm ci
-          npm run build --if-present
+          npm run build
+
+      - name: Create deployment zip
+        working-directory: ./thestudybuddy-backend
+        run: |
+          zip -r ../deploy.zip . -x "node_modules/*"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-zip
+          path: ./deploy.zip
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-zip
 
       - name: 'Deploy to Azure Functions'
         uses: Azure/functions-action@v1
         with:
-          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          app-name: 'thestudybuddyFA'
+          package: './deploy.zip'
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}

@@ -284,6 +284,14 @@ app.get('/api/users/me', authenticate, async (req: Request, res: Response) => {
   }
 });
 
+
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok" });
+});
 // ============ YOUTUBE ROUTES ============
 // See YouTubeRecommendations.ts for implementation
 // - GET /api/youtube/recommendations?subjectId=xxx

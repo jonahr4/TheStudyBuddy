@@ -5,7 +5,7 @@
  */
 
 // @ts-ignore - Vite env variables
-const API_BASE_URL = import.meta.env?.VITE_API_URL || 'https://api.thestudybuddy.app';
+const API_BASE_URL = import.meta.env?.VITE_API_URL || 'thestudybuddy-api-b0ahd5hcfzerh6h4.eastus-01.azurewebsites.net';
 
 /**
  * Get Firebase Auth token from current user

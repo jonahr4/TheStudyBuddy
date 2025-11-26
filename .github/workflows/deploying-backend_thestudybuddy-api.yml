@@ -1,50 +1,57 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - thestudybuddy-api
+name: Deploy Backend to Azure Web App - thestudybuddy-api
 
 on:
   push:
     branches:
-      - deploying-backend
+      - dev
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read #This is required for actions/checkout
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js version
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '22.x'
 
-      - name: npm install, build, and test
+      - name: Install backend deps + build
+        working-directory: ./thestudybuddy-backend
         run: |
           npm install
-          npm run build --if-present
-          npm run test --if-present
+          npm run build
 
-      - name: Upload artifact for deployment job
+      - name: Create deployment zip
+        working-directory: ./thestudybuddy-backend
+        run: |
+          zip -r ../deploy.zip . -x "node_modules/*"
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: node-app
-          path: .
+          name: deploy-zip
+          path: ./deploy.zip
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    
+
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: node-app
-      
+          name: deploy-zip
+
+      # - name: Azure Login
+      #   uses: azure/login@v1
+      #   with:
+      #     publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }} 
+
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -52,4 +59,11 @@ jobs:
           app-name: 'thestudybuddy-api'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D51C190024A241B4976E57E6B46427E3 }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }} 
+
+
+      # - name: Deploy to Azure Web App
+      #   uses: azure/webapps-deploy@v3
+      #   with:
+      #     app-name: thestudybuddy-api
+      #     package: ./deploy.zip     

@@ -8,8 +8,9 @@
     "watch": "tsc --watch",
     "clean": "rimraf dist",
     "prestart": "npm run build",
-    "start": "node dist/server.js",
+    "start": "node dist/expressServer.js",
     "start:functions": "func start",
+    "dev": "ts-node src/expressServer.ts",
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {

@@ -11,16 +11,21 @@ const API_BASE_URL = import.meta.env?.VITE_API_URL || 'https://api.thestudybuddy
  * Get Firebase Auth token from current user
  */
 async function getAuthToken() {
-  // Import Firebase auth
-  const { auth } = await import('../firebase/config');
-  const user = auth.currentUser;
-  
-  if (user) {
+  try {
+    const { auth } = await import('../firebase/config');
+    const user = auth.currentUser;
+
+    if (!user) {
+      console.warn('No authenticated user found. Requests may fail.');
+      return null;
+    }
+
     // Get fresh token from Firebase
     return await user.getIdToken();
+  } catch (error) {
+    console.error('Failed to retrieve auth token:', error);
+    return null;
   }
-  
-  return '';
 }
 
 /**
@@ -28,29 +33,34 @@ async function getAuthToken() {
  */
 async function apiRequest(endpoint: string, options: RequestInit = {}) {
   const token = await getAuthToken();
-  
+
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+    });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || `HTTP ${response.status}`);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Request failed' }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+
+    // Handle 204 No Content
+    if (response.status === 204) {
+      return null;
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error(`API request failed: ${endpoint}`, error);
+    throw error;
   }
-
-  // Handle 204 No Content
-  if (response.status === 204) {
-    return null;
-  }
-
-  return response.json();
 }
 
 /**

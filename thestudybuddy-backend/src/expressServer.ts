@@ -1,12 +1,17 @@
 import express from "express";
 import cors from "cors";
+import { config } from "dotenv";
 import { connectMongo } from "./db/connectMongo";
+
+// Load environment variables from .env file
+config();
 
 // Import Express routes
 import subjectsRoutes from "./routes/subjects";
 import notesRoutes from "./routes/notes";
 import flashcardsRoutes from "./routes/flashcards";
 import chatRoutes from "./routes/chat";
+import aiRoutes from "./routes/ai";
 import usersRoutes from "./routes/users";
 import reportsRoutes from "./routes/reports";
 
@@ -67,6 +72,7 @@ app.use("/api/subjects", subjectsRoutes);
 app.use("/api/notes", notesRoutes);
 app.use("/api/flashcards", flashcardsRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/ai", aiRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/reports", reportsRoutes);
 

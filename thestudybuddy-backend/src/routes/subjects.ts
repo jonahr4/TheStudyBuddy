@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { getUserInfoFromRequest } from "../shared/auth";
+import { getUserInfoFromRequest } from "../shared/expressAuth";
 import { MongoSubjectRepository } from "../shared/repos/MongoSubjectRepository";
 import { CreateSubjectRequest, UpdateSubjectRequest } from "../shared/types";
 

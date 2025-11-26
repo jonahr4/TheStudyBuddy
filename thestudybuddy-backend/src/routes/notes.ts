@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { getUserInfoFromRequest } from "../shared/auth";
+import { getUserInfoFromRequest } from "../shared/expressAuth";
 import { MongoNoteRepository } from "../shared/repos/MongoNoteRepository";
 import { uploadPdfToRawContainer } from "../shared/storage/blobClient";
 import { extractTextFromNote, deleteBlobsForNote } from "../shared/services/textExtraction";

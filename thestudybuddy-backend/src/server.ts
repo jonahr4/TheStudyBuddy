@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { connectMongo } from './db/connectMongo';
-import { getUserInfoFromRequest } from './shared/auth';
+import { getUserInfoFromRequest } from './shared/expressAuth';
 import { subjectRepo, noteRepo, userRepo } from './index';
 import FlashcardSet from './models/FlashcardSet';
 import dotenv from 'dotenv';

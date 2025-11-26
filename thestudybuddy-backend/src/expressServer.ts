@@ -2,9 +2,13 @@ import express from "express";
 import cors from "cors";
 import { config } from "dotenv";
 import { connectMongo } from "./db/connectMongo";
+import { initializeFirebaseAdmin } from "./firebase/admin";
 
 // Load environment variables from .env file
 config();
+
+// Initialize Firebase Admin SDK
+initializeFirebaseAdmin();
 
 // Import Express routes
 import subjectsRoutes from "./routes/subjects";

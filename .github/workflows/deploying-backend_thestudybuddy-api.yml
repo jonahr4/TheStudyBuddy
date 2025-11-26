@@ -4,7 +4,7 @@ name: Deploy Backend to Azure Web App - thestudybuddy-api
 on:
   push:
     branches:
-      - dev
+      - deploying-backend
   workflow_dispatch:
 
 jobs:
@@ -23,13 +23,13 @@ jobs:
       - name: Install backend deps + build
         working-directory: ./thestudybuddy-backend
         run: |
-          npm install
+          npm ci
           npm run build
 
       - name: Create deployment zip
         working-directory: ./thestudybuddy-backend
         run: |
-          zip -r ../deploy.zip . -x "node_modules/*"
+          zip -r ../deploy.zip .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -58,7 +58,7 @@ jobs:
         with:
           app-name: 'thestudybuddy-api'
           slot-name: 'Production'
-          package: .
+          package: ./deploy.zip
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }} 
 
 

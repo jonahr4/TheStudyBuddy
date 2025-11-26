@@ -1,330 +1,173 @@
 /**
- * API Service for calling backend API
- * Base URL points to Cloudflare-proxied AWS backend in production
- * Falls back to local Azure Functions during development
+ * ================================
+ *  FIXED API SERVICE (FINAL VERSION)
+ * ================================
+ *
+ * Key changes:
+ * - Correct Azure API URL
+ * - No /api prefix duplication
+ * - Handles Firebase auth delays
+ * - Works for production + local dev
  */
 
-// @ts-ignore - Vite env variables
-const API_BASE_URL = import.meta.env?.VITE_API_URL || 'thestudybuddy-api-b0ahd5hcfzerh6h4.eastus-01.azurewebsites.net';
+// IMPORTANT: production must define VITE_API_URL in .env.production
+// Example:
+// VITE_API_URL=https://thestudybuddy-api-b0ahd5hcfzerh6h4.eastus-01.azurewebsites.net
+
+const API_BASE_URL =
+  (import.meta.env?.VITE_API_URL || "https://thestudybuddy-api-b0ahd5hcfzerh6h4.eastus-01.azurewebsites.net")
+    .replace(/\/+$/, ""); // remove trailing slash
 
 /**
- * Get Firebase Auth token from current user
+ * Try to fetch Firebase Auth token.
+ * Includes a tiny retry because React often renders before Firebase loads.
  */
 async function getAuthToken() {
   try {
-    const { auth } = await import('../firebase/config');
-    const user = auth.currentUser;
+    const { auth } = await import("../firebase/config");
 
-    if (!user) {
-      console.warn('No authenticated user found. Requests may fail.');
-      return null;
+    // retry for 500ms total if auth.currentUser is null on initial load
+    for (let i = 0; i < 5; i++) {
+      if (auth.currentUser) break;
+      await new Promise(res => setTimeout(res, 100));
     }
 
-    // Get fresh token from Firebase
+    const user = auth.currentUser;
+    if (!user) return null;
+
     return await user.getIdToken();
-  } catch (error) {
-    console.error('Failed to retrieve auth token:', error);
+  } catch (err) {
+    console.error("Failed to retrieve auth token:", err);
     return null;
   }
 }
 
 /**
- * Make authenticated API request
+ * Make authenticated API request.
  */
 async function apiRequest(endpoint: string, options: RequestInit = {}) {
   const token = await getAuthToken();
 
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
+  const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    const res = await fetch(url, { ...options, headers });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Request failed' }));
-      throw new Error(error.message || `HTTP ${response.status}`);
+    if (!res.ok) {
+      const errorJson = await res.json().catch(() => ({ message: "Request failed" }));
+      throw new Error(errorJson.message || `HTTP ${res.status}`);
     }
 
-    // Handle 204 No Content
-    if (response.status === 204) {
-      return null;
-    }
+    if (res.status === 204) return null;
+    return res.json();
 
-    return response.json();
-  } catch (error) {
-    console.error(`API request failed: ${endpoint}`, error);
-    throw error;
+  } catch (err) {
+    console.error(`API request failed: ${url}`, err);
+    throw err;
   }
 }
 
-/**
- * Subject API calls
- */
+/* -------------------------------
+   SUBJECT API
+   ------------------------------- */
 export const subjectApi = {
-  // Get all subjects for current user
-  getAll: async () => {
-    return apiRequest('/subjects');
-  },
-
-  // Get single subject by ID
-  getById: async (id: string) => {
-    return apiRequest(`/subjects/${id}`);
-  },
-
-  // Create new subject
-  create: async (data: { name: string; color: string }) => {
-    return apiRequest('/subjects', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  // Update subject
-  update: async (id: string, data: { name?: string; color?: string }) => {
-    return apiRequest(`/subjects/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  },
-
-  // Delete subject
-  delete: async (id: string) => {
-    return apiRequest(`/subjects/${id}`, {
-      method: 'DELETE',
-    });
-  },
+  getAll: () => apiRequest("/subjects"),
+  getById: (id: string) => apiRequest(`/subjects/${id}`),
+  create: (data: { name: string; color: string }) =>
+    apiRequest("/subjects", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: string, data: any) =>
+    apiRequest(`/subjects/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  delete: (id: string) =>
+    apiRequest(`/subjects/${id}`, { method: "DELETE" }),
 };
 
-/**
- * Note API calls
- */
+/* -------------------------------
+   NOTES API
+   ------------------------------- */
 export const noteApi = {
-  // Get all notes for a subject
-  getBySubject: async (subjectId: string) => {
-    return apiRequest(`/notes/${subjectId}`);
-  },
-
-  // Upload note metadata (file will be uploaded to Azure Blob Storage separately)
-  upload: async (data: { fileName: string; fileSize: number; subjectId: string }) => {
-    return apiRequest('/notes/upload', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  // Delete note
-  delete: async (noteId: string) => {
-    return apiRequest(`/notes/delete/${noteId}`, {
-      method: 'DELETE',
-    });
-  },
+  getBySubject: (subjectId: string) => apiRequest(`/notes/${subjectId}`),
+  upload: (data: any) =>
+    apiRequest("/notes/upload", { method: "POST", body: JSON.stringify(data) }),
+  delete: (noteId: string) =>
+    apiRequest(`/notes/delete/${noteId}`, { method: "DELETE" }),
 };
 
-/**
- * Chat API calls
- */
+/* -------------------------------
+   CHAT API
+   ------------------------------- */
 export const chatApi = {
-  // Get chat statistics for current user
-  getStats: async () => {
-    return apiRequest('/chat/stats');
-  },
-
-  // Send chat message to AI
-  sendMessage: async (data: { 
-    subjectId: string; 
-    message: string; 
-    chatHistory?: Array<{ role: string; content: string }> 
-  }) => {
-    return apiRequest('/ai/chat', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  // Get chat history for a subject
-  getHistory: async (subjectId: string, limit?: number) => {
-    const params = limit ? `?limit=${limit}` : '';
-    return apiRequest(`/chat/history/${subjectId}${params}`);
-  },
-
-  // Clear chat history for a subject
-  clearHistory: async (subjectId: string) => {
-    return apiRequest(`/chat/history/${subjectId}`, {
-      method: 'DELETE',
-    });
-  },
+  getStats: () => apiRequest(`/chat/stats`),
+  sendMessage: (data: any) =>
+    apiRequest(`/ai/chat`, { method: "POST", body: JSON.stringify(data) }),
+  getHistory: (subjectId: string, limit?: number) =>
+    apiRequest(`/chat/history/${subjectId}${limit ? `?limit=${limit}` : ""}`),
+  clearHistory: (subjectId: string) =>
+    apiRequest(`/chat/history/${subjectId}`, { method: "DELETE" }),
 };
 
-/**
- * Text Extraction API calls
- */
+/* -------------------------------
+   TEXT EXTRACTION
+   ------------------------------- */
 export const textExtractionApi = {
-  // Trigger text extraction for a note
-  processNote: async (data: { noteId: string; blobUrl: string }) => {
-    return apiRequest('/process-text', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
+  processNote: (data: any) =>
+    apiRequest(`/process-text`, { method: "POST", body: JSON.stringify(data) }),
 };
 
-/**
- * Flashcard API calls
- */
+/* -------------------------------
+   FLASHCARDS
+   ------------------------------- */
 export const flashcardApi = {
-  // Get all flashcard sets for current user
-  getAll: async () => {
-    return apiRequest('/flashcards');
-  },
-
-  // Get all flashcard sets for a subject
-  getBySubject: async (subjectId: string) => {
-    return apiRequest(`/flashcards/${subjectId}`);
-  },
-
-  // Get a specific flashcard set
-  getSet: async (setId: string) => {
-    return apiRequest(`/flashcards/set/${setId}`);
-  },
-
-  // Generate flashcards using AI
-  generate: async (data: { 
-    subjectId: string; 
-    name: string; 
-    description?: string 
-  }) => {
-    return apiRequest('/flashcards/generate', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  // Delete a flashcard set
-  deleteSet: async (setId: string) => {
-    return apiRequest(`/flashcards/set/${setId}`, {
-      method: 'DELETE',
-    });
-  },
-
-  // Update studied status of a flashcard
-  updateStudied: async (setId: string, cardIndex: number, studied: boolean) => {
-    return apiRequest(`/flashcards/set/${setId}/card/${cardIndex}/studied`, {
-      method: 'PATCH',
+  getAll: () => apiRequest(`/flashcards`),
+  getBySubject: (subjectId: string) => apiRequest(`/flashcards/${subjectId}`),
+  getSet: (setId: string) => apiRequest(`/flashcards/set/${setId}`),
+  generate: (data: any) =>
+    apiRequest(`/flashcards/generate`, { method: "POST", body: JSON.stringify(data) }),
+  deleteSet: (setId: string) =>
+    apiRequest(`/flashcards/set/${setId}`, { method: "DELETE" }),
+  updateStudied: (setId: string, cardIndex: number, studied: boolean) =>
+    apiRequest(`/flashcards/set/${setId}/card/${cardIndex}/studied`, {
+      method: "PATCH",
       body: JSON.stringify({ studied }),
-    });
-  },
+    }),
 };
 
-/**
- * User API calls
- */
+/* -------------------------------
+   USER
+   ------------------------------- */
 export const userApi = {
-  // Sync user data with MongoDB (call after login/signup)
-  syncUser: async (userData: {
-    displayName?: string;
-    photoURL?: string;
-    emailVerified?: boolean;
-    provider?: string;
-    metadata?: any;
-  }) => {
-    return apiRequest('/users/sync', {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    });
-  },
-
-  // Get current user data from MongoDB
-  getCurrentUser: async () => {
-    return apiRequest('/users/me');
-  },
-
-  // Update current user data
-  updateUser: async (data: {
-    displayName?: string;
-    photoURL?: string;
-    emailVerified?: boolean;
-  }) => {
-    return apiRequest('/users/me', {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  },
-
-  // Delete current user from MongoDB
-  deleteUser: async () => {
-    return apiRequest('/users/me', {
-      method: 'DELETE',
-    });
-  },
+  syncUser: (userData: any) =>
+    apiRequest(`/users/sync`, { method: "POST", body: JSON.stringify(userData) }),
+  getCurrentUser: () => apiRequest(`/users/me`),
+  updateUser: (data: any) =>
+    apiRequest(`/users/me`, { method: "PATCH", body: JSON.stringify(data) }),
+  deleteUser: () => apiRequest(`/users/me`, { method: "DELETE" }),
 };
 
-/**
- * YouTube Recommendations API calls
- */
+/* -------------------------------
+   YOUTUBE
+   ------------------------------- */
 export const youtubeApi = {
-  // Get YouTube video recommendations for a search query
-  getRecommendations: async (query: string, maxResults: number = 6) => {
-    return apiRequest(`/youtube/recommendations?query=${encodeURIComponent(query)}&maxResults=${maxResults}`);
-  },
+  getRecommendations: (query: string, maxResults = 6) =>
+    apiRequest(`/youtube/recommendations?query=${encodeURIComponent(query)}&maxResults=${maxResults}`),
 
-  // Generate AI-powered search terms from subject notes
-  generateSearchTerms: async (subjectId: string, subjectName: string) => {
-    return apiRequest('/youtube/generate-search-terms', {
-      method: 'POST',
+  generateSearchTerms: (subjectId: string, subjectName: string) =>
+    apiRequest(`/youtube/generate-search-terms`, {
+      method: "POST",
       body: JSON.stringify({ subjectId, subjectName }),
-    });
-  },
+    }),
 };
 
-/**
- * Reports API calls
- */
+/* -------------------------------
+   REPORTS
+   ------------------------------- */
 export const reportApi = {
-  // Submit a bug report or feature request
-  submit: async (data: { type: 'bug' | 'feature' | 'improvement' | 'other', description: string }) => {
-    return apiRequest('/reports', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  // Get user's reports
-  getAll: async () => {
-    return apiRequest('/reports');
-  },
+  submit: (data: any) =>
+    apiRequest(`/reports`, { method: "POST", body: JSON.stringify(data) }),
+  getAll: () => apiRequest(`/reports`),
 };
-
-/**
- * Example usage in a React component:
- * 
- * import { subjectApi, noteApi, chatApi, userApi } from './services/api';
- * 
- * // Get all subjects
- * const subjects = await subjectApi.getAll();
- * 
- * // Create a subject
- * const newSubject = await subjectApi.create({
- *   name: "Biology 101",
- *   color: "#A3C1FF"
- * });
- * 
- * // Send chat message
- * const response = await chatApi.sendMessage({
- *   subjectId: "123",
- *   message: "What is photosynthesis?",
- *   chatHistory: []
- * });
- * 
- * // Sync user data after login
- * await userApi.syncUser({
- *   displayName: "John Doe",
- *   emailVerified: true,
- *   provider: "google"
- * });
- */

@@ -5,6 +5,7 @@ local.settings.json
 *.log
 .DS_Store
 .env.local
+.env
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*

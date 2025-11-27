@@ -181,17 +181,17 @@ function parseMultipartForm(req: Request): Promise<ParsedFormData> {
 
     const busboy = Busboy({ headers: { "content-type": contentType } });
 
-    busboy.on("field", (fieldname, value) => {
+    busboy.on("field", (fieldname: string, value: string) => {
       if (fieldname === "subjectId") {
         result.subjectId = value;
       }
     });
 
-    busboy.on("file", (fieldname, file, info) => {
+    busboy.on("file", (fieldname: string, file: NodeJS.ReadableStream, info: { filename: string; encoding: string; mimeType: string }) => {
       if (fieldname === "file") {
         const chunks: Buffer[] = [];
 
-        file.on("data", (chunk) => {
+        file.on("data", (chunk: Buffer) => {
           chunks.push(chunk);
         });
 
@@ -209,7 +209,7 @@ function parseMultipartForm(req: Request): Promise<ParsedFormData> {
       resolve(result);
     });
 
-    busboy.on("error", (error) => {
+    busboy.on("error", (error: Error) => {
       reject(error);
     });
 

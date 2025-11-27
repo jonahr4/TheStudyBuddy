@@ -44,8 +44,12 @@ export function NoteProvider({ children }) {
       const user = auth.currentUser;
       const token = user ? await user.getIdToken() : '';
 
+      // Get API base URL from environment or use production default
+      // @ts-ignore - Vite env variables
+      const API_BASE_URL = import.meta.env?.VITE_API_URL || 'https://thestudybuddy-api-b0ahd5hcfzerh6h4.eastus-01.azurewebsites.net';
+
       // Send multipart/form-data request
-      const response = await fetch('http://localhost:7071/api/notes/upload', {
+      const response = await fetch(`${API_BASE_URL}/notes/upload`, {
         method: 'POST',
         headers: {
           ...(token && { 'Authorization': `Bearer ${token}` }),

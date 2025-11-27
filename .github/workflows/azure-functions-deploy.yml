@@ -1,4 +1,4 @@
-name: Deploy Backend to Azure Functions
+name: Deploy Backend to Azure Web App
 
 on:
   push:
@@ -46,9 +46,9 @@ jobs:
         with:
           name: deploy-zip
 
-      - name: 'Deploy to Azure Functions'
+      - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'thestudybuddyFA'
+          app-name: 'thestudybuddy-api'
           package: './deploy.zip'
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}

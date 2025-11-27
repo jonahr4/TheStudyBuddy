@@ -11,13 +11,22 @@ This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and 
 - [Stretch Features](#stretch-features)
 - [Tech Stack](#tech-stack-azure-centric)
 - [How It Works](#how-it-works)
+- [Backend Architecture Overview](#backend-architecture-overview)
 - [Local Development Setup](#local-development-setup)
+  - [Prerequisites](#prerequisites)
+  - [Installation Steps](#installation-steps)
+  - [Quick Command Reference](#quick-command-reference)
+- [Production Deployment](#production-deployment)
+  - [Frontend Deployment (DigitalOcean)](#frontend-deployment-digitalocean)
+  - [Backend Deployment (AWS Elastic Beanstalk)](#backend-deployment-aws-elastic-beanstalk)
+- [Project Structure](#project-structure)
+- [Page Navigation Flow](#page-navigation-flow)
 - [Development Phases](#development-phases-for-thestudybuddy)
   - [Phase 1 — Frontend Skeleton](#phase-1--frontend-skeleton-)
-  - [Phase 2 — Frontend UI Components](#phase-2--frontend-ui-components)
-  - [Phase 3 — Deploy Frontend](#phase-3--deploy-frontend)
-  - [Phase 4 — Backend Development](#phase-4--backend-development-azure-functions)
-  - [Phase 5 — Connect Frontend and Backend](#phase-5--connect-frontend-and-backend)
+  - [Phase 2 — Frontend UI Components & Firebase Auth Integration](#phase-2--frontend-ui-components--firebase-auth-integration-)
+  - [Phase 3 — Deploy Frontend](#phase-3--deploy-frontend-)
+  - [Phase 4 — Backend Development (Azure + MongoDB)](#phase-4--backend-development-azure--mongodb--)
+  - [Phase 5 — Connect Frontend and Backend](#phase-5--connect-frontend-and-backend--)
   - [Phase 6 — Stretch Features](#phase-6--stretch-features)
 
 ---
@@ -49,26 +58,27 @@ This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and 
 # Tech Stack (Azure-Centric)
 
 **Frontend**
-- React (Vite)
-- TailwindCSS
-- Firebase Auth
+- React (Vite) + TailwindCSS
+- Firebase Auth (email/password + Google sign-in)
+- React Router DOM (client-side routing)
 - Azure Static Web Apps (hosting)
 
 **Backend**
-- Azure Functions
-- Azure OpenAI GPT-4.1
-- Azure Blob Storage
-- Azure API Management (optional)
+- Express.js API or Azure Functions (REST API endpoints)
+- Azure Functions (serverless compute for AI processing)
+- Azure OpenAI (GPT-4o-mini for flashcards + chat)
+- Azure Blob Storage (PDF files + extracted text storage)
+- Azure Cognitive Search (optional - for vector retrieval/RAG)
 
 **Database**
-- MongoDB Atlas ($50 credits)
+- MongoDB Atlas (users, subjects, notes metadata, flashcards)
 
 **Optional Microservices**
 - DigitalOcean Droplet or App Platform (YouTube/article workers)
 
 **DevOps**
-- GitHub Actions
-- Sentry + Azure Monitor
+- GitHub Actions (CI/CD)
+- Sentry + Azure Monitor (error tracking & logging)
 
 ---
 
@@ -83,6 +93,38 @@ This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and 
 7. User studies flashcards filtered by subject
 8. User chats with AI about specific subject content using RAG retrieval
 9. Optional DO worker fetches video/article recommendations per subject  
+
+---
+
+# Backend Architecture Overview
+
+**MongoDB Collections:**
+- **users**: Store email, name (from Firebase Auth)
+- **subjects**: Store name, color, userId (user's custom subjects)
+- **notes**: Store metadata (fileName, blobUrl, textUrl, subjectId)
+- **flashcards**: Store AI-generated flashcards (question, answer, subjectId)
+
+**Azure Blob Storage:**
+- Store uploaded raw PDF files
+- Store extracted text versions of notes
+
+**Azure Functions (Serverless Processing):**
+- **Process Note Text**: Download PDF from Blob → Extract text → Upload text to Blob
+- **Generate Flashcards**: Use Azure OpenAI (GPT-4o-mini) to create flashcards from note text
+- **Generate Chat Responses**: Use RAG (Retrieval-Augmented Generation) with note context
+
+**Azure OpenAI Integration:**
+- Flashcard generation with custom prompts
+- AI chat assistant with subject-specific context
+- Optional: Note summarization or preprocessing
+
+**Backend API (Express.js or Azure Functions):**
+- `POST/GET/PUT/DELETE /api/subjects` - Subject CRUD operations
+- `POST /api/notes/upload` - Upload file to Azure Blob + save metadata to MongoDB
+- `POST /api/flashcards/generate` - Trigger Azure Function to generate flashcards
+- `POST /api/ai/chat` - Send chat message, get AI response with RAG context
+- `GET /api/flashcards/:subjectId` - Retrieve flashcards for a subject
+- `GET /api/notes/:subjectId` - Get all notes for a subject
 
 ---
 
@@ -159,8 +201,65 @@ If you have access to the Firebase Console:
    - Add authorized domains (localhost is already included)
    - No additional configuration needed for development
 
-### 6. Start the Development Server
+### 6. Set Up Backend (Required for full functionality)
+
+The backend uses **Azure Functions** for local development and **AWS Elastic Beanstalk** for production deployment.
+
+#### Local Development Setup
+
+**Navigate to backend directory:**
 ```bash
+cd ../thestudybuddy-backend
+npm install
+```
+
+**Install Azure Functions Core Tools:**
+```bash
+# macOS
+brew tap azure/functions
+brew install azure-functions-core-tools@4
+
+# Windows (via npm)
+npm install -g azure-functions-core-tools@4 --unsafe-perm true
+```
+
+**Contact Jonah for credentials!**
+
+Create a `local.settings.json` file in `thestudybuddy-backend`:
+```json
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "MONGODB_URI": "<get_from_jonah>",
+    "STORAGE_CONNECTION_STRING": "<azure_blob_storage_connection>",
+    "STORAGE_NOTES_RAW_CONTAINER": "notes-raw",
+    "STORAGE_NOTES_TEXT_CONTAINER": "notes-text",
+    "AZURE_OPENAI_ENDPOINT": "<azure_openai_endpoint>",
+    "AZURE_OPENAI_API_KEY": "<azure_openai_key>",
+    "AZURE_OPENAI_DEPLOYMENT_NAME": "gpt-5-nano",
+    "YOUTUBE_API_KEY": "<youtube_api_key>"
+  },
+  "Host": {
+    "CORS": "http://localhost:5173",
+    "CORSCredentials": true
+  }
+}
+```
+
+**Start the Azure Functions backend:**
+```bash
+npm run start:dev
+```
+
+Backend will run on `http://localhost:7071`
+
+> **Note:** The frontend will work without the backend (using mock data), but all features require the backend running.
+
+### 7. Start the Frontend Development Server
+```bash
+cd ../thestudybuddy-frontend
 npm run dev
 ```
 
@@ -174,15 +273,17 @@ VITE v7.2.4  ready in 500 ms
 
 **The app is now running at** `http://localhost:5173` 🎉
 
-### 7. Verify Installation
+### 8. Verify Installation
 Open your browser to `http://localhost:5173` and you should see:
 - ✅ Landing page with gradient background
 - ✅ Navbar with "Study Buddy" branding
 - ✅ Buttons and navigation working
 - ✅ Login page accessible at `/login`
+- ✅ Create subjects and see them persist (if backend is running)
 
 ## Quick Command Reference
 
+### Frontend Commands (thestudybuddy-frontend)
 ```bash
 # Start development server (with hot reload)
 npm run dev
@@ -195,13 +296,121 @@ npm run preview
 
 # Run linter to check code quality
 npm run lint
-
-# Install a new package (example)
-npm install <package-name>
-
-# Update dependencies
-npm update
 ```
+
+### Backend Commands (thestudybuddy-backend)
+```bash
+# Start Azure Functions backend (local development)
+npm run start:dev
+
+# Build TypeScript
+npm run build
+
+# Watch mode for development
+npm run watch
+
+# Test Express server locally (before deployment)
+npm run dev
+```
+
+---
+
+## Production Deployment
+
+The Study Buddy is deployed with a split architecture:
+- **Frontend**: DigitalOcean App Platform (https://thestudybuddy.app)
+- **Backend**: AWS Elastic Beanstalk (Express.js wrapper around Azure Functions)
+
+### Frontend Deployment (DigitalOcean)
+
+**Automatic deployment from GitHub:**
+1. Push changes to the `dev` branch
+2. DigitalOcean automatically builds and deploys
+3. Available at: https://thestudybuddy.app
+
+**Manual deployment:**
+1. Go to DigitalOcean App Platform dashboard
+2. Select the app → Click "Deploy"
+3. Monitor build logs for success
+
+**Environment Variables (set in DigitalOcean):**
+```
+VITE_API_URL = http://thestudybuddy-production.eba-ukitft4b.us-east-1.elasticbeanstalk.com
+VITE_FIREBASE_API_KEY = <firebase_api_key>
+VITE_FIREBASE_AUTH_DOMAIN = thestudybuddy-8da15.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID = thestudybuddy-8da15
+VITE_FIREBASE_STORAGE_BUCKET = thestudybuddy-8da15.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID = <sender_id>
+VITE_FIREBASE_APP_ID = <app_id>
+VITE_FIREBASE_MEASUREMENT_ID = <measurement_id>
+```
+
+### Backend Deployment (AWS Elastic Beanstalk)
+
+**Prerequisites:**
+1. Install AWS CLI: `brew install awscli`
+2. Install EB CLI: `brew install awsebcli`
+3. Configure AWS credentials: `aws configure`
+
+**Deployment Steps:**
+
+```bash
+# Navigate to backend directory
+cd thestudybuddy-backend
+
+# Build TypeScript (must be done before deployment)
+npm run build
+
+# Deploy to AWS Elastic Beanstalk
+eb deploy
+
+# Check deployment status
+eb status
+
+# View logs if there are issues
+eb logs
+```
+
+**Environment Variables (set via EB CLI):**
+```bash
+# Set all environment variables at once
+bash set-env-vars.sh
+
+# Or set individually
+eb setenv MONGODB_URI="<your_mongodb_uri>" \
+          STORAGE_CONNECTION_STRING="<azure_storage>" \
+          AZURE_OPENAI_ENDPOINT="<openai_endpoint>" \
+          AZURE_OPENAI_API_KEY="<openai_key>" \
+          AZURE_OPENAI_DEPLOYMENT_NAME="gpt-5-nano" \
+          YOUTUBE_API_KEY="<youtube_key>" \
+          NODE_ENV="production"
+```
+
+**Important Notes:**
+- ✅ Always run `npm run build` before deploying
+- ✅ The `dist/` folder must be included in deployment
+- ✅ Backend runs on Node.js 20 with Express.js
+- ✅ Local development still uses Azure Functions (`npm run start:dev`)
+- ✅ Production uses Express wrapper (`npm start`)
+
+**Backend Architecture:**
+- **Local Development**: Azure Functions on port 7071
+- **Production**: Express.js server on AWS Elastic Beanstalk
+- **Database**: MongoDB Atlas (shared between local and production)
+- **AI Services**: Azure OpenAI (shared between local and production)
+
+**Cost Estimate:**
+- AWS EB: $0/month (free tier for 12 months, then ~$10-15/month)
+- DigitalOcean: $0-5/month (static site)
+- MongoDB Atlas: $0/month (free tier)
+- Total: ~$0-20/month
+
+**Deployment Documentation:**
+- Full deployment guide: `DEPLOYMENT_COMPLETE.md`
+- AWS credentials setup: `AWS_CREDENTIALS_SETUP.md`
+- Production connection guide: `PRODUCTION_DEPLOYMENT_COMPLETE.md`
+
+---
 
 ## Project Structure
 ```
@@ -210,24 +419,102 @@ TheStudyBuddy/
 │   ├── src/
 │   │   ├── assets/             # Images and static files
 │   │   ├── components/         # Reusable UI components
-│   │   │   ├── Navbar.jsx      # Navigation bar with links
-│   │   │   └── Layout.jsx      # Page wrapper with navbar
+│   │   │   ├── Navbar.jsx      # Navigation bar with Report button
+│   │   │   ├── Layout.jsx      # Page wrapper with navbar
+│   │   │   ├── PrivateRoute.jsx # Protected route wrapper
+│   │   │   ├── SubjectModal.jsx # Create/edit subject modal
+│   │   │   ├── ConfirmDialog.jsx # Delete confirmation dialog
+│   │   │   ├── ReportModal.jsx # Bug report/feature request modal
+│   │   │   └── VideoRecommendations.jsx # YouTube video recommendations
+│   │   ├── contexts/           # React Context providers
+│   │   │   ├── SubjectContext.jsx # Subject state management
+│   │   │   └── NoteContext.jsx    # Note state management
 │   │   ├── firebase/           # Firebase configuration
-│   │   │   └── config.js       # Firebase initialization and auth setup
+│   │   │   ├── config.js       # Firebase initialization
+│   │   │   └── AuthContext.jsx # Auth state management
+│   │   ├── services/           # API service layer
+│   │   │   └── api.ts          # Backend API calls with auth
 │   │   ├── pages/              # Route pages
 │   │   │   ├── Landing.jsx     # Homepage with hero section
 │   │   │   ├── Login.jsx       # Authentication page
+│   │   │   ├── SignUp.jsx      # Registration with first name
 │   │   │   ├── Dashboard.jsx   # Overview of subjects, decks, and chats
 │   │   │   ├── Subjects.jsx    # List all subjects, create new ones
 │   │   │   ├── SubjectDetail.jsx # Manage notes for a specific subject
 │   │   │   ├── Flashcards.jsx  # Study flashcards (filter by subject)
 │   │   │   ├── Chat.jsx        # AI chat (switch between subjects)
+│   │   │   ├── TestBackend.jsx # Backend connection test page
 │   │   │   └── NotFound.jsx    # 404 page
 │   │   ├── App.jsx             # Main app with routes
 │   │   ├── index.css           # Global styles and theming
 │   │   └── main.jsx            # App entry point
 │   ├── .env.local              # Environment variables (git-ignored)
 │   └── package.json            # Dependencies
+├── thestudybuddy-backend/      # Azure Functions + Express.js backend
+│   ├── src/
+│   │   ├── server.ts           # Express server for AWS Elastic Beanstalk
+│   │   ├── index.ts            # Azure Functions entry point (local dev)
+│   │   ├── db/
+│   │   │   └── connectMongo.ts # MongoDB connection utility with retry logic
+│   │   ├── firebase/
+│   │   │   └── admin.ts        # Firebase Admin SDK initialization
+│   │   ├── functions/
+│   │   │   ├── SubjectsHttp.ts # Subject CRUD API endpoints (complete)
+│   │   │   ├── NotesHttp.ts    # GET/DELETE notes endpoints
+│   │   │   ├── NotesUpload.ts  # POST /api/notes/upload (multipart/form-data)
+│   │   │   ├── ProcessNoteText.ts # Text extraction (not yet implemented)
+│   │   │   ├── FlashcardsHttp.ts  # Flashcards CRUD API (complete)
+│   │   │   ├── GenerateFlashcards.ts # AI flashcard generation (complete)
+│   │   │   ├── ChatWithAI.ts      # AI chat with RAG (complete)
+│   │   │   ├── GetChatHistory.ts  # Chat history & stats API (complete)
+│   │   │   ├── ReportsHttp.ts     # Bug reports API (complete)
+│   │   │   ├── UserHttp.ts        # User CRUD API (complete)
+│   │   │   └── YouTubeRecommendations.ts # YouTube API integration (complete)
+│   │   ├── models/
+│   │   │   ├── Subject.ts      # Mongoose Subject schema
+│   │   │   ├── Note.ts         # Mongoose Note schema with indexes
+│   │   │   ├── User.ts         # Mongoose User schema
+│   │   │   ├── FlashcardSet.ts # Mongoose FlashcardSet schema
+│   │   │   ├── ChatMessage.ts  # Mongoose ChatMessage schema
+│   │   │   └── Report.ts       # Mongoose Report schema
+│   │   ├── shared/
+│   │   │   ├── auth.ts         # Firebase token verification
+│   │   │   ├── types.ts        # TypeScript interfaces (Subject, Note, etc.)
+│   │   │   ├── apiContracts.md # API documentation
+│   │   │   ├── repos/          # Repository pattern implementations
+│   │   │   │   ├── SubjectRepository.ts # Subject repo interface
+│   │   │   │   ├── MongoSubjectRepository.ts # MongoDB subject implementation
+│   │   │   │   ├── NoteRepository.ts # Note repo interface
+│   │   │   │   ├── MongoNoteRepository.ts # MongoDB note implementation
+│   │   │   │   ├── UserRepository.ts # User repo interface
+│   │   │   │   ├── MongoUserRepository.ts # MongoDB user implementation
+│   │   │   │   ├── InMemorySubjectRepository.ts # In-memory subject (dev)
+│   │   │   │   ├── InMemoryNoteRepository.ts    # In-memory note (dev)
+│   │   │   │   └── InMemoryFlashcardRepository.ts # In-memory flashcard (dev)
+│   │   │   ├── storage/        # Azure Blob Storage utilities
+│   │   │   │   └── blobClient.ts # Upload/delete blob operations
+│   │   │   └── services/       # Additional service utilities
+│   │   │       └── textExtraction.ts # PDF text extraction service
+│   ├── dist/                   # Compiled TypeScript (for deployment)
+│   ├── .elasticbeanstalk/      # AWS EB configuration
+│   │   └── config.yml          # EB environment config
+│   ├── .ebextensions/          # EB deployment settings
+│   │   └── nodecommand.config  # Node.js startup configuration
+│   ├── docs/                   # Backend documentation
+│   │   ├── BACKEND-SETUP-COMPLETE.md
+│   │   ├── BACKEND-V4-COMPLETE.md
+│   │   └── MONGODB_INTEGRATION_COMPLETE.md
+│   ├── Procfile                # EB process definition (web: npm start)
+│   ├── .ebignore               # Files to exclude from EB deployment
+│   ├── local.settings.json     # Azure Functions config (git-ignored)
+│   ├── set-env-vars.sh         # Script to set EB environment variables
+│   ├── host.json               # Azure Functions host config
+│   ├── tsconfig.json           # TypeScript compiler configuration
+│   └── package.json            # Dependencies and scripts
+├── DEPLOYMENT_COMPLETE.md      # AWS Elastic Beanstalk deployment guide
+├── AWS_CREDENTIALS_SETUP.md    # AWS IAM user setup guide
+├── PRODUCTION_DEPLOYMENT_COMPLETE.md # Frontend + Backend connection guide
+├── ELASTIC_BEANSTALK_DEPLOYMENT.md   # Detailed EB deployment steps
 └── README.md                   # This file
 ```
 
@@ -250,9 +537,22 @@ TheStudyBuddy/
 - `npm run lint` - Run ESLint
 
 ## Troubleshooting
-- **Port already in use?** Change the port in `vite.config.js` or kill the process using port 5173
+
+### Frontend Issues
+- **Port already in use?** Change the port in `vite.config.js` or kill the process using port 5174
 - **Firebase errors?** Double-check your `.env.local` file has all required variables
 - **Module not found?** Run `npm install` again to ensure all dependencies are installed
+
+### Backend Issues
+- **Port 7071 already in use?** Kill the process: `lsof -ti:7071 | xargs kill -9`
+- **MongoDB connection failed?** Verify `MONGODB_URI` in `local.settings.json`
+- **Firebase token verification errors?** Ensure `FIREBASE_PROJECT_ID` matches your frontend project
+- **CORS errors?** Check that `CORS: "*"` is set in `local.settings.json`
+
+### Full Stack Testing
+- Visit `http://localhost:5174/test-backend` to verify backend connection
+- Create a subject to test the full authentication flow
+- Check browser console and terminal for detailed error messages
 
 ---
 
@@ -295,11 +595,9 @@ Tasks:
 - ✅ Initialize GitHub repo and commit
 
 Outcome:
-A fully styled, navigable app with subject-based organization, mock data, and Firebase Auth configured (not yet functional).
+✅ A fully styled, navigable app with subject-based organization, mock data, and Firebase Auth configured.---
 
----
-
-## Phase 2 — Frontend UI Components & Firebase Auth Integration
+## Phase 2 — Frontend UI Components & Firebase Auth Integration ✅
 Build interactive UI elements and connect Firebase authentication.
 
 Tasks:
@@ -312,121 +610,383 @@ Tasks:
   - ✅ Store first name in user profile (displayName)
   - ✅ Display first name (up to 10 chars) in navbar
   - ✅ Add logo (IMG_3002.png) to navbar
-- ⬜ Subject management:
-  - ⬜ Create new subject modal/form
-  - ⬜ Edit subject functionality
-  - ⬜ Delete subject with confirmation
-- ⬜ Note upload UI:
-  - ⬜ Implement drag-and-drop functionality
-  - ⬜ Add file preview with thumbnails
-  - ⬜ Progress bars for uploads
-  - ⬜ File size/type validation
-  - ⬜ Enforce 10-note limit per subject
-- ⬜ Flashcard interface:
-  - ⬜ Add flip animation
-  - ⬜ Deck navigation (previous/next card)
-  - ⬜ Card counter (e.g., "5 / 25")
-  - ⬜ Mark cards as "mastered"
-- ⬜ Chat interface:
-  - ⬜ Scrollable message history
-  - ⬜ Typing indicator animation
-  - ⬜ Message timestamps
-  - ⬜ Auto-scroll to latest message
-- ⬜ UI polish:
-  - ⬜ Add loading states and skeletons
-  - ⬜ Error handling UI (toasts/alerts)
-  - ⬜ Confirmation modals for destructive actions
-  - ⬜ Responsive design for mobile/tablet
-  - ⬜ Empty states for all pages
+  - ✅ Add animated purple indicator to navbar
+- ✅ Subject management UI:
+  - ✅ Create new subject modal with color picker
+  - ✅ Edit subject functionality
+  - ✅ Delete subject with confirmation dialog
+  - ✅ Subject cards with note/deck counts
+  - ✅ Empty states for no subjects
+- ✅ Note upload UI:
+  - ✅ Implement drag-and-drop functionality
+  - ✅ Add file preview in selected files list
+  - ✅ File size/type validation (PDF only, 10MB max)
+  - ✅ Enforce 10-note limit per subject
+  - ✅ Upload multiple files at once
+  - ✅ Upload progress indicators
+- ✅ **Flashcard interface:**
+  - ✅ Click-to-flip card animation
+  - ✅ Previous/Next navigation buttons
+  - ✅ Keyboard controls (← → arrows, Space/Enter to flip)
+  - ✅ Card counter (e.g., "Card 5 of 25")
+  - ✅ Back to flashcard list button
+  - ✅ Study progress tracking per card (studied flag)
+- ✅ **Chat interface:**
+  - ✅ Scrollable message history
+  - ✅ Auto-scroll to latest message
+  - ✅ Subject switcher tabs
+  - ✅ Clear chat button
+  - ✅ Loading states during AI response
+  - ✅ Message timestamps
+  - ✅ User avatars and AI avatar
+  - ✅ Typing indicator with animated dots
+- ✅ UI polish:
+  - ✅ Add loading states and spinners
+  - ✅ Error handling UI (error alerts)
+  - ✅ Confirmation modals for destructive actions (ConfirmDialog component)
+  - ✅ Responsive design for mobile/tablet
+  - ✅ Empty states for all pages
+  - ✅ Gradient backgrounds with blur effects
 
 Outcome:
-Fully interactive frontend with Firebase Auth working, mock data for subjects/notes/decks/chats, polished animations, and responsive design.
+✅ Fully interactive frontend with Firebase Auth working, Subjects fully functional with real data, mock data remaining for notes/decks/chats, polished animations, and responsive design.
 
 ---
 
-## Phase 3 — Deploy Frontend
+## Phase 3 — Deploy Frontend ✅
 Deploy the frontend before the backend exists.
 
 Tasks:
-- Create Azure Static Web App
-- Connect GitHub repo
-- Configure build settings
-- Verify automatic deployments on push
+- ✅ Create Azure Static Web App
+- ✅ Connect GitHub repo
+- ✅ Configure build settings
+- ✅ Verify automatic deployments on push
 
 Outcome:
-Publicly accessible frontend site hosted on Azure.
+✅ Publicly accessible frontend site hosted on Azure.
 
 ---
 
-## Phase 4 — Backend Development (Azure Functions)
-Build the serverless backend to support core features with subject-based organization.
+## Phase 4 — Backend Development (Azure + MongoDB) ✅
+Build the backend API and serverless functions to support core features with subject-based organization.
 
-Tasks:
-- MongoDB Atlas setup:
-  - Collections: users, subjects, notes, flashcard_decks, chats, embeddings
-  - Indexes for efficient querying by subject
-- Authentication middleware (Firebase token verification)
-- Subject management APIs:
-  - Create/read/update/delete subjects
-  - List subjects by user
-- Note upload API:
-  - Upload PDF to Azure Blob Storage (organized by subject)
-  - Store note metadata in MongoDB
-  - Enforce 10-note limit per subject
-- PDF parsing function:
-  - Extract text from uploaded PDFs
-  - Store extracted text with note record
-- Flashcard generation endpoint:
-  - Use Azure OpenAI to generate flashcards from note text
-  - Associate flashcards with specific subject
-  - Store in MongoDB with subject reference
-- Embeddings generation:
-  - Generate embeddings for note content
-  - Store in MongoDB for RAG retrieval
-- Chat endpoint:
-  - Subject-specific RAG retrieval
-  - Context window includes only notes from selected subject
-  - Use Azure OpenAI for responses
-  - Store chat history by subject
+### Current Status
+✅ **All core features implemented** - Subjects, Notes, AI Flashcards, AI Chat, and User Feedback fully functional  
+✅ **Backend running locally** - Azure Functions working on localhost:7071 with all endpoints operational  
+✅ **AI integration complete** - Azure OpenAI (gpt-5-nano) powering flashcard generation and RAG chat  
+✅ **Persistent storage working** - MongoDB Atlas storing all user data, chat history, flashcard sets, and bug reports  
+✅ **PDF processing functional** - Text extraction from PDFs using pdf-parse  
+✅ **Modern UI complete** - Glassmorphism design with gradient accents and smooth animations  
+⏳ **Production deployment pending** - Backend needs to be deployed to Azure Cloud
 
-Outcome:
-Backend supports all core functionality with subject-based organization and data isolation.
+### MongoDB Models & Setup
+- ✅ Set up MongoDB Atlas cluster (`studybuddy` database)
+- ✅ Connected MongoDB to backend with connection pooling
+- ⬜ Create `users` collection schema (email, name, createdAt)
+- ✅ **Created `subjects` collection schema** (name, color, userId, createdAt)
+  - ✅ Implemented Mongoose model with validation
+  - ✅ Created MongoSubjectRepository with full CRUD operations
+  - ✅ Added userId index for fast user-specific queries
+  - ✅ Tested with real data - working perfectly!
+- ✅ **Created `notes` collection schema** (fileName, blobUrl, textUrl, fileSize, subjectId, userId, uploadedAt)
+  - ✅ Implemented Mongoose model with validation
+  - ✅ Created MongoNoteRepository with full CRUD operations
+  - ✅ Added indexes on userId and subjectId for fast queries
+  - ✅ Compound index on (userId, subjectId) for efficient filtering
+  - ✅ Tested with real uploads - working perfectly!
+- ✅ **Created `flashcardsets` collection schema** (userId, subjectId, name, description, flashcards array)
+  - ✅ Implemented Mongoose FlashcardSet model
+  - ✅ Each flashcard has `front` and `back` text fields
+  - ✅ Indexed on userId and subjectId for fast queries
+  - ✅ Tested with AI-generated flashcards - working perfectly!
+- ✅ **Created `chatmessages` collection schema** (userId, subjectId, role, content, timestamp)
+  - ✅ Implemented Mongoose ChatMessage model
+  - ✅ Stores user, assistant, and system messages
+  - ✅ Indexed on userId, subjectId, and timestamp for efficient history queries
+  - ✅ Tested with persistent chat history - working perfectly!
+- ✅ **Created `reports` collection schema** (userId, userEmail, type, description, status, timestamps)
+  - ✅ Implemented Mongoose Report model for bug reports and feature requests
+  - ✅ Supports 4 types: bug, feature, improvement, other
+  - ✅ Status tracking: new, in-progress, resolved, closed
+  - ✅ Indexed on userId for fast user-specific queries
+  - ✅ Tested with report submissions - working perfectly!
+- ✅ Write MongoDB connection utility (with retry logic and error handling)
+- ✅ Test database connections and CRUD operations (all working)
+
+### API Routes (Azure Functions HTTP Triggers)
+- ✅ **Set up Azure Functions v4 TypeScript project**
+- ✅ **Implemented Firebase Admin SDK for token verification**
+  - ✅ Extracts Bearer token from Authorization header
+  - ✅ Verifies token with Firebase Admin
+  - ✅ Returns actual user's Firebase UID
+  - ✅ Ensures users only see their own data
+- ✅ **Subject API fully implemented:**
+  - ✅ `POST /api/subjects` - Create new subject (authenticated)
+  - ✅ `GET /api/subjects` - List all subjects for authenticated user
+  - ✅ `GET /api/subjects/:id` - Get single subject details
+  - ✅ `PUT /api/subjects/:id` - Update subject (name, color)
+  - ✅ `DELETE /api/subjects/:id` - Delete subject
+  - ✅ All routes enforce user ownership validation
+  - ✅ Proper error handling with status codes
+- ✅ **Note API implemented:**
+  - ✅ `GET /api/notes/:subjectId` - Get all notes for a subject (authenticated, sorted by date)
+  - ✅ `POST /api/notes/upload` - Upload PDF to Azure Blob + save metadata to MongoDB
+  - ✅ `DELETE /api/notes/:id` - Delete note from MongoDB AND Azure Blob Storage
+  - ✅ `POST /api/notes/extract-text/:id` - Extract text from PDF and save to Blob Storage
+  - ✅ All routes enforce user ownership validation
+  - ✅ Proper cleanup of orphaned blobs on deletion
+- ✅ **Flashcard API implemented:**
+  - ✅ `POST /api/flashcards/generate` - Generate flashcards with AI from subject notes
+  - ✅ `GET /api/flashcards/{subjectId}` - Get all flashcard sets for a subject
+  - ✅ `GET /api/flashcards/set/{setId}` - Get specific flashcard set with all cards
+  - ✅ `DELETE /api/flashcards/set/{setId}` - Delete a flashcard set
+  - ✅ All routes enforce user ownership validation
+- ✅ **Chat API implemented:**
+  - ✅ `POST /api/ai/chat` - Send message and get AI response with RAG context
+  - ✅ `GET /api/chat/history/{subjectId}` - Load persistent chat history
+  - ✅ `GET /api/chat/stats` - Get chat statistics (total messages, conversations, recent chats)
+  - ✅ `DELETE /api/chat/history/{subjectId}` - Clear chat history for subject
+  - ✅ All routes enforce user ownership validation
+- ✅ **Reports API implemented:**
+  - ✅ `POST /api/reports` - Submit bug reports or feature requests
+  - ✅ `GET /api/reports` - Get user's submitted reports
+  - ✅ All routes enforce user ownership validation
+- ✅ Add error handling with try/catch blocks
+- ✅ Configure CORS for local development
+
+### Azure Blob Storage Integration ✅
+- ✅ **Set up Azure Storage Account** (`studybuddystorage`) with containers:
+  - ✅ `notes-raw` - stores uploaded PDF files
+  - ✅ `notes-text` - stores extracted text from PDFs
+- ✅ **Installed Azure Blob Storage SDK** (`@azure/storage-blob`)
+- ✅ **Created blob service client** with connection string in `local.settings.json`
+- ✅ **Implemented `POST /api/notes/upload` endpoint:**
+  - ✅ Accepts file from multipart/form-data
+  - ✅ Validates file type (PDF only) and size (max 10MB)
+  - ✅ Generates unique blob name with timestamp
+  - ✅ Uploads file to `notes-raw` container
+  - ✅ Saves note metadata to MongoDB (fileName, blobUrl, subjectId, userId, fileSize)
+  - ✅ Returns note metadata to client
+- ✅ **Implemented blob deletion** - deletes from Azure Blob Storage when note is deleted
+- ✅ **Created `blobClient.ts`** with `uploadPdfToRawContainer()` and `deleteBlobByUrl()`
+- ⬜ Add SAS token generation for secure file access (pending)
+
+### Azure Functions - Text Extraction ✅
+- ✅ **Created Azure Function `ProcessNoteText`** (HTTP trigger)
+- ✅ **Installed PDF parsing library** (`pdf-parse`)
+- ✅ **Implemented text extraction logic:**
+  - ✅ Download PDF from `notes-raw` Blob Storage
+  - ✅ Extract text from PDF using pdf-parse
+  - ✅ Upload extracted text to `notes-text` container
+  - ✅ Update note document in MongoDB with `textUrl`
+- ✅ **Added error handling** for corrupted/unreadable PDFs
+- ✅ **Tested with real PDFs** - extraction working perfectly
+- ✅ **Added "Extract Text" button** to Subject Detail page UI
+
+### Azure OpenAI Integration ✅
+- ✅ **Set up Azure OpenAI resource** with gpt-5-nano deployment
+- ✅ **Installed Azure OpenAI SDK** (`openai` package)
+- ✅ **Configured Azure OpenAI client:**
+  - ✅ Endpoint: `https://jonah-mic9jlpb-eastus2.cognitiveservices.azure.com/`
+  - ✅ Deployment: `gpt-5-nano` (reasoning model)
+  - ✅ API Version: `2024-12-01-preview`
+- ✅ **Handled reasoning model specifics:**
+  - ✅ Used `max_completion_tokens` instead of `max_tokens`
+  - ✅ Set high token budget (4000-8000) for reasoning + response
+  - ✅ Handled empty `content` by checking reasoning output
+
+### Azure Functions - Flashcard Generation ✅
+- ✅ **Created Azure Function `GenerateFlashcards`** (HTTP trigger)
+- ✅ **Created `FlashcardSet` MongoDB model** with schema:
+  - ✅ `userId`, `subjectId`, `name`, `description`
+  - ✅ `flashcards` array with `front` and `back` fields
+  - ✅ Indexed on `userId` and `subjectId` for fast queries
+- ✅ **Implemented `POST /api/flashcards/generate` endpoint:**
+  - ✅ Accepts `subjectId`, `name`, and optional `description` (focus)
+  - ✅ Fetches all note texts for the subject from Blob Storage
+  - ✅ Builds AI prompt: "Create 10-15 flashcards from these notes..."
+  - ✅ Calls Azure OpenAI with system prompt + note context
+  - ✅ Parses JSON response and extracts flashcards
+  - ✅ Saves flashcard set to MongoDB with user and subject association
+  - ✅ Returns generated flashcard set to client
+- ✅ **Implemented flashcard CRUD endpoints:**
+  - ✅ `GET /api/flashcards` - Get all flashcard sets for authenticated user
+  - ✅ `GET /api/flashcards/{subjectId}` - Get all sets for a subject
+  - ✅ `GET /api/flashcards/set/{setId}` - Get specific flashcard set
+  - ✅ `DELETE /api/flashcards/set/{setId}` - Delete a flashcard set
+  - ✅ `PATCH /api/flashcards/set/{setId}/card/{cardIndex}/studied` - Mark card as studied
+- ✅ **Added error handling** for OpenAI API failures and parsing errors
+- ✅ **Token optimization complete** - Smart truncation (30K chars limit) + reasoning_effort: "none"
+
+### Azure Functions - RAG/AI Chat Logic ✅
+- ✅ **Created Azure Function `ChatWithAI`** (HTTP trigger)
+- ✅ **Created `ChatMessage` MongoDB model** for persistent chat history:
+  - ✅ Schema: `userId`, `subjectId`, `role` (user/assistant/system), `content`, `timestamp`
+  - ✅ Indexed on `userId`, `subjectId`, and `timestamp` for efficient queries
+- ✅ **Implemented `POST /api/chat` endpoint:**
+  - ✅ Accepts `message` and `subjectId` in request body
+  - ✅ Loads last 20 chat messages from MongoDB (persistent history)
+  - ✅ Fetches all note texts for the subject from Blob Storage
+  - ✅ Builds comprehensive system prompt with Study Buddy personality:
+    - "You are **The Study Buddy**, a friendly AI tutor..."
+    - 10 rules including: quote from notes, keep answers short, end with questions
+  - ✅ Includes full note context in system message (RAG implementation)
+  - ✅ Sends: system prompt + last 20 messages + new user message to Azure OpenAI
+  - ✅ Uses `max_completion_tokens: 4000` for reasoning model
+  - ✅ Saves both user message and AI response to MongoDB
+  - ✅ Returns AI response to client
+- ✅ **Implemented chat history management:**
+  - ✅ `GET /api/chat/history/{subjectId}` - Load chat history for subject
+  - ✅ `DELETE /api/chat/history/{subjectId}` - Clear chat history for subject
+- ✅ **Frontend integration:**
+  - ✅ Chat UI loads history from MongoDB on subject switch
+  - ✅ Messages persist across page refreshes
+  - ✅ "Clear Chat" button to reset conversation
+  - ✅ No longer sends chat history in request (backend loads from DB)
+- ✅ **Tested with real notes and questions** - RAG retrieval working perfectly
+
+### Optional: Azure Cognitive Search (Vector Retrieval)
+- ⬜ Set up Azure Cognitive Search service
+- ⬜ Create search index for note embeddings
+- ⬜ Generate embeddings for note text using Azure OpenAI
+- ⬜ Store embeddings in Cognitive Search
+- ⬜ Implement vector search for relevant note retrieval in RAG
+
+### Testing & Deployment
+- ✅ **Local testing fully working:**
+  - ✅ Created test page at `/test-backend` for API validation
+  - ✅ Backend running on localhost:7071
+  - ✅ Frontend running on localhost:5174
+  - ✅ CORS configured for local development
+  - ✅ Subjects CRUD operations tested and working
+  - ✅ Notes upload/delete/extract tested and working
+  - ✅ AI flashcard generation tested with real PDFs
+  - ✅ AI chat with RAG tested with real note context
+  - ✅ User authentication and data isolation verified
+  - ✅ Persistent chat history tested across sessions
+  - ✅ Bug report system tested and working
+- ✅ **End-to-end testing complete:**
+  - ✅ Upload PDF → Extract text → Generate flashcards → Study cards
+  - ✅ Upload notes → Chat with AI → Get responses with note context
+  - ✅ Create subjects → Upload notes → Generate sets → View/flip cards
+  - ✅ Submit bug reports → Stored in MongoDB with user info
+- ✅ **UI/UX testing complete:**
+  - ✅ Modern glassmorphism design implemented
+  - ✅ Gradient purple-pink buttons across all pages
+  - ✅ Fixed scrolling issues on all pages
+  - ✅ Dashboard displays real flashcard and chat statistics
+  - ✅ Navbar with Report button and improved spacing
+  - ✅ Consistent styling across Subjects, Chat, and Flashcards pages
+- ⬜ Write unit tests for API routes
+- ⬜ Write integration tests for Azure Functions
+- ⬜ **Deploy Azure Functions to Azure Cloud** (currently only running locally)
+- ⬜ Set up environment variables in Azure Portal
+- ⬜ Configure CORS for production frontend domain
+- ⬜ Update frontend `VITE_API_URL` to point to deployed Azure Functions
+- ⬜ Test deployed endpoints from production frontend
+
+**Current Status:** All features fully functional locally with comprehensive end-to-end testing complete. Modern UI with glassmorphism design implemented. Backend deployment to Azure cloud is the final step.
+
+Outcome (when complete):
+Backend supports all core functionality with subject-based organization, AI-powered flashcards, RAG chat, and user feedback system.
 
 ---
 
-## Phase 5 — Connect Frontend and Backend
+## Phase 5 — Connect Frontend and Backend ✅
 Replace mock data with real API calls and data from MongoDB.
 
-Tasks:
-- Subject management:
-  - Connect Subjects page to subject API (CRUD operations)
-  - Fetch and display real subject data on Dashboard
-- Note upload integration:
-  - Connect Subject Detail page to upload API
-  - Show real note list from MongoDB
-  - Display upload progress and handle errors
-  - Enforce 10-note limit from backend
-- Flashcard integration:
-  - Fetch flashcard decks filtered by subject
-  - Display generated flashcards from Azure OpenAI
-  - Track study progress in MongoDB
-- Chat integration:
-  - Connect chat UI to subject-specific chat API
-  - Send/receive messages with RAG context
-  - Load chat history from MongoDB
-  - Handle streaming responses
-- Global state management:
-  - Implement state management (Context API or Zustand)
-  - Cache subject and deck data
-  - Handle authentication state
-- Loading and error handling:
-  - Add loading spinners for all API calls
-  - Display user-friendly error messages
-  - Implement retry logic for failed requests
-  - Add offline detection
+### Completed Tasks:
+- ✅ **Subject management fully integrated:**
+  - ✅ Created SubjectContext with React Context API
+  - ✅ Connected Subjects page to subject API (full CRUD)
+  - ✅ Dashboard displays real subject data from MongoDB
+  - ✅ Context refetches subjects on user login/logout
+  - ✅ Create, update, delete subjects working perfectly
+  - ✅ Color conversion between Tailwind classes and hex
+  - ✅ Loading states and error handling implemented
+  - ✅ Modern glassmorphism design with gradient purple-pink buttons
+- ✅ **API Service Layer:**
+  - ✅ Created `services/api.ts` with authentication
+  - ✅ Automatic Firebase token injection in requests
+  - ✅ Graceful degradation when backend unavailable (production)
+  - ✅ Environment-aware API URL (dev vs production)
+  - ✅ Added reportApi for bug reports and feature requests
+- ✅ **Authentication integration:**
+  - ✅ SubjectContext listens to auth state changes
+  - ✅ Subjects cleared on logout
+  - ✅ Subjects refetched on login
+  - ✅ Each user only sees their own subjects
+- ✅ **Loading and error handling:**
+  - ✅ Loading spinners for all subject API calls
+  - ✅ User-friendly error messages
+  - ✅ Action loading states (create/update/delete)
+  - ✅ Empty states when no subjects exist
+
+### Completed Integration Tasks:
+- ✅ **Note upload integration:**
+  - ✅ Connected Subject Detail page to upload API
+  - ✅ Shows real note list from MongoDB
+  - ✅ Displays upload progress and handles errors
+  - ✅ Enforces 10-note limit from backend
+  - ✅ "Extract Text" button triggers PDF text extraction
+  - ✅ Real-time note list updates after upload/delete
+- ✅ **Flashcard integration:**
+  - ✅ Created Flashcards.jsx list page with subject filtering
+  - ✅ "+ Create Flashcard Set" modal with subject selector
+  - ✅ AI generates 10-15 flashcards from notes via Azure OpenAI
+  - ✅ Displays flashcard sets filtered by subject
+  - ✅ Shows card count and creation date for each set
+  - ✅ Delete flashcard sets with confirmation
+  - ✅ Modern glassmorphism design with purple-pink gradient
+  - ✅ **Created FlashcardStudy.jsx viewer component:**
+    - ✅ Displays flashcards with front/back
+    - ✅ Click to flip animation
+    - ✅ Previous/Next navigation buttons
+    - ✅ Keyboard controls (← → arrows, Space/Enter to flip)
+    - ✅ Card counter (e.g., "Card 5 of 25")
+    - ✅ Back to list button
+    - ⬜ Track study progress/mastered cards (future enhancement)
+- ✅ **Chat integration:**
+  - ✅ Connected chat UI to subject-specific chat API
+  - ✅ Sends/receives messages with RAG context from notes
+  - ✅ Loads chat history from MongoDB on subject switch
+  - ✅ Messages persist across page refreshes
+  - ✅ "Clear Chat" button clears conversation
+  - ✅ Auto-scrolls to latest message
+  - ✅ Subject switcher tabs with smooth transitions
+  - ⬜ Streaming responses (future enhancement)
+- ✅ **Dashboard polish:**
+  - ✅ Dashboard displays real flashcard statistics
+  - ✅ Dashboard displays real chat statistics
+  - ✅ Modern glassmorphism cards with gradient icons
+  - ✅ Uniform card heights and scrollable content areas
+  - ✅ Fixed scrolling issues across all pages
+- ✅ **User feedback system:**
+  - ✅ Created ReportModal component with 4 report types
+  - ✅ Added "Report" button to navbar
+  - ✅ Reports saved to MongoDB with user info
+  - ✅ Form validation and success animations
+  - ✅ Reset state on modal open/close
+- ✅ **UI/UX improvements:**
+  - ✅ Consistent glassmorphism design across all pages
+  - ✅ Gradient purple-pink buttons site-wide
+  - ✅ Fixed navbar spacing and hover states
+  - ✅ Eliminated unwanted page scrolling
+  - ✅ Added scroll-to-top on page navigation
+  - ✅ Improved navbar with solid indigo active state
 
 Outcome:
-A fully functional, end-to-end application with real data and AI features.
+✅ **100% Complete** - All core features fully functional! Subjects, Notes, AI Flashcards, AI Chat, and User Feedback all working with real data from MongoDB. Modern glassmorphism UI implemented with consistent styling.
+
+**Current Status:** 
+- ✅ Subjects: 100% complete (CRUD, modern UI)
+- ✅ Notes: 100% complete (upload, list, delete, text extraction)
+- ✅ AI Chat: 100% complete (RAG with persistent history, statistics)
+- ✅ Flashcards: 100% complete (generation, list, study viewer, delete)
+- ✅ Dashboard: 100% complete (real data for subjects, flashcards, chat)
+- ✅ User Feedback: 100% complete (bug reports, feature requests)
+- ✅ Modern UI: 100% complete (glassmorphism, gradients, animations)
+- ⬜ Production Deployment: Backend running locally only
 
 ---
 

@@ -1,0 +1,21 @@
+branch-defaults:
+  dev:
+    environment: thestudybuddy-production
+    group_suffix: null
+  main:
+    environment: thestudybuddy-production
+    group_suffix: null
+global:
+  application_name: thestudybuddy-backend
+  branch: null
+  default_ec2_keyname: null
+  default_platform: Node.js 20
+  default_region: us-east-1
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: null
+  repository: null
+  sc: git
+  workspace_type: Application

@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.vscode/
+local.settings.json
+*.log
+.DS_Store
+.env.local
+.env
+
+# Test files with secrets
+test/
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+!.elasticbeanstalk/config.yml

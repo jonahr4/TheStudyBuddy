@@ -1,0 +1,38 @@
+{
+  "name": "thestudybuddy-backend",
+  "version": "1.0.0",
+  "description": "Express.js REST API backend for The Study Buddy",
+  "main": "dist/expressServer.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "clean": "rimraf dist",
+    "start": "node dist/expressServer.js",
+    "dev": "ts-node src/expressServer.ts",
+    "test": "echo \"No tests yet...\""
+  },
+  "dependencies": {
+    "@azure/openai": "^2.0.0",
+    "@azure/storage-blob": "^12.29.1",
+    "busboy": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "firebase-admin": "^13.6.0",
+    "mongodb": "^7.0.0",
+    "mongoose": "^9.0.0",
+    "openai": "^6.9.1",
+    "pdf-parse": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/busboy": "^1.5.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/node": "^20.0.0",
+    "@types/pdf-parse": "^1.1.5",
+    "rimraf": "^5.0.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.0.0"
+  }
+}

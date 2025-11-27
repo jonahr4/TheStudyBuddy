@@ -2,6 +2,7 @@ import { SubjectRepository } from "./SubjectRepository";
 import { Subject } from "../types";
 import SubjectModel from "../../models/Subject";
 import NoteModel from "../../models/Note";
+import FlashcardSetModel from "../../models/FlashcardSet";
 
 /**
  * MongoDB implementation of SubjectRepository
@@ -34,9 +35,12 @@ export class MongoSubjectRepository implements SubjectRepository {
     const subjects = await SubjectModel.find({ userId }).sort({ createdAt: -1 });
     const subjectsWithCounts = await Promise.all(
       subjects.map(async (subject) => {
-        const noteCount = await NoteModel.countDocuments({ userId, subjectId: subject._id.toString() });
+        const subjectId = subject._id.toString();
+        const noteCount = await NoteModel.countDocuments({ userId, subjectId });
+        const flashcardCount = await FlashcardSetModel.countDocuments({ userId, subjectId });
         const subjectData = this.toSubject(subject);
         subjectData.noteCount = noteCount;
+        subjectData.flashcardCount = flashcardCount;
         return subjectData;
       })
     );

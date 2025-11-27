@@ -73,7 +73,7 @@ export function SubjectProvider({ children }) {
         ...subject,
         color: hexToTailwindClass(subject.color),
         noteCount: subject.noteCount || 0,
-        deckCount: subject.deckCount || 0,
+        deckCount: subject.flashcardCount || 0,
       }));
       
       setSubjects(transformedSubjects);

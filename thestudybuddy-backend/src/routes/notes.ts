@@ -4,6 +4,7 @@ import { MongoNoteRepository } from "../shared/repos/MongoNoteRepository";
 import { uploadPdfToRawContainer } from "../shared/storage/blobClient";
 import { extractTextFromNote, deleteBlobsForNote } from "../shared/services/textExtraction";
 import Busboy from "busboy";
+import { LIMITS, isValidFileSize, isValidFileType } from "../config/limits";
 
 const router = Router();
 const noteRepo = new MongoNoteRepository();
@@ -52,15 +53,28 @@ router.post("/upload", async (req: Request, res: Response) => {
       return res.status(400).json({ message: "file field is required" });
     }
 
-    // Validate PDF file
-    if (!result.file.filename.toLowerCase().endsWith(".pdf")) {
-      return res.status(400).json({ message: "Only PDF files are allowed" });
+    // Security: Check notes per subject limit
+    const existingNotes = await noteRepo.getNotesForSubject(userId, result.subjectId);
+    if (existingNotes.length >= LIMITS.MAX_NOTES_PER_SUBJECT) {
+      return res.status(403).json({
+        message: `Note limit reached for this subject. Maximum ${LIMITS.MAX_NOTES_PER_SUBJECT} notes allowed per subject.`,
+        currentCount: existingNotes.length,
+        maxAllowed: LIMITS.MAX_NOTES_PER_SUBJECT
+      });
     }
 
-    // Check file size (max 10MB)
-    const maxBytes = 10 * 1024 * 1024;
-    if (result.file.data.byteLength > maxBytes) {
-      return res.status(400).json({ message: "File size must be <= 10MB" });
+    // Security: Validate file type
+    if (!isValidFileType(result.file.filename)) {
+      return res.status(400).json({
+        message: `Only PDF files are allowed. Allowed types: ${LIMITS.ALLOWED_FILE_TYPES.join(', ')}`
+      });
+    }
+
+    // Security: Validate file size
+    if (!isValidFileSize(result.file.data.byteLength)) {
+      return res.status(400).json({
+        message: `File size must be between 1 byte and ${LIMITS.MAX_FILE_SIZE_MB}MB`
+      });
     }
 
     // Upload to Azure Blob Storage

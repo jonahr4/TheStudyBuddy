@@ -25,11 +25,12 @@ jobs:
         run: |
           npm ci
           npm run build
+          npm ci --production
 
       - name: Create deployment zip
         working-directory: ./thestudybuddy-backend
         run: |
-          zip -r ../deploy.zip .
+          zip -r ../deploy.zip dist/ node_modules/ package.json package-lock.json web.config .deployment
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

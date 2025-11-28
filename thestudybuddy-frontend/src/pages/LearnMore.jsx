@@ -1,9 +1,38 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import homepageImage from '../assets/Homepage.png';
 import seanHeadshot from '../assets/SeanLink.jpeg';
 import jonahHeadshot from '../assets/JonahLink.jpeg';
+import { versionUpdatesApi } from '../services/api.ts';
 
 export default function LearnMore() {
+  const [showUpdates, setShowUpdates] = useState(false);
+  const [versionUpdates, setVersionUpdates] = useState([]);
+  const [loadingUpdates, setLoadingUpdates] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Fetch version updates when modal is opened
+  useEffect(() => {
+    const fetchUpdates = async () => {
+      if (showUpdates && versionUpdates.length === 0) {
+        setLoadingUpdates(true);
+        setError(null);
+        try {
+          const updates = await versionUpdatesApi.getAll();
+          console.log('Fetched version updates:', updates);
+          setVersionUpdates(updates);
+        } catch (error) {
+          console.error('Failed to fetch version updates:', error);
+          setError(error.message || 'Failed to load version updates');
+        } finally {
+          setLoadingUpdates(false);
+        }
+      }
+    };
+
+    fetchUpdates();
+  }, [showUpdates, versionUpdates.length]);
+
   const features = [
     {
       title: "Subject Organization",
@@ -355,14 +384,131 @@ export default function LearnMore() {
           <p className="text-indigo-100 text-lg mb-8 max-w-2xl mx-auto">
             Join students who are studying smarter with AI-powered tools
           </p>
-          <Link 
-            to="/signup" 
+          <Link
+            to="/signup"
             className="inline-block bg-white text-indigo-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-indigo-50 transition-all duration-300 hover:scale-105 shadow-lg"
           >
             Get Started Now
           </Link>
         </div>
+
+        {/* What's New Button */}
+        <div className="mt-12 text-center">
+          <button
+            onClick={() => setShowUpdates(true)}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            What's New
+          </button>
+        </div>
       </div>
+
+      {/* Version Updates Modal */}
+      {showUpdates && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowUpdates(false)}>
+          <div
+            className="bg-white dark:bg-gray-800 rounded-3xl max-w-3xl w-full max-h-[80vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="sticky top-0 bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-6 rounded-t-3xl flex items-center justify-between">
+              <h2 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                What's New
+              </h2>
+              <button
+                onClick={() => setShowUpdates(false)}
+                className="text-white/80 hover:text-white transition-colors p-2"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-8">
+              {loadingUpdates ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : error ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <svg className="w-16 h-16 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-gray-600 dark:text-gray-400">{error}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Please make sure the backend server is running.</p>
+                </div>
+              ) : versionUpdates.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <p className="text-gray-600 dark:text-gray-400">No version updates available.</p>
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  {versionUpdates.map((update, index) => (
+                    <div
+                      key={update._id || index}
+                      className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700"
+                    >
+                      {/* Version Header */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <span className="px-3 py-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-bold rounded-full">
+                            v{update.version}
+                          </span>
+                          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                            {update.title}
+                          </h3>
+                        </div>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          {new Date(update.releaseDate).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </span>
+                      </div>
+
+                      {/* Description */}
+                      <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+                        {update.description}
+                      </p>
+
+                      {/* Features List */}
+                      {update.features && update.features.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            Features:
+                          </h4>
+                          <ul className="space-y-2">
+                            {update.features.map((feature, featureIndex) => (
+                              <li
+                                key={featureIndex}
+                                className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400"
+                              >
+                                <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                <span>{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

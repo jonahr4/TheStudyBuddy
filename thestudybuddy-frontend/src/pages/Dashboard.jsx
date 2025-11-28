@@ -72,7 +72,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 flex-1 min-h-0 overflow-hidden">
           {/* Left: Subjects List */}
           <div className="flex flex-col min-h-0">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-4 md:p-6 border border-gray-200/50 dark:border-gray-700/50 hover:border-indigo-500/50 dark:hover:border-indigo-400/50 transition-all duration-300 flex flex-col h-full min-h-0">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 md:p-6 border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-300 flex flex-col h-full min-h-0 shadow-sm hover:shadow-lg">
               <div className="flex justify-between items-center mb-4 flex-shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white">
@@ -107,7 +107,7 @@ export default function Dashboard() {
                     <Link 
                       key={subject.id}
                       to={`/subjects/${subject.id}`}
-                      className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-transparent hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-200 group"
+                      className="flex items-center gap-3 p-4 rounded-xl bg-gray-100 dark:bg-gray-700/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-gray-200 dark:border-transparent hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-200 group"
                     >
                       <div className={`w-4 h-4 rounded-full ${subject.color} group-hover:scale-110 transition-transform`}></div>
                       <span className="font-medium text-gray-900 dark:text-white">{subject.name}</span>
@@ -127,7 +127,7 @@ export default function Dashboard() {
 
           {/* Center: My Decks */}
           <div className="flex flex-col min-h-0">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-4 md:p-6 border border-gray-200/50 dark:border-gray-700/50 hover:border-purple-500/50 dark:hover:border-purple-400/50 transition-all duration-300 flex flex-col h-full min-h-0">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 md:p-6 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 flex flex-col h-full min-h-0 shadow-sm hover:shadow-lg">
               <div className="flex justify-between items-center mb-4 flex-shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white">
@@ -198,7 +198,7 @@ export default function Dashboard() {
 
           {/* Right: Chat History */}
           <div className="flex flex-col min-h-0">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-4 md:p-6 border border-gray-200/50 dark:border-gray-700/50 hover:border-cyan-500/50 dark:hover:border-cyan-400/50 transition-all duration-300 flex flex-col h-full min-h-0">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 md:p-6 border border-gray-200 dark:border-gray-700 hover:border-cyan-300 dark:hover:border-cyan-600 transition-all duration-300 flex flex-col h-full min-h-0 shadow-sm hover:shadow-lg">
               <div className="flex items-center gap-3 mb-4 flex-shrink-0">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

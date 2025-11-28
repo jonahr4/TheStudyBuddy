@@ -150,7 +150,7 @@ export default function Flashcards() {
               className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all ${
                 selectedSubject === 'all'
                   ? 'bg-indigo-600 text-white shadow-md'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm'
               }`}
             >
               All Subjects
@@ -159,14 +159,14 @@ export default function Flashcards() {
               <button
                 key={subject.id}
                 onClick={() => setSelectedSubject(subject.id)}
-                className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${
+                className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all inline-flex items-center gap-2 ${
                   selectedSubject === subject.id
                     ? 'bg-indigo-600 text-white shadow-md'
-                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    : 'bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm'
                 }`}
               >
-                <div 
-                  className="w-2 h-2 rounded-full" 
+                <div
+                  className="w-2 h-2 rounded-full flex-shrink-0"
                   style={{ backgroundColor: subject.color }}
                 ></div>
                 {subject.name}
@@ -186,7 +186,7 @@ export default function Flashcards() {
           <div className="flex-1 overflow-y-auto min-h-0">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 pb-6">
             {flashcardSets.map(set => (
-              <div key={set._id} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-200/50 dark:border-gray-700/50 hover:border-purple-500/50 dark:hover:border-purple-400/50 transition-all duration-300 hover:shadow-xl">
+              <div key={set._id} className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 hover:shadow-2xl shadow-sm">
                 <div className="mb-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div 

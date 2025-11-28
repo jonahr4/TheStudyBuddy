@@ -60,6 +60,7 @@ export default function Dashboard() {
       </div>
       
       <div className="h-full w-full flex flex-col p-4 md:p-6">
+        {/* Header */}
         <div className="mb-4 flex-shrink-0">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">
             Dashboard
@@ -68,19 +69,196 @@ export default function Dashboard() {
             Welcome back! Here's your study overview
           </p>
         </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 flex-1 min-h-0 overflow-hidden">
+
+        {/* MOBILE LAYOUT - Shows below lg breakpoint */}
+        <div className="lg:hidden flex-1 overflow-y-auto space-y-4">
+          {/* Quick Stats Card */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div>
+                <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{subjects.length}</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">Subjects</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{recentDecks.length}</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">Flashcards</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">{chatStats?.totalConversations || 0}</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">Chats</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Subjects Section */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">My Subjects</h3>
+              </div>
+              <Link to="/subjects" className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">
+                View All →
+              </Link>
+            </div>
+
+            {loading ? (
+              <div className="py-8 flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 dark:border-t-indigo-400"></div>
+              </div>
+            ) : subjects.length === 0 ? (
+              <div className="py-6 text-center">
+                <div className="text-4xl mb-2">📚</div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">No subjects yet</p>
+                <Link to="/subjects" className="btn-primary text-sm inline-block">
+                  Create Subject
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {subjects.slice(0, 3).map(subject => (
+                  <Link
+                    key={subject.id}
+                    to={`/subjects/${subject.id}`}
+                    className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-gray-200 dark:border-transparent transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${subject.color}`}></div>
+                      <span className="font-medium text-gray-900 dark:text-white">{subject.name}</span>
+                    </div>
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                ))}
+                {subjects.length > 3 && (
+                  <Link to="/subjects" className="block text-center py-2 text-sm text-indigo-600 dark:text-indigo-400 font-medium">
+                    +{subjects.length - 3} more
+                  </Link>
+                )}
+              </div>
+            )}
+
+            <Link to="/subjects" className="btn-primary w-full mt-3 text-sm text-center block">
+              + New Subject
+            </Link>
+          </div>
+
+          {/* Flashcards Section */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Recent Flashcards</h3>
+              </div>
+              <Link to="/flashcards" className="text-xs text-purple-600 dark:text-purple-400 font-semibold">
+                View All →
+              </Link>
+            </div>
+
+            {loadingDecks ? (
+              <div className="py-8 flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-4 border-purple-200 dark:border-purple-800 border-t-purple-600 dark:border-t-purple-400"></div>
+              </div>
+            ) : recentDecks.length === 0 ? (
+              <div className="py-6 text-center">
+                <div className="text-4xl mb-2">🃏</div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">No flashcard decks yet</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {recentDecks.slice(0, 3).map(deck => (
+                  <Link
+                    key={deck._id}
+                    to={`/flashcards/study/${deck._id}`}
+                    className="block p-3 rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200/50 dark:border-purple-700/50 hover:border-purple-400 dark:hover:border-purple-500 transition-all"
+                  >
+                    <div className="flex justify-between items-start mb-1">
+                      <h5 className="font-semibold text-sm text-gray-900 dark:text-white">{deck.name}</h5>
+                      <span className="text-xs px-2 py-1 bg-white dark:bg-gray-800 rounded-full text-purple-600 dark:text-purple-400">
+                        {deck.flashcards.length} cards
+                      </span>
+                    </div>
+                    {deck.subjectId?.name && (
+                      <p className="text-xs text-gray-600 dark:text-gray-400">📚 {deck.subjectId.name}</p>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            <Link to="/flashcards" className="btn-primary w-full mt-3 text-sm text-center block bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+              View All Decks
+            </Link>
+          </div>
+
+          {/* AI Chat Section */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">AI Chat</h3>
+            </div>
+
+            {loadingChat ? (
+              <div className="py-8 flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-4 border-cyan-200 dark:border-cyan-800 border-t-cyan-600 dark:border-t-cyan-400"></div>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-cyan-100 to-blue-100 dark:from-cyan-900/30 dark:to-blue-900/30 flex items-center justify-center mx-auto mb-3">
+                  <div className="text-3xl">💬</div>
+                </div>
+                {chatStats?.totalConversations > 0 ? (
+                  <>
+                    <p className="text-3xl font-bold text-transparent bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text mb-1">
+                      {chatStats.totalConversations}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                      {chatStats.totalConversations === 1 ? 'Conversation' : 'Conversations'}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                      {chatStats.totalMessages} total messages
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    No conversations yet
+                  </p>
+                )}
+              </div>
+            )}
+
+            <Link to="/chat" className="btn-primary w-full text-sm text-center block bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700">
+              {chatStats?.totalConversations > 0 ? 'Continue Chatting' : 'Start Chatting'}
+            </Link>
+          </div>
+        </div>
+
+        {/* DESKTOP LAYOUT - Shows at lg breakpoint and above */}
+        <div className="hidden lg:grid grid-cols-3 gap-6 flex-1 min-h-0 overflow-hidden">
           {/* Left: Subjects List */}
           <div className="flex flex-col min-h-0">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-4 md:p-6 border border-gray-200/50 dark:border-gray-700/50 hover:border-indigo-500/50 dark:hover:border-indigo-400/50 transition-all duration-300 flex flex-col h-full min-h-0">
-              <div className="flex justify-between items-center mb-4 flex-shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 md:p-6 border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-300 flex flex-col lg:h-full min-h-0 shadow-sm hover:shadow-lg">
+              <div className="flex justify-between items-center mb-3 lg:mb-4 flex-shrink-0">
+                <div className="flex items-center gap-2 lg:gap-3">
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white">
+                    <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                     </svg>
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 dark:text-white">Subjects</h4>
+                  <h4 className="text-lg lg:text-xl font-bold text-gray-900 dark:text-white">Subjects</h4>
                 </div>
                 <Link to="/subjects" className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-semibold">
                   View All →
@@ -104,10 +282,10 @@ export default function Dashboard() {
               ) : (
                 <div className="flex-1 overflow-y-auto pr-2 space-y-2 min-h-0">
                   {subjects.map(subject => (
-                    <Link 
+                    <Link
                       key={subject.id}
                       to={`/subjects/${subject.id}`}
-                      className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-transparent hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-200 group"
+                      className="flex items-center gap-3 p-3 md:p-4 rounded-xl bg-gray-100 dark:bg-gray-700/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-gray-200 dark:border-transparent hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-200 group"
                     >
                       <div className={`w-4 h-4 rounded-full ${subject.color} group-hover:scale-110 transition-transform`}></div>
                       <span className="font-medium text-gray-900 dark:text-white">{subject.name}</span>
@@ -127,15 +305,15 @@ export default function Dashboard() {
 
           {/* Center: My Decks */}
           <div className="flex flex-col min-h-0">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-4 md:p-6 border border-gray-200/50 dark:border-gray-700/50 hover:border-purple-500/50 dark:hover:border-purple-400/50 transition-all duration-300 flex flex-col h-full min-h-0">
-              <div className="flex justify-between items-center mb-4 flex-shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 md:p-6 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 flex flex-col lg:h-full min-h-0 shadow-sm hover:shadow-lg">
+              <div className="flex justify-between items-center mb-3 lg:mb-4 flex-shrink-0">
+                <div className="flex items-center gap-2 lg:gap-3">
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white">
+                    <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 dark:text-white">My Flashcards</h4>
+                  <h4 className="text-lg lg:text-xl font-bold text-gray-900 dark:text-white">My Flashcards</h4>
                 </div>
                 <Link to="/flashcards" className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 text-xs font-semibold">
                   View All →
@@ -158,12 +336,12 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <>
-                  <div className="flex-1 overflow-y-auto pr-2 space-y-3 min-h-0">
+                  <div className="flex-1 overflow-y-auto pr-2 space-y-2 lg:space-y-3 min-h-0">
                     {recentDecks.map(deck => (
                       <Link
                         key={deck._id}
                         to={`/flashcards/study/${deck._id}`}
-                        className="block p-4 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 border border-purple-200/50 dark:border-purple-700/50 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-200 group"
+                        className="block p-3 md:p-4 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 border border-purple-200/50 dark:border-purple-700/50 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-200 group"
                       >
                         <div className="flex justify-between items-start mb-2">
                           <h5 className="font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
@@ -198,14 +376,14 @@ export default function Dashboard() {
 
           {/* Right: Chat History */}
           <div className="flex flex-col min-h-0">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-4 md:p-6 border border-gray-200/50 dark:border-gray-700/50 hover:border-cyan-500/50 dark:hover:border-cyan-400/50 transition-all duration-300 flex flex-col h-full min-h-0">
-              <div className="flex items-center gap-3 mb-4 flex-shrink-0">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 md:p-6 border border-gray-200 dark:border-gray-700 hover:border-cyan-300 dark:hover:border-cyan-600 transition-all duration-300 flex flex-col lg:h-full min-h-0 shadow-sm hover:shadow-lg">
+              <div className="flex items-center gap-2 lg:gap-3 mb-3 lg:mb-4 flex-shrink-0">
+                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white">
+                  <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                 </div>
-                <h4 className="text-xl font-bold text-gray-900 dark:text-white">AI Chat</h4>
+                <h4 className="text-lg lg:text-xl font-bold text-gray-900 dark:text-white">AI Chat</h4>
               </div>
               
               {loadingChat ? (

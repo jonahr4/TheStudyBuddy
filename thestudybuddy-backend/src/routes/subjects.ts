@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { getUserInfoFromRequest } from "../shared/expressAuth";
 import { MongoSubjectRepository } from "../shared/repos/MongoSubjectRepository";
 import { CreateSubjectRequest, UpdateSubjectRequest } from "../shared/types";
+import { LIMITS, isValidStringLength } from "../config/limits";
 
 const router = Router();
 const subjectRepo = new MongoSubjectRepository();
@@ -31,6 +32,23 @@ router.post("/", async (req: Request, res: Response) => {
     // Validate required fields
     if (!body.name || !body.color) {
       return res.status(400).json({ message: "name and color are required" });
+    }
+
+    // Security: Validate subject name length
+    if (!isValidStringLength(body.name, LIMITS.MAX_SUBJECT_NAME_LENGTH)) {
+      return res.status(400).json({
+        message: `Subject name must be between 1 and ${LIMITS.MAX_SUBJECT_NAME_LENGTH} characters`,
+      });
+    }
+
+    // Security: Enforce subject limit per user
+    const existingSubjects = await subjectRepo.getSubjectsByUser(userId);
+    if (existingSubjects.length >= LIMITS.MAX_SUBJECTS_PER_USER) {
+      return res.status(403).json({
+        message: `Subject limit reached. Maximum ${LIMITS.MAX_SUBJECTS_PER_USER} subjects allowed per user.`,
+        currentCount: existingSubjects.length,
+        maxAllowed: LIMITS.MAX_SUBJECTS_PER_USER
+      });
     }
 
     const subject = await subjectRepo.createSubject(userId, {

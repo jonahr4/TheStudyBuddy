@@ -10,6 +10,7 @@ export interface Subject {
   userEmail?: string; // User's email (optional for backwards compatibility)
   createdAt: string;  // ISO timestamp
   noteCount?: number; // Number of notes in this subject
+  flashcardCount?: number; // Number of flashcard sets in this subject
 }
 
 export interface Note {

@@ -171,3 +171,11 @@ export const reportApi = {
     apiRequest(`/reports`, { method: "POST", body: JSON.stringify(data) }),
   getAll: () => apiRequest(`/reports`),
 };
+
+/* -------------------------------
+   VERSION UPDATES
+   ------------------------------- */
+export const versionUpdatesApi = {
+  getAll: () => apiRequest(`/version-updates`),
+  getLatest: () => apiRequest(`/version-updates/latest`),
+};

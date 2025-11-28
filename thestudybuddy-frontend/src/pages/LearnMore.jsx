@@ -102,7 +102,7 @@ export default function LearnMore() {
       <div className="relative mx-auto max-w-7xl px-6 py-6 sm:py-8 lg:px-8 z-10" style={{maxHeight: '80vh'}}>
         <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-12 gap-y-6 sm:gap-y-8 lg:mx-0 lg:max-w-none lg:grid-cols-[65%_35%] lg:items-center" style={{maxHeight: '80vh'}}>
           {/* Left side - Text content */}
-          <div className="lg:pr-8">
+          <div className="lg:pr-8 text-center lg:text-left">
             <div className="w-full">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
                 The Study Buddy
@@ -112,7 +112,7 @@ export default function LearnMore() {
               </p>
 
               {/* Key highlights */}
-              <div className="space-y-3 mb-6">
+              <div className="space-y-3 mb-6 max-w-md mx-auto lg:mx-0">
                 <div className="flex items-start gap-3">
                   <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <svg className="w-3 h-3 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
@@ -174,14 +174,14 @@ export default function LearnMore() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-x-6">
+              <div className="flex items-center justify-center lg:justify-start gap-x-6">
                 <Link to="/login" className="btn-primary">
                   Get Started & Login
                 </Link>
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
+              <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200/50 dark:border-gray-700/50 max-w-md mx-auto lg:mx-0">
                 <div>
                   <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">AI</div>
                   <div className="text-xs text-gray-600 dark:text-gray-400">Powered</div>
@@ -198,8 +198,8 @@ export default function LearnMore() {
             </div>
           </div>
 
-          {/* Right side - Screenshot */}
-          <div className="relative lg:-mr-8 flex items-start">
+          {/* Right side - Screenshot (hidden on mobile) */}
+          <div className="hidden lg:flex relative lg:-mr-8 items-start">
             <img
               alt="Study Buddy Dashboard Screenshot"
               src={homepageImage}

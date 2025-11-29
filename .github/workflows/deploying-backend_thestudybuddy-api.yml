@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - deploying-backend
+      - main
   workflow_dispatch:
 
 jobs:

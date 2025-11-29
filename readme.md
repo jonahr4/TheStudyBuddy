@@ -2,7 +2,7 @@
 
 The Study Buddy is an AI-powered learning tool that helps students upload homework notes, turn them into flashcards, and chat with an AI that understands their content.
 
-This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and DigitalOcean background workers.
+Built with Express.js REST API, Azure OpenAI, MongoDB Atlas, and deployed across Azure App Service (backend) and DigitalOcean App Platform (frontend).
 
 ---
 
@@ -16,9 +16,7 @@ This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and 
   - [Prerequisites](#prerequisites)
   - [Installation Steps](#installation-steps)
   - [Quick Command Reference](#quick-command-reference)
-- [Production Deployment](#production-deployment)
-  - [Frontend Deployment (DigitalOcean)](#frontend-deployment-digitalocean)
-  - [Backend Deployment (AWS Elastic Beanstalk)](#backend-deployment-aws-elastic-beanstalk)
+- [Deployment](#deployment)
 - [Project Structure](#project-structure)
 - [Page Navigation Flow](#page-navigation-flow)
 - [Development Phases](#development-phases-for-thestudybuddy)
@@ -39,7 +37,7 @@ This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and 
 - **Subject-Specific Chat** - AI chatbot that understands your notes, organized by subject
 - **Firebase Authentication** - Secure login with email/password and Google sign-in
 - **Dashboard** - Overview of subjects, flashcard decks, and chat history
-- **Deployment** - Azure Static Web Apps hosting
+- **Deployment** - Azure App Service (backend) + DigitalOcean App Platform (frontend)
 
 ---
 
@@ -55,30 +53,34 @@ This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and 
 
 ---
 
-# Tech Stack (Azure-Centric)
+# Tech Stack
 
 **Frontend**
-- React (Vite) + TailwindCSS
+- React 19 + Vite + TailwindCSS
 - Firebase Auth (email/password + Google sign-in)
 - React Router DOM (client-side routing)
-- Azure Static Web Apps (hosting)
+- DigitalOcean App Platform (hosting with auto-deploy from GitHub)
 
 **Backend**
-- Express.js API or Azure Functions (REST API endpoints)
-- Azure Functions (serverless compute for AI processing)
-- Azure OpenAI (GPT-4o-mini for flashcards + chat)
+- Express.js REST API (TypeScript)
+- Azure OpenAI (GPT-4 for flashcards + context-aware chat)
 - Azure Blob Storage (PDF files + extracted text storage)
-- Azure Cognitive Search (optional - for vector retrieval/RAG)
+- Azure App Service (hosting)
 
 **Database**
-- MongoDB Atlas (users, subjects, notes metadata, flashcards)
-
-**Optional Microservices**
-- DigitalOcean Droplet or App Platform (YouTube/article workers)
+- MongoDB Atlas with 7 collections:
+  - `users` - User profiles and authentication data
+  - `subjects` - User-created subjects with colors
+  - `notes` - PDF metadata (fileName, blobUrl, textUrl, fileSize)
+  - `flashcardsets` - AI-generated flashcard decks with cards array
+  - `chatmessages` - Persistent chat history per subject
+  - `reports` - Bug reports and feature requests
+  - `versionupdates` - App version history and changelogs
 
 **DevOps**
-- GitHub Actions (CI/CD)
-- Sentry + Azure Monitor (error tracking & logging)
+- GitHub Actions (CI/CD with automated builds and deployments)
+- Azure App Service Deployment Center (linked to GitHub main branch)
+- Environment-based configuration management
 
 ---
 
@@ -87,44 +89,56 @@ This Azure-first edition uses Azure Functions, Azure OpenAI, MongoDB Atlas, and 
 1. User logs in (Firebase Auth with email/password or Google)
 2. User creates subjects (e.g., "Biology 101", "Calculus II")
 3. User uploads PDF notes to specific subjects (up to 10 per subject) → Azure Blob Storage
-4. Azure Functions extract text from PDFs
-5. Azure OpenAI generates subject-specific flashcards + embeddings
-6. MongoDB stores subjects, notes, decks, chats, and metadata
-7. User studies flashcards filtered by subject
-8. User chats with AI about specific subject content using RAG retrieval
-9. Optional DO worker fetches video/article recommendations per subject  
+4. Express.js API extracts text from PDFs using pdf-parse library
+5. Azure OpenAI generates subject-specific flashcards from extracted text
+6. MongoDB stores subjects, notes, flashcard sets, chat history, and user data
+7. User studies flashcards filtered by subject with flip animations
+8. User chats with AI that has full context of their uploaded notes
+9. Chat history persists across sessions in MongoDB  
 
 ---
 
 # Backend Architecture Overview
 
-**MongoDB Collections:**
-- **users**: Store email, name (from Firebase Auth)
-- **subjects**: Store name, color, userId (user's custom subjects)
-- **notes**: Store metadata (fileName, blobUrl, textUrl, subjectId)
-- **flashcards**: Store AI-generated flashcards (question, answer, subjectId)
+**Express.js REST API:**
+- TypeScript-based REST API with repository pattern
+- Firebase Admin SDK for token verification and authentication
+- Middleware-based authorization ensuring users only access their own data
+- CORS configuration for cross-origin requests from frontend
+
+**MongoDB Collections (7 total):**
+- **users** - User profiles (email, displayName, createdAt)
+- **subjects** - User subjects with name, color, timestamps (indexed on userId)
+- **notes** - PDF metadata: fileName, blobUrl, textUrl, fileSize, subjectId (compound index on userId + subjectId)
+- **flashcardsets** - Flashcard decks with cards array (front/back fields), indexed on userId + subjectId
+- **chatmessages** - Persistent chat history (role, content, timestamp), indexed on userId + subjectId + timestamp
+- **reports** - Bug reports and feature requests (type, description, status)
+- **versionupdates** - App version history with features and release dates
 
 **Azure Blob Storage:**
-- Store uploaded raw PDF files
-- Store extracted text versions of notes
-
-**Azure Functions (Serverless Processing):**
-- **Process Note Text**: Download PDF from Blob → Extract text → Upload text to Blob
-- **Generate Flashcards**: Use Azure OpenAI (GPT-4o-mini) to create flashcards from note text
-- **Generate Chat Responses**: Use RAG (Retrieval-Augmented Generation) with note context
+- **notes-raw** container - Stores uploaded PDF files
+- **notes-text** container - Stores extracted text from PDFs
+- Secure blob operations with Azure Storage SDK
 
 **Azure OpenAI Integration:**
-- Flashcard generation with custom prompts
-- AI chat assistant with subject-specific context
-- Optional: Note summarization or preprocessing
+- Deployment: GPT-4 (gpt-5-nano reasoning model)
+- Flashcard generation with structured prompts
+- Context-aware chat with full note context injection
+- Smart text truncation for large note sets (40K character limit)
 
-**Backend API (Express.js or Azure Functions):**
+**API Endpoints:**
 - `POST/GET/PUT/DELETE /api/subjects` - Subject CRUD operations
-- `POST /api/notes/upload` - Upload file to Azure Blob + save metadata to MongoDB
-- `POST /api/flashcards/generate` - Trigger Azure Function to generate flashcards
-- `POST /api/ai/chat` - Send chat message, get AI response with RAG context
-- `GET /api/flashcards/:subjectId` - Retrieve flashcards for a subject
-- `GET /api/notes/:subjectId` - Get all notes for a subject
+- `POST /api/notes/upload` - Multipart upload to Azure Blob + MongoDB metadata
+- `POST /api/notes/extract-text/:id` - Extract text from PDF using pdf-parse
+- `DELETE /api/notes/:id` - Delete from MongoDB and Azure Blob Storage
+- `POST /api/flashcards/generate` - Generate flashcards with Azure OpenAI
+- `GET /api/flashcards/:subjectId` - Get all flashcard sets for a subject
+- `DELETE /api/flashcards/set/:setId` - Delete flashcard set
+- `POST /api/ai/chat` - Send message, get AI response with note context
+- `GET /api/chat/history/:subjectId` - Load persistent chat history
+- `DELETE /api/chat/history/:subjectId` - Clear chat for a subject
+- `POST /api/reports` - Submit bug reports or feature requests
+- `GET /api/version-updates` - Get app version history
 
 ---
 
@@ -203,9 +217,7 @@ If you have access to the Firebase Console:
 
 ### 6. Set Up Backend (Required for full functionality)
 
-The backend uses **Azure Functions** for local development and **AWS Elastic Beanstalk** for production deployment.
-
-#### Local Development Setup
+The backend is an Express.js REST API built with TypeScript.
 
 **Navigate to backend directory:**
 ```bash
@@ -213,49 +225,48 @@ cd ../thestudybuddy-backend
 npm install
 ```
 
-**Install Azure Functions Core Tools:**
-```bash
-# macOS
-brew tap azure/functions
-brew install azure-functions-core-tools@4
-
-# Windows (via npm)
-npm install -g azure-functions-core-tools@4 --unsafe-perm true
-```
-
 **Contact Jonah for credentials!**
 
-Create a `local.settings.json` file in `thestudybuddy-backend`:
-```json
-{
-  "IsEncrypted": false,
-  "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "node",
-    "MONGODB_URI": "<get_from_jonah>",
-    "STORAGE_CONNECTION_STRING": "<azure_blob_storage_connection>",
-    "STORAGE_NOTES_RAW_CONTAINER": "notes-raw",
-    "STORAGE_NOTES_TEXT_CONTAINER": "notes-text",
-    "AZURE_OPENAI_ENDPOINT": "<azure_openai_endpoint>",
-    "AZURE_OPENAI_API_KEY": "<azure_openai_key>",
-    "AZURE_OPENAI_DEPLOYMENT_NAME": "gpt-5-nano",
-    "YOUTUBE_API_KEY": "<youtube_api_key>"
-  },
-  "Host": {
-    "CORS": "http://localhost:5173",
-    "CORSCredentials": true
-  }
-}
-```
-
-**Start the Azure Functions backend:**
+Create a `.env` file in `thestudybuddy-backend`:
 ```bash
-npm run start:dev
+# MongoDB
+MONGODB_URI=<get_from_jonah>
+
+# Azure Blob Storage
+STORAGE_CONNECTION_STRING=<azure_blob_storage_connection>
+STORAGE_NOTES_RAW_CONTAINER=notes-raw
+STORAGE_NOTES_TEXT_CONTAINER=notes-text
+
+# Azure OpenAI
+AZURE_OPENAI_ENDPOINT=<azure_openai_endpoint>
+AZURE_OPENAI_API_KEY=<azure_openai_key>
+AZURE_OPENAI_DEPLOYMENT_NAME=gpt-5-nano
+
+# Firebase (for token verification)
+FIREBASE_PROJECT_ID=thestudybuddy-8da15
+
+# Frontend URL for CORS
+FRONTEND_URL=http://localhost:5173
+
+# Server Port (optional, defaults to 8080)
+PORT=8080
 ```
 
-Backend will run on `http://localhost:7071`
+**Build and start the Express backend:**
+```bash
+# Build TypeScript
+npm run build
 
-> **Note:** The frontend will work without the backend (using mock data), but all features require the backend running.
+# Start the server
+npm start
+
+# OR for development with auto-reload:
+npm run dev
+```
+
+Backend will run on `http://localhost:8080`
+
+> **Note:** All features require the backend running. The backend handles authentication, file uploads, AI processing, and database operations.
 
 ### 7. Start the Frontend Development Server
 ```bash
@@ -300,115 +311,64 @@ npm run lint
 
 ### Backend Commands (thestudybuddy-backend)
 ```bash
-# Start Azure Functions backend (local development)
-npm run start:dev
+# Start Express server (development with auto-reload)
+npm run dev
 
 # Build TypeScript
 npm run build
 
-# Watch mode for development
+# Start production server (requires build first)
+npm start
+
+# Watch TypeScript compilation
 npm run watch
 
-# Test Express server locally (before deployment)
-npm run dev
+# Clean build artifacts
+npm run clean
 ```
 
 ---
 
-## Production Deployment
+## Deployment
 
-The Study Buddy is deployed with a split architecture:
-- **Frontend**: DigitalOcean App Platform (https://thestudybuddy.app)
-- **Backend**: AWS Elastic Beanstalk (Express.js wrapper around Azure Functions)
+The Study Buddy is deployed with a multi-cloud architecture:
+- **Frontend**: DigitalOcean App Platform → https://thestudybuddy.app
+- **Backend**: Azure App Service → https://thestudybuddy-api-b0ahd5hcfzerh6h4.eastus-01.azurewebsites.net
 
-### Frontend Deployment (DigitalOcean)
+### Automated CI/CD Pipeline
 
-**Automatic deployment from GitHub:**
-1. Push changes to the `dev` branch
-2. DigitalOcean automatically builds and deploys
-3. Available at: https://thestudybuddy.app
+**Frontend (DigitalOcean App Platform):**
+- Automatic deployment on push to GitHub
+- Vite production build with optimizations
+- Environment variables configured in DigitalOcean dashboard
+- CDN distribution for fast global delivery
 
-**Manual deployment:**
-1. Go to DigitalOcean App Platform dashboard
-2. Select the app → Click "Deploy"
-3. Monitor build logs for success
+**Backend (Azure App Service):**
+- GitHub Actions workflow triggers on push to `main` branch
+- Automated TypeScript build (`npm run build`)
+- Deploys `dist/` folder to Azure App Service
+- Uses Azure Deployment Center linked to GitHub repository
+- Environment variables managed in Azure Portal Configuration
 
-**Environment Variables (set in DigitalOcean):**
-```
-VITE_API_URL = http://thestudybuddy-production.eba-ukitft4b.us-east-1.elasticbeanstalk.com
-VITE_FIREBASE_API_KEY = <firebase_api_key>
-VITE_FIREBASE_AUTH_DOMAIN = thestudybuddy-8da15.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID = thestudybuddy-8da15
-VITE_FIREBASE_STORAGE_BUCKET = thestudybuddy-8da15.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID = <sender_id>
-VITE_FIREBASE_APP_ID = <app_id>
-VITE_FIREBASE_MEASUREMENT_ID = <measurement_id>
-```
+**GitHub Actions Workflow:**
+```yaml
+on:
+  push:
+    branches: [main]
 
-### Backend Deployment (AWS Elastic Beanstalk)
-
-**Prerequisites:**
-1. Install AWS CLI: `brew install awscli`
-2. Install EB CLI: `brew install awsebcli`
-3. Configure AWS credentials: `aws configure`
-
-**Deployment Steps:**
-
-```bash
-# Navigate to backend directory
-cd thestudybuddy-backend
-
-# Build TypeScript (must be done before deployment)
-npm run build
-
-# Deploy to AWS Elastic Beanstalk
-eb deploy
-
-# Check deployment status
-eb status
-
-# View logs if there are issues
-eb logs
+jobs:
+  build-and-deploy:
+    - Build TypeScript
+    - Create deployment package
+    - Deploy to Azure App Service using publish profile
 ```
 
-**Environment Variables (set via EB CLI):**
-```bash
-# Set all environment variables at once
-bash set-env-vars.sh
-
-# Or set individually
-eb setenv MONGODB_URI="<your_mongodb_uri>" \
-          STORAGE_CONNECTION_STRING="<azure_storage>" \
-          AZURE_OPENAI_ENDPOINT="<openai_endpoint>" \
-          AZURE_OPENAI_API_KEY="<openai_key>" \
-          AZURE_OPENAI_DEPLOYMENT_NAME="gpt-5-nano" \
-          YOUTUBE_API_KEY="<youtube_key>" \
-          NODE_ENV="production"
-```
-
-**Important Notes:**
-- ✅ Always run `npm run build` before deploying
-- ✅ The `dist/` folder must be included in deployment
-- ✅ Backend runs on Node.js 20 with Express.js
-- ✅ Local development still uses Azure Functions (`npm run start:dev`)
-- ✅ Production uses Express wrapper (`npm start`)
-
-**Backend Architecture:**
-- **Local Development**: Azure Functions on port 7071
-- **Production**: Express.js server on AWS Elastic Beanstalk
-- **Database**: MongoDB Atlas (shared between local and production)
-- **AI Services**: Azure OpenAI (shared between local and production)
-
-**Cost Estimate:**
-- AWS EB: $0/month (free tier for 12 months, then ~$10-15/month)
-- DigitalOcean: $0-5/month (static site)
-- MongoDB Atlas: $0/month (free tier)
-- Total: ~$0-20/month
-
-**Deployment Documentation:**
-- Full deployment guide: `DEPLOYMENT_COMPLETE.md`
-- AWS credentials setup: `AWS_CREDENTIALS_SETUP.md`
-- Production connection guide: `PRODUCTION_DEPLOYMENT_COMPLETE.md`
+**Production Stack:**
+- **Frontend**: React + Vite (served as static files from DigitalOcean)
+- **Backend**: Express.js REST API on Azure App Service
+- **Database**: MongoDB Atlas (shared cluster)
+- **Storage**: Azure Blob Storage (notes-raw, notes-text containers)
+- **AI**: Azure OpenAI (GPT-4 deployment)
 
 ---
 
@@ -450,71 +410,59 @@ TheStudyBuddy/
 │   │   └── main.jsx            # App entry point
 │   ├── .env.local              # Environment variables (git-ignored)
 │   └── package.json            # Dependencies
-├── thestudybuddy-backend/      # Azure Functions + Express.js backend
+├── thestudybuddy-backend/      # Express.js REST API backend
 │   ├── src/
-│   │   ├── server.ts           # Express server for AWS Elastic Beanstalk
-│   │   ├── index.ts            # Azure Functions entry point (local dev)
+│   │   ├── expressServer.ts    # Main Express.js server entry point
+│   │   ├── index.ts            # Module exports
 │   │   ├── db/
 │   │   │   └── connectMongo.ts # MongoDB connection utility with retry logic
 │   │   ├── firebase/
 │   │   │   └── admin.ts        # Firebase Admin SDK initialization
-│   │   ├── functions/
-│   │   │   ├── SubjectsHttp.ts # Subject CRUD API endpoints (complete)
-│   │   │   ├── NotesHttp.ts    # GET/DELETE notes endpoints
-│   │   │   ├── NotesUpload.ts  # POST /api/notes/upload (multipart/form-data)
-│   │   │   ├── ProcessNoteText.ts # Text extraction (not yet implemented)
-│   │   │   ├── FlashcardsHttp.ts  # Flashcards CRUD API (complete)
-│   │   │   ├── GenerateFlashcards.ts # AI flashcard generation (complete)
-│   │   │   ├── ChatWithAI.ts      # AI chat with RAG (complete)
-│   │   │   ├── GetChatHistory.ts  # Chat history & stats API (complete)
-│   │   │   ├── ReportsHttp.ts     # Bug reports API (complete)
-│   │   │   ├── UserHttp.ts        # User CRUD API (complete)
-│   │   │   └── YouTubeRecommendations.ts # YouTube API integration (complete)
-│   │   ├── models/
-│   │   │   ├── Subject.ts      # Mongoose Subject schema
-│   │   │   ├── Note.ts         # Mongoose Note schema with indexes
-│   │   │   ├── User.ts         # Mongoose User schema
-│   │   │   ├── FlashcardSet.ts # Mongoose FlashcardSet schema
-│   │   │   ├── ChatMessage.ts  # Mongoose ChatMessage schema
-│   │   │   └── Report.ts       # Mongoose Report schema
+│   │   ├── routes/             # Express route handlers
+│   │   │   ├── subjects.ts     # Subject CRUD endpoints
+│   │   │   ├── notes.ts        # Notes upload/delete/extract endpoints
+│   │   │   ├── flashcards.ts   # Flashcards CRUD endpoints
+│   │   │   ├── ai.ts           # AI chat endpoint with context injection
+│   │   │   ├── chat.ts         # Chat history & stats endpoints
+│   │   │   ├── users.ts        # User CRUD endpoints
+│   │   │   ├── reports.ts      # Bug reports endpoints
+│   │   │   └── versionUpdates.ts # Version history endpoints
+│   │   ├── models/             # Mongoose schemas (7 collections)
+│   │   │   ├── Subject.ts      # Subject schema with userId index
+│   │   │   ├── Note.ts         # Note schema with compound indexes
+│   │   │   ├── User.ts         # User schema
+│   │   │   ├── FlashcardSet.ts # FlashcardSet with cards array
+│   │   │   ├── ChatMessage.ts  # ChatMessage with timestamps
+│   │   │   ├── Report.ts       # Report schema with status tracking
+│   │   │   └── VersionUpdate.ts # VersionUpdate schema
 │   │   ├── shared/
-│   │   │   ├── auth.ts         # Firebase token verification
-│   │   │   ├── types.ts        # TypeScript interfaces (Subject, Note, etc.)
-│   │   │   ├── apiContracts.md # API documentation
+│   │   │   ├── expressAuth.ts  # Firebase token verification middleware
+│   │   │   ├── types.ts        # TypeScript interfaces
+│   │   │   ├── config/
+│   │   │   │   └── limits.ts   # Resource limits (10 notes, 20 flashcard sets, etc.)
 │   │   │   ├── repos/          # Repository pattern implementations
-│   │   │   │   ├── SubjectRepository.ts # Subject repo interface
-│   │   │   │   ├── MongoSubjectRepository.ts # MongoDB subject implementation
-│   │   │   │   ├── NoteRepository.ts # Note repo interface
-│   │   │   │   ├── MongoNoteRepository.ts # MongoDB note implementation
-│   │   │   │   ├── UserRepository.ts # User repo interface
-│   │   │   │   ├── MongoUserRepository.ts # MongoDB user implementation
-│   │   │   │   ├── InMemorySubjectRepository.ts # In-memory subject (dev)
-│   │   │   │   ├── InMemoryNoteRepository.ts    # In-memory note (dev)
-│   │   │   │   └── InMemoryFlashcardRepository.ts # In-memory flashcard (dev)
+│   │   │   │   ├── SubjectRepository.ts       # Subject repo interface
+│   │   │   │   ├── MongoSubjectRepository.ts  # MongoDB implementation
+│   │   │   │   ├── NoteRepository.ts          # Note repo interface
+│   │   │   │   ├── MongoNoteRepository.ts     # MongoDB implementation
+│   │   │   │   ├── UserRepository.ts          # User repo interface
+│   │   │   │   ├── MongoUserRepository.ts     # MongoDB implementation
+│   │   │   │   └── FlashcardRepository.ts     # Flashcard repo interface
 │   │   │   ├── storage/        # Azure Blob Storage utilities
-│   │   │   │   └── blobClient.ts # Upload/delete blob operations
-│   │   │   └── services/       # Additional service utilities
-│   │   │       └── textExtraction.ts # PDF text extraction service
-│   ├── dist/                   # Compiled TypeScript (for deployment)
-│   ├── .elasticbeanstalk/      # AWS EB configuration
-│   │   └── config.yml          # EB environment config
-│   ├── .ebextensions/          # EB deployment settings
-│   │   └── nodecommand.config  # Node.js startup configuration
-│   ├── docs/                   # Backend documentation
-│   │   ├── BACKEND-SETUP-COMPLETE.md
-│   │   ├── BACKEND-V4-COMPLETE.md
-│   │   └── MONGODB_INTEGRATION_COMPLETE.md
-│   ├── Procfile                # EB process definition (web: npm start)
-│   ├── .ebignore               # Files to exclude from EB deployment
-│   ├── local.settings.json     # Azure Functions config (git-ignored)
-│   ├── set-env-vars.sh         # Script to set EB environment variables
-│   ├── host.json               # Azure Functions host config
+│   │   │   │   └── blobClient.ts # Upload/download/delete blob operations
+│   │   │   └── services/       # Service layer
+│   │   │       └── textExtraction.ts # PDF text extraction with pdf-parse
+│   │   ├── scripts/            # Utility scripts
+│   │   │   └── seedVersionUpdates.ts # Seed version history data
+│   ├── dist/                   # Compiled TypeScript (production deployment)
+│   ├── .github/workflows/      # GitHub Actions CI/CD
+│   │   └── deploying-backend_thestudybuddy-api.yml # Azure deployment workflow
+│   ├── .env                    # Environment variables (git-ignored)
 │   ├── tsconfig.json           # TypeScript compiler configuration
-│   └── package.json            # Dependencies and scripts
-├── DEPLOYMENT_COMPLETE.md      # AWS Elastic Beanstalk deployment guide
-├── AWS_CREDENTIALS_SETUP.md    # AWS IAM user setup guide
-├── PRODUCTION_DEPLOYMENT_COMPLETE.md # Frontend + Backend connection guide
-├── ELASTIC_BEANSTALK_DEPLOYMENT.md   # Detailed EB deployment steps
+│   ├── package.json            # Dependencies and scripts
+│   └── web.config              # Azure App Service configuration
+├── .github/workflows/          # CI/CD workflows
+│   └── deploying-backend_thestudybuddy-api.yml # Backend deployment
 └── README.md                   # This file
 ```
 
@@ -539,19 +487,25 @@ TheStudyBuddy/
 ## Troubleshooting
 
 ### Frontend Issues
-- **Port already in use?** Change the port in `vite.config.js` or kill the process using port 5174
+- **Port already in use?** Change the port in `vite.config.js` or kill the process using port 5173
 - **Firebase errors?** Double-check your `.env.local` file has all required variables
 - **Module not found?** Run `npm install` again to ensure all dependencies are installed
+- **API connection errors?** Verify backend is running on `http://localhost:8080`
 
 ### Backend Issues
-- **Port 7071 already in use?** Kill the process: `lsof -ti:7071 | xargs kill -9`
-- **MongoDB connection failed?** Verify `MONGODB_URI` in `local.settings.json`
-- **Firebase token verification errors?** Ensure `FIREBASE_PROJECT_ID` matches your frontend project
-- **CORS errors?** Check that `CORS: "*"` is set in `local.settings.json`
+- **Port 8080 already in use?** Kill the process: `lsof -ti:8080 | xargs kill -9`
+- **MongoDB connection failed?** Verify `MONGODB_URI` in `.env` file
+- **Firebase token verification errors?** Ensure `FIREBASE_PROJECT_ID` in `.env` matches your frontend project
+- **CORS errors?** Check that `FRONTEND_URL` is set correctly in `.env` (should be `http://localhost:5173`)
+- **TypeScript compilation errors?** Run `npm run build` to see detailed error messages
+- **Azure Blob Storage errors?** Verify `STORAGE_CONNECTION_STRING` in `.env` is correct
 
 ### Full Stack Testing
-- Visit `http://localhost:5174/test-backend` to verify backend connection
+- Visit `http://localhost:5173` for the frontend
+- Backend should be running on `http://localhost:8080`
 - Create a subject to test the full authentication flow
+- Upload a PDF to test Azure Blob Storage integration
+- Generate flashcards to test Azure OpenAI integration
 - Check browser console and terminal for detailed error messages
 
 ---

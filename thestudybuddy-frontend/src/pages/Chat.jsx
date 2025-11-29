@@ -304,7 +304,7 @@ export default function Chat() {
           </div>
 
           {/* Input Area */}
-          <div className="flex gap-2 flex-shrink-0">
+          <div className="flex gap-2 flex-shrink-0" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
             <input
               type="text"
               value={inputMessage}

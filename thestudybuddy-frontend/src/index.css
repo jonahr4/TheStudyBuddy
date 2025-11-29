@@ -107,20 +107,45 @@
   }
 }
 
+/* iOS Safe Area Support */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
 /* Modal animations */
 @layer utilities {
+  /* iOS Safe Area Utilities */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .pl-safe {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .pr-safe {
+    padding-right: env(safe-area-inset-right);
+  }
+
   .animate-in {
     animation: fadeIn 0.2s ease-out;
   }
-  
+
   .fade-in {
     animation: fadeIn 0.2s ease-out;
   }
-  
+
   .zoom-in {
     animation: zoomIn 0.2s ease-out;
   }
-  
+
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -129,7 +154,7 @@
       opacity: 1;
     }
   }
-  
+
   @keyframes zoomIn {
     from {
       opacity: 0;

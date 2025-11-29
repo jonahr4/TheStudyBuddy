@@ -71,7 +71,7 @@ export default function Dashboard() {
         </div>
 
         {/* MOBILE LAYOUT - Shows below lg breakpoint */}
-        <div className="lg:hidden flex-1 overflow-y-auto space-y-4">
+        <div className="lg:hidden flex-1 overflow-y-auto space-y-4 pb-safe" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
           {/* Quick Stats Card */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
             <div className="grid grid-cols-3 gap-3 text-center">

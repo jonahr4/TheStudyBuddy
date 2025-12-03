@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import homepageImage from '../assets/Homepage3.png';
 import seanHeadshot from '../assets/SeanLink.jpeg';
 import jonahHeadshot from '../assets/JonahLink.jpeg';
-import { versionUpdatesApi } from '../services/api.ts';
+import changelogData from '../data/changelog.json';
 
 // Demo Flashcards Component
 function DemoFlashcards() {
@@ -122,29 +122,7 @@ function DemoFlashcards() {
 
 export default function LearnMore() {
   const [showUpdates, setShowUpdates] = useState(false);
-  const [versionUpdates, setVersionUpdates] = useState([]);
-  const [loadingUpdates, setLoadingUpdates] = useState(false);
-  const [error, setError] = useState(null);
   const [openFaq, setOpenFaq] = useState(null);
-
-  useEffect(() => {
-    const fetchUpdates = async () => {
-      if (showUpdates && versionUpdates.length === 0) {
-        setLoadingUpdates(true);
-        setError(null);
-        try {
-          const updates = await versionUpdatesApi.getAll();
-          setVersionUpdates(updates);
-        } catch (error) {
-          console.error('Failed to fetch version updates:', error);
-          setError(error.message || 'Failed to load version updates');
-        } finally {
-          setLoadingUpdates(false);
-        }
-      }
-    };
-    fetchUpdates();
-  }, [showUpdates, versionUpdates.length]);
 
   const testimonials = [
     {
@@ -241,16 +219,8 @@ export default function LearnMore() {
       a: "We use advanced RAG (Retrieval-Augmented Generation) technology. When you ask a question, the AI searches through YOUR uploaded materials first, then crafts an answer based on that context. It's like having a tutor who actually read your textbook."
     },
     {
-      q: "Is my data safe?",
-      a: "Absolutely. We use Firebase Authentication for secure login, Azure for encrypted storage, and never share or sell your data. Your notes stay yours."
-    },
-    {
       q: "How many subjects can I create?",
       a: "As many as you need. Each subject can hold up to 10 documents, and you can create unlimited subjects."
-    },
-    {
-      q: "Can I use this for group study?",
-      a: "Right now Study Buddy is designed for individual use. Collaboration features are on our roadmap for a future release."
     }
   ];
 
@@ -285,15 +255,6 @@ export default function LearnMore() {
       {/* Hero Section */}
       <section className="pt-32 pb-8 md:pt-40 md:pb-16 px-6">
         <div className="max-w-5xl mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full text-sm font-medium mb-8 border border-emerald-100">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            Now supporting PDF, Word & PowerPoint
-          </div>
-
           {/* Headline */}
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-zinc-900 mb-6 leading-[0.95]">
             Your Study Hours,
@@ -327,16 +288,11 @@ export default function LearnMore() {
               </svg>
             </button>
           </div>
-
-          {/* Social Proof */}
-          <p className="text-sm text-zinc-400">
-            Trusted by students at <span className="text-zinc-600 font-medium">Boston University</span>, <span className="text-zinc-600 font-medium">MIT</span>, <span className="text-zinc-600 font-medium">Stanford</span>, and more
-          </p>
         </div>
       </section>
 
       {/* Dashboard Preview */}
-      <section id="demo" className="px-6 relative">
+      <section id="demo" className="hidden md:block px-6 relative">
         {/* Left side white fade - stronger at bottom */}
         <div
           className="absolute left-0 top-0 bottom-0 w-1/4 pointer-events-none z-10"
@@ -379,14 +335,14 @@ export default function LearnMore() {
       </section>
 
       {/* How It Works - Overlapping the image */}
-      <section className="pt-8 pb-24 px-6 bg-white relative z-10 -mt-32 md:-mt-48">
+      <section className="pt-8 pb-24 px-6 bg-white relative z-10 md:-mt-48">
         <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="hidden md:grid md:grid-cols-3 gap-16 max-w-5xl mx-auto">
             {[
               {
                 step: "01",
                 title: "Upload Your Notes",
-                desc: "PDFs, Word docs, PowerPoints—drop them in and we'll do the rest. Your notes become instantly searchable and AI-ready. We process them in under a minute.",
+                desc: "Drop in PDFs, Word docs, or PowerPoints. We process them in under a minute.",
                 icon: (
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -395,8 +351,8 @@ export default function LearnMore() {
               },
               {
                 step: "02",
-                title: "Get Smart Flashcards",
-                desc: "Our AI reads your materials and creates perfect flashcards automatically. Study the concepts that matter, skip the busywork. Smart repetition means you remember more with less effort.",
+                title: "AI Flashcards",
+                desc: "Get perfect flashcards automatically. Study what matters, skip the busywork.",
                 icon: (
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -406,7 +362,7 @@ export default function LearnMore() {
               {
                 step: "03",
                 title: "Chat & Learn",
-                desc: "Ask questions, get explanations, dive deeper. The AI knows your exact course materials—no generic answers. Keep everything sorted by class with secure, encrypted storage.",
+                desc: "Ask questions about your materials. Get explanations based on your actual notes.",
                 icon: (
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -414,44 +370,37 @@ export default function LearnMore() {
                 )
               }
             ].map((item, i) => (
-              <div key={i} className="relative group">
-                <div className="bg-white rounded-2xl p-8 border border-zinc-200 hover:border-indigo-200 hover:shadow-xl transition-all duration-300 h-full">
-                  {/* Subtle glow effect on hover */}
-                  <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 rounded-2xl opacity-0 group-hover:opacity-10 blur-lg transition-opacity duration-300"></div>
-
-                  <div className="relative">
-                    {/* Icon with subtle glow */}
-                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 flex items-center justify-center text-indigo-600 mb-6 group-hover:scale-105 transition-all duration-300">
-                      {item.icon}
-                    </div>
-
-                    {/* Number with subtle glow */}
-                    <div className="absolute -top-3 -right-3 text-6xl font-bold text-zinc-100 group-hover:text-indigo-500/15 transition-all duration-300 group-hover:scale-105">
-                      {item.step}
-                    </div>
-
-                    <h3 className="text-xl font-bold text-zinc-900 mb-3">{item.title}</h3>
-                    <p className="text-zinc-600 leading-relaxed text-sm">{item.desc}</p>
-                  </div>
+              <div key={i} className="text-center">
+                {/* Icon */}
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 flex items-center justify-center text-indigo-600 mb-4 mx-auto">
+                  {item.icon}
                 </div>
+
+                {/* Number */}
+                <div className="text-5xl font-bold text-indigo-600/20 mb-2">
+                  {item.step}
+                </div>
+
+                <h3 className="text-xl font-bold text-zinc-900 mb-2">{item.title}</h3>
+                <p className="text-zinc-600 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Title section with black background */}
-        <div className="bg-zinc-900 py-16 mt-16 -mx-6">
+        {/* Title section with zinc background */}
+        <div className="bg-zinc-50 py-16 mt-0 md:mt-16 -mx-6 border-y border-zinc-100">
           <div className="text-center">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+            <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-4 tracking-tight">
               Three steps to better grades.
             </h2>
-            <p className="text-xl text-zinc-400">No setup wizards. No learning curve. Just results.</p>
+            <p className="text-xl text-zinc-600">No setup wizards. No learning curve. Just results.</p>
           </div>
         </div>
       </section>
 
       {/* Document to Flashcards Demo */}
-      <section className="py-16 px-6 bg-white border-b border-zinc-100">
+      <section className="py-0 pb-16 px-6 bg-white border-b border-zinc-100">
         <style>{`
           .demo-flip-container {
             perspective: 1500px;
@@ -496,8 +445,8 @@ export default function LearnMore() {
 
           <div className="grid md:grid-cols-[1fr_auto_1fr] gap-8 items-center">
             {/* Left: Document Preview */}
-            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 flex items-center gap-2">
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[430px] flex flex-col">
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 flex items-center gap-2 flex-shrink-0">
                 <div className="flex gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
                   <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
@@ -505,7 +454,7 @@ export default function LearnMore() {
                 </div>
                 <span className="text-white text-xs font-medium ml-2">Chemistry 101 Notes.pdf</span>
               </div>
-              <div className="p-5 bg-gradient-to-b from-zinc-50 to-white max-h-[400px] overflow-y-auto">
+              <div className="p-5 bg-gradient-to-b from-zinc-50 to-white flex-1 overflow-y-auto">
                 <h3 className="text-base font-bold text-zinc-900 mb-2.5">Chemical Bonding - Lecture 3</h3>
                 <div className="space-y-0.5 text-zinc-600 leading-[1.2] notes-content">
                   <style>{`
@@ -560,14 +509,14 @@ export default function LearnMore() {
       </section>
 
       {/* CTA Banner */}
-      <section className="py-16 px-6 bg-zinc-900">
+      <section className="py-16 px-6 bg-gradient-to-r from-indigo-50 via-violet-50 to-purple-50 border-y border-indigo-100">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight">
+          <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-6 tracking-tight">
             Sign up now for completely free
           </h2>
           <Link
             to="/signup"
-            className="inline-flex items-center gap-2 bg-white text-zinc-900 px-8 py-4 rounded-full text-base font-semibold hover:bg-zinc-100 transition-all shadow-xl"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-8 py-4 rounded-full text-base font-semibold hover:from-indigo-700 hover:to-violet-700 transition-all shadow-lg"
           >
             Get Started Free
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -578,7 +527,7 @@ export default function LearnMore() {
       </section>
 
       {/* Notes to AI Chat Demo */}
-      <section className="py-16 px-6 bg-zinc-50 border-b border-zinc-100">
+      <section className="py-16 px-6 bg-white border-b border-zinc-100">
         <div className="max-w-5xl mx-auto">
           {/* Section Title */}
           <div className="text-center mb-12">
@@ -589,7 +538,7 @@ export default function LearnMore() {
 
           <div className="grid md:grid-cols-[1fr_auto_1fr] gap-8 items-center">
             {/* Left: Physics Notes */}
-            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[400px] flex flex-col">
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[430px] flex flex-col">
               <div className="bg-gradient-to-r from-green-500 to-green-600 px-4 py-2 flex items-center gap-2 flex-shrink-0">
                 <div className="flex gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
@@ -598,7 +547,7 @@ export default function LearnMore() {
                 </div>
                 <span className="text-white text-xs font-medium ml-2">Physics 201 Notes.pdf</span>
               </div>
-              <div className="p-5 bg-gradient-to-b from-zinc-50 to-white max-h-[400px] overflow-y-auto">
+              <div className="p-5 bg-gradient-to-b from-zinc-50 to-white flex-1 overflow-y-auto">
                 <h3 className="text-base font-bold text-zinc-900 mb-2.5">Newton's Laws of Motion</h3>
                 <div className="space-y-0.5 text-zinc-600 leading-[1.2] notes-content">
                   <style>{`
@@ -640,7 +589,7 @@ export default function LearnMore() {
             </div>
 
             {/* Right: AI Chat */}
-            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden flex flex-col" style={{ height: '400px' }}>
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden flex flex-col h-[430px]">
               {/* Chat Header */}
               <div className="bg-gradient-to-r from-purple-500 to-indigo-600 px-4 py-3 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-xs font-semibold">
@@ -705,7 +654,7 @@ export default function LearnMore() {
       </section>
 
       {/* Testimonials - Infinite Scrolling Marquee */}
-      <section id="testimonials" className="py-16 bg-white border-b border-zinc-100 overflow-hidden">
+      <section id="testimonials" className="py-16 bg-zinc-50 border-b border-zinc-100 overflow-hidden">
         <div className="text-center mb-10 px-6">
           <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 mb-2 tracking-tight">
             Students love Study Buddy.
@@ -723,9 +672,9 @@ export default function LearnMore() {
           <div className="flex animate-marquee">
             {/* First set */}
             {[...testimonials, ...testimonials].map((t, i) => (
-              <div 
+              <div
                 key={i}
-                className="flex-shrink-0 w-[400px] mx-3 bg-zinc-50 rounded-2xl p-6 border border-zinc-100"
+                className="flex-shrink-0 w-[400px] mx-3 bg-white rounded-2xl p-6 border border-zinc-100"
               >
                 {/* Stars */}
                 <div className="flex gap-0.5 mb-3">
@@ -768,7 +717,7 @@ export default function LearnMore() {
       </section>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-24 px-6 bg-zinc-50 border-y border-zinc-100">
+      <section id="faq" className="py-24 px-6 bg-white border-y border-zinc-100">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-4 tracking-tight">
@@ -809,7 +758,7 @@ export default function LearnMore() {
       </section>
 
       {/* Team Section */}
-      <section id="team" className="py-24 px-6 bg-white">
+      <section id="team" className="py-24 px-6 bg-zinc-50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-4 tracking-tight">
@@ -820,7 +769,7 @@ export default function LearnMore() {
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* Jonah */}
-            <div className="bg-zinc-50 rounded-2xl p-8 border border-zinc-100 hover:shadow-xl transition-all duration-300 group">
+            <div className="bg-white rounded-2xl p-8 border border-zinc-100 hover:shadow-xl transition-all duration-300 group">
               <div className="flex items-start gap-5 mb-6">
                 <img 
                   src={jonahHeadshot} 
@@ -844,7 +793,7 @@ export default function LearnMore() {
             </div>
 
             {/* Sean */}
-            <div className="bg-zinc-50 rounded-2xl p-8 border border-zinc-100 hover:shadow-xl transition-all duration-300 group">
+            <div className="bg-white rounded-2xl p-8 border border-zinc-100 hover:shadow-xl transition-all duration-300 group">
               <div className="flex items-start gap-5 mb-6">
                 <img 
                   src={seanHeadshot} 
@@ -871,12 +820,12 @@ export default function LearnMore() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-24 px-6 bg-zinc-900 text-white">
+      <section className="py-16 px-6 bg-zinc-900 text-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">
+          <h2 className="text-2xl md:text-4xl font-bold mb-4 tracking-tight bg-gradient-to-r from-indigo-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
             Ready to study smarter?
           </h2>
-          <p className="text-xl text-zinc-400 mb-10 max-w-2xl mx-auto">
+          <p className="text-base md:text-lg text-zinc-400 mb-8 max-w-2xl mx-auto">
             Join students who've already transformed how they learn. Free to start, powerful from day one.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -906,9 +855,20 @@ export default function LearnMore() {
             <img src="/IMG_3002.png" alt="Logo" className="h-5 w-5 object-contain opacity-60" />
             <span>© 2025 The Study Buddy. All rights reserved.</span>
           </div>
-          <div className="flex items-center gap-6 text-sm text-zinc-500">
+          <div className="flex items-center gap-6 text-sm text-zinc-400">
             <button onClick={() => setShowUpdates(true)} className="hover:text-white transition-colors">Changelog</button>
             <a href="mailto:support@studybuddy.com" className="hover:text-white transition-colors">Contact</a>
+            <a
+              href="https://www.instagram.com/thestudybud/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-zinc-400 hover:text-white transition-colors flex items-center gap-2"
+              aria-label="Instagram"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+            </a>
           </div>
         </div>
       </footer>
@@ -930,42 +890,32 @@ export default function LearnMore() {
             </div>
 
             <div className="p-8">
-              {loadingUpdates ? (
-                <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900"></div>
-                </div>
-              ) : error ? (
-                <div className="text-center text-red-500 py-8">{error}</div>
-              ) : versionUpdates.length === 0 ? (
-                <div className="text-center text-zinc-500 py-8">No updates available.</div>
-              ) : (
-                <div className="space-y-8">
-                  {versionUpdates.map((update, index) => (
-                    <div key={update._id || index} className="relative pl-8 border-l-2 border-zinc-200">
-                      <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-indigo-600 ring-4 ring-white"></div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="px-2 py-0.5 bg-zinc-100 text-zinc-600 text-xs font-bold rounded">
-                          v{update.version}
-                        </span>
-                        <span className="text-sm text-zinc-400">
-                          {new Date(update.releaseDate).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <h3 className="text-lg font-bold text-zinc-900 mb-2">{update.title}</h3>
-                      <p className="text-zinc-600 text-sm mb-3">{update.description}</p>
-                      {update.features?.length > 0 && (
-                        <ul className="space-y-1">
-                          {update.features.map((f, i) => (
-                            <li key={i} className="flex items-start gap-2 text-sm text-zinc-500">
-                              <span className="text-indigo-600 mt-0.5">•</span> {f}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+              <div className="space-y-8">
+                {changelogData.map((update, index) => (
+                  <div key={index} className="relative pl-8 border-l-2 border-zinc-200">
+                    <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-indigo-600 ring-4 ring-white"></div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="px-2 py-0.5 bg-zinc-100 text-zinc-600 text-xs font-bold rounded">
+                        v{update.version}
+                      </span>
+                      <span className="text-sm text-zinc-400">
+                        {new Date(update.releaseDate).toLocaleDateString()}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <h3 className="text-lg font-bold text-zinc-900 mb-2">{update.title}</h3>
+                    <p className="text-zinc-600 text-sm mb-3">{update.description}</p>
+                    {update.features?.length > 0 && (
+                      <ul className="space-y-1">
+                        {update.features.map((f, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-zinc-500">
+                            <span className="text-indigo-600 mt-0.5">•</span> {f}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

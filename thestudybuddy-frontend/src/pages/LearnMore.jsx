@@ -5,6 +5,121 @@ import seanHeadshot from '../assets/SeanLink.jpeg';
 import jonahHeadshot from '../assets/JonahLink.jpeg';
 import { versionUpdatesApi } from '../services/api.ts';
 
+// Demo Flashcards Component
+function DemoFlashcards() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  const demoCards = [
+    {
+      front: "What type of bond forms between metals and non-metals?",
+      back: "Ionic bonds - formed through electron transfer where metals lose electrons and non-metals gain electrons"
+    },
+    {
+      front: "How are covalent bonds formed?",
+      back: "Sharing of electron pairs between atoms, typically between non-metals with similar electronegativity"
+    },
+    {
+      front: "What creates the 'sea of electrons' in metallic bonding?",
+      back: "Delocalized valence electrons that flow freely across the metal lattice"
+    },
+    {
+      front: "What is electronegativity and how does it affect bonding?",
+      back: "A measure of an atom's ability to attract electrons. Higher differences create ionic bonds, lower differences create covalent bonds"
+    }
+  ];
+
+  const handleFlip = () => {
+    setIsFlipped(!isFlipped);
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      setIsFlipped(false);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentIndex < demoCards.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setIsFlipped(false);
+    }
+  };
+
+  const currentCard = demoCards[currentIndex];
+
+  return (
+    <div className="flex flex-col">
+      {/* Flashcard */}
+      <div className="demo-flip-container" onClick={handleFlip}>
+        <div className={`demo-flip-card-inner ${isFlipped ? 'flipped' : ''}`}>
+          {/* Front of card */}
+          <div className="demo-flip-card-front">
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg min-h-[322px] w-full flex items-center justify-center cursor-pointer hover:shadow-xl transition-shadow">
+              <div className="text-center p-7">
+                <div className="text-sm text-indigo-600 font-semibold mb-4">
+                  FRONT
+                </div>
+                <p className="text-base text-zinc-900">
+                  {currentCard.front}
+                </p>
+                <div className="text-sm text-zinc-400 mt-5">
+                  Click to flip
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Back of card */}
+          <div className="demo-flip-card-back">
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg min-h-[322px] w-full flex items-center justify-center cursor-pointer hover:shadow-xl transition-shadow">
+              <div className="text-center p-7">
+                <div className="text-sm text-green-600 font-semibold mb-4">
+                  BACK
+                </div>
+                <p className="text-base text-zinc-900">
+                  {currentCard.back}
+                </p>
+                <div className="text-sm text-zinc-400 mt-5">
+                  Click to flip
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation and Counter */}
+      <div className="flex justify-between items-center mt-4">
+        <button
+          onClick={handlePrevious}
+          disabled={currentIndex === 0}
+          className="p-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          <svg className="w-5 h-5 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <div className="text-xs text-zinc-500">
+          {currentIndex + 1} / {demoCards.length}
+        </div>
+
+        <button
+          onClick={handleNext}
+          disabled={currentIndex === demoCards.length - 1}
+          className="p-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          <svg className="w-5 h-5 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function LearnMore() {
   const [showUpdates, setShowUpdates] = useState(false);
   const [versionUpdates, setVersionUpdates] = useState([]);
@@ -221,12 +336,27 @@ export default function LearnMore() {
       </section>
 
       {/* Dashboard Preview */}
-      <section id="demo" className="px-6">
+      <section id="demo" className="px-6 relative">
+        {/* Left side white fade - stronger at bottom */}
+        <div
+          className="absolute left-0 top-0 bottom-0 w-1/4 pointer-events-none z-10"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.3) 55%, rgba(255,255,255,0.6) 70%, rgba(255,255,255,0.85) 85%, rgb(255,255,255) 100%)'
+          }}
+        />
+        {/* Right side white fade - stronger at bottom */}
+        <div
+          className="absolute right-0 top-0 bottom-0 w-1/4 pointer-events-none z-10"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.3) 55%, rgba(255,255,255,0.6) 70%, rgba(255,255,255,0.85) 85%, rgb(255,255,255) 100%)'
+          }}
+        />
+
         <div className="max-w-6xl mx-auto">
           <div className="relative">
             {/* Glow */}
             <div className="absolute -inset-4 bg-gradient-to-r from-indigo-100 via-violet-100 to-purple-100 rounded-3xl blur-3xl opacity-60" />
-            
+
             {/* Image Container */}
             <div className="relative bg-white rounded-t-2xl p-2 pb-0 shadow-2xl shadow-zinc-900/10 ring-1 ring-zinc-900/5 ring-b-0">
               <div className="relative rounded-t-xl overflow-hidden">
@@ -235,13 +365,11 @@ export default function LearnMore() {
                   src={homepageImage}
                   className="w-full"
                 />
-                {/* Blur gradient fade at bottom */}
-                <div 
-                  className="absolute inset-x-0 bottom-0 h-1/2 backdrop-blur-[2px]"
-                  style={{ 
-                    background: 'linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 30%, rgba(255,255,255,0.7) 60%, rgba(255,255,255,0) 100%)',
-                    maskImage: 'linear-gradient(to top, black 0%, black 50%, transparent 100%)',
-                    WebkitMaskImage: 'linear-gradient(to top, black 0%, black 50%, transparent 100%)'
+                {/* White gradient fade at bottom */}
+                <div
+                  className="absolute inset-x-0 bottom-0 h-3/5"
+                  style={{
+                    background: 'linear-gradient(to top, rgb(255,255,255) 0%, rgb(255,255,255) 45%, rgba(255,255,255,0.92) 60%, rgba(255,255,255,0.8) 70%, rgba(255,255,255,0.6) 80%, rgba(255,255,255,0.35) 90%, rgba(255,255,255,0) 100%)'
                   }}
                 />
               </div>
@@ -303,6 +431,242 @@ export default function LearnMore() {
                 <p className="text-zinc-500 leading-relaxed text-sm">{feature.description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Document to Flashcards Demo */}
+      <section className="py-16 px-6 bg-white border-b border-zinc-100">
+        <style>{`
+          .demo-flip-container {
+            perspective: 1500px;
+          }
+
+          .demo-flip-card-inner {
+            position: relative;
+            width: 100%;
+            min-height: 322px;
+            transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform-style: preserve-3d;
+          }
+
+          .demo-flip-card-inner.flipped {
+            transform: rotateY(180deg);
+          }
+
+          .demo-flip-card-front,
+          .demo-flip-card-back {
+            position: absolute;
+            width: 100%;
+            min-height: 322px;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .demo-flip-card-back {
+            transform: rotateY(180deg);
+          }
+        `}</style>
+
+        <div className="max-w-5xl mx-auto">
+          {/* Section Title */}
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight">
+              Upload your notes → AI generates smart flashcards in seconds
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-[1fr_auto_1fr] gap-8 items-center">
+            {/* Left: Document Preview */}
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 flex items-center gap-2">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
+                </div>
+                <span className="text-white text-xs font-medium ml-2">Chemistry 101 Notes.pdf</span>
+              </div>
+              <div className="p-5 bg-gradient-to-b from-zinc-50 to-white max-h-[400px] overflow-y-auto">
+                <h3 className="text-base font-bold text-zinc-900 mb-2.5">Chemical Bonding - Lecture 3</h3>
+                <div className="space-y-0.5 text-zinc-600 leading-[1.2] notes-content">
+                  <style>{`
+                    .notes-content p {
+                      font-size: 14px !important;
+                    }
+                  `}</style>
+                  <p className="font-semibold text-zinc-800">1. Ionic Bonds</p>
+                  <p>• Form between metals and non-metals through electron transfer</p>
+                  <p>• Metal atoms lose electrons to become cations (+ charge)</p>
+                  <p>• Non-metal atoms gain electrons to become anions (- charge)</p>
+                  <p>• Electrostatic attraction holds oppositely charged ions together</p>
+                  <p>• Result in crystalline structures with high melting points</p>
+                  <p>• Examples: NaCl (table salt), MgO (magnesium oxide)</p>
+
+                  <p className="font-semibold text-zinc-800 mt-2">2. Covalent Bonds</p>
+                  <p>• Sharing of electron pairs between atoms</p>
+                  <p>• Occurs between non-metal atoms with similar electronegativity</p>
+                  <p>• Can be single (2e⁻), double (4e⁻), or triple bonds (6e⁻)</p>
+                  <p>• Common in organic molecules and molecular compounds</p>
+                  <p>• Form discrete molecules rather than crystal lattices</p>
+                  <p>• Examples: H₂O (water), CO₂ (carbon dioxide), CH₄ (methane)</p>
+
+                  <p className="font-semibold text-zinc-800 mt-2">3. Metallic Bonds</p>
+                  <p>• Form between metal atoms in solid metals</p>
+                  <p>• Valence electrons are delocalized across metal lattice</p>
+                  <p>• Creates "sea of electrons" that flows freely</p>
+                  <p>• Explains electrical conductivity and malleability of metals</p>
+                  <p>• Examples: copper (Cu), iron (Fe), gold (Au)</p>
+
+                  <p className="font-semibold text-zinc-800 mt-2">Key Concept: Electronegativity</p>
+                  <p>• Measure of atom's ability to attract electrons in a bond</p>
+                  <p>• Higher difference in electronegativity → more ionic character</p>
+                  <p>• Lower difference → more covalent character</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Center: Arrow */}
+            <div className="flex justify-center">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Right: Interactive Flashcards */}
+            <DemoFlashcards />
+          </div>
+        </div>
+      </section>
+
+      {/* Notes to AI Chat Demo */}
+      <section className="py-16 px-6 bg-zinc-50 border-b border-zinc-100">
+        <div className="max-w-5xl mx-auto">
+          {/* Section Title */}
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight">
+              Ask questions → AI answers based on your notes
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-[1fr_auto_1fr] gap-8 items-center">
+            {/* Left: Physics Notes */}
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[400px] flex flex-col">
+              <div className="bg-gradient-to-r from-green-500 to-green-600 px-4 py-2 flex items-center gap-2 flex-shrink-0">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
+                </div>
+                <span className="text-white text-xs font-medium ml-2">Physics 201 Notes.pdf</span>
+              </div>
+              <div className="p-5 bg-gradient-to-b from-zinc-50 to-white max-h-[400px] overflow-y-auto">
+                <h3 className="text-base font-bold text-zinc-900 mb-2.5">Newton's Laws of Motion</h3>
+                <div className="space-y-0.5 text-zinc-600 leading-[1.2] notes-content">
+                  <style>{`
+                    .notes-content p {
+                      font-size: 14px !important;
+                    }
+                  `}</style>
+                  <p className="font-semibold text-zinc-800">Newton's First Law (Law of Inertia)</p>
+                  <p>• An object at rest stays at rest, an object in motion stays in motion</p>
+                  <p>• This continues unless acted upon by an external force</p>
+                  <p>• Inertia is the tendency of objects to resist changes in motion</p>
+                  <p>• Mass is a measure of inertia - more mass = more inertia</p>
+                  <p>• Example: A book on a table won't move until you push it</p>
+
+                  <p className="font-semibold text-zinc-800 mt-2">Newton's Second Law (F = ma)</p>
+                  <p>• Force equals mass times acceleration (F = ma)</p>
+                  <p>• Acceleration is directly proportional to net force</p>
+                  <p>• Acceleration is inversely proportional to mass</p>
+                  <p>• Units: Force in Newtons (N), mass in kg, acceleration in m/s²</p>
+                  <p>• Example: Pushing a shopping cart - more force or less mass = more acceleration</p>
+
+                  <p className="font-semibold text-zinc-800 mt-2">Newton's Third Law (Action-Reaction)</p>
+                  <p>• For every action, there is an equal and opposite reaction</p>
+                  <p>• Forces always come in pairs - action and reaction forces</p>
+                  <p>• These forces act on different objects</p>
+                  <p>• Forces are equal in magnitude and opposite in direction</p>
+                  <p>• Example: When you push against a wall, the wall pushes back with equal force</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Center: Arrow */}
+            <div className="flex justify-center">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Right: AI Chat */}
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden flex flex-col" style={{ height: '400px' }}>
+              {/* Chat Header */}
+              <div className="bg-gradient-to-r from-purple-500 to-indigo-600 px-4 py-3 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-xs font-semibold">
+                  SB
+                </div>
+                <div>
+                  <div className="text-white font-semibold text-sm">Study Buddy AI</div>
+                  <div className="text-white/80 text-xs">Physics 201</div>
+                </div>
+              </div>
+
+              {/* Chat Messages */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-zinc-50 to-white">
+                {/* User Message 1 */}
+                <div className="flex flex-col items-end">
+                  <div className="bg-indigo-600 text-white rounded-lg px-4 py-2 max-w-[80%] shadow-sm">
+                    <p className="text-sm text-white">Can you explain Newton's Second Law?</p>
+                  </div>
+                </div>
+
+                {/* AI Response 1 */}
+                <div className="flex flex-col items-start">
+                  <div className="bg-gray-100 rounded-lg px-4 py-2 max-w-[85%] shadow-sm">
+                    <p className="text-sm text-zinc-900">Based on your notes, Newton's Second Law states that Force equals mass times acceleration (F = ma). This means that acceleration is directly proportional to the net force applied and inversely proportional to the object's mass. For example, if you push a shopping cart with more force or reduce its mass, it will accelerate more.</p>
+                  </div>
+                </div>
+
+                {/* User Message 2 */}
+                <div className="flex flex-col items-end">
+                  <div className="bg-indigo-600 text-white rounded-lg px-4 py-2 max-w-[80%] shadow-sm">
+                    <p className="text-sm text-white">What's an example of the Third Law?</p>
+                  </div>
+                </div>
+
+                {/* AI Response 2 */}
+                <div className="flex flex-col items-start">
+                  <div className="bg-gray-100 rounded-lg px-4 py-2 max-w-[85%] shadow-sm">
+                    <p className="text-sm text-zinc-900">According to your notes, when you push against a wall, the wall pushes back with equal force. This demonstrates that forces always come in pairs - the action force (you pushing the wall) and the reaction force (wall pushing you back).</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chat Input (disabled/demo) */}
+              <div className="border-t border-zinc-200 p-3 bg-white">
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    placeholder="Ask a question..."
+                    disabled
+                    className="flex-1 px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-zinc-50 text-zinc-400"
+                  />
+                  <button disabled className="p-2 bg-indigo-600 text-white rounded-lg opacity-50">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

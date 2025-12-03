@@ -307,6 +307,7 @@ export default function SubjectDetail() {
           <button 
             className="btn-primary"
             disabled={notes.length >= maxNotes}
+            onClick={handleFileInputClick}
           >
             {notes.length >= maxNotes ? 'Maximum Notes Reached' : '+ Upload Note'}
           </button>

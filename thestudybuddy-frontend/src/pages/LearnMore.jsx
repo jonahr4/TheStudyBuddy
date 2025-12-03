@@ -1,510 +1,921 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import homepageImage from '../assets/Homepage.png';
+import { useState } from 'react';
+import homepageImage from '../assets/Homepage3.png';
 import seanHeadshot from '../assets/SeanLink.jpeg';
 import jonahHeadshot from '../assets/JonahLink.jpeg';
-import { versionUpdatesApi } from '../services/api.ts';
+import changelogData from '../data/changelog.json';
+
+// Demo Flashcards Component
+function DemoFlashcards() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  const demoCards = [
+    {
+      front: "What type of bond forms between metals and non-metals?",
+      back: "Ionic bonds - formed through electron transfer where metals lose electrons and non-metals gain electrons"
+    },
+    {
+      front: "How are covalent bonds formed?",
+      back: "Sharing of electron pairs between atoms, typically between non-metals with similar electronegativity"
+    },
+    {
+      front: "What creates the 'sea of electrons' in metallic bonding?",
+      back: "Delocalized valence electrons that flow freely across the metal lattice"
+    },
+    {
+      front: "What is electronegativity and how does it affect bonding?",
+      back: "A measure of an atom's ability to attract electrons. Higher differences create ionic bonds, lower differences create covalent bonds"
+    }
+  ];
+
+  const handleFlip = () => {
+    setIsFlipped(!isFlipped);
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      setIsFlipped(false);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentIndex < demoCards.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setIsFlipped(false);
+    }
+  };
+
+  const currentCard = demoCards[currentIndex];
+
+  return (
+    <div className="flex flex-col">
+      {/* Flashcard */}
+      <div className="demo-flip-container" onClick={handleFlip}>
+        <div className={`demo-flip-card-inner ${isFlipped ? 'flipped' : ''}`}>
+          {/* Front of card */}
+          <div className="demo-flip-card-front">
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg min-h-[322px] w-full flex items-center justify-center cursor-pointer hover:shadow-xl transition-shadow">
+              <div className="text-center p-7">
+                <div className="text-sm text-indigo-600 font-semibold mb-4">
+                  FRONT
+                </div>
+                <p className="text-base text-zinc-900">
+                  {currentCard.front}
+                </p>
+                <div className="text-sm text-zinc-400 mt-5">
+                  Click to flip
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Back of card */}
+          <div className="demo-flip-card-back">
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg min-h-[322px] w-full flex items-center justify-center cursor-pointer hover:shadow-xl transition-shadow">
+              <div className="text-center p-7">
+                <div className="text-sm text-green-600 font-semibold mb-4">
+                  BACK
+                </div>
+                <p className="text-base text-zinc-900">
+                  {currentCard.back}
+                </p>
+                <div className="text-sm text-zinc-400 mt-5">
+                  Click to flip
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation and Counter */}
+      <div className="flex justify-between items-center mt-4">
+        <button
+          onClick={handlePrevious}
+          disabled={currentIndex === 0}
+          className="p-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          <svg className="w-5 h-5 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <div className="text-xs text-zinc-500">
+          {currentIndex + 1} / {demoCards.length}
+        </div>
+
+        <button
+          onClick={handleNext}
+          disabled={currentIndex === demoCards.length - 1}
+          className="p-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          <svg className="w-5 h-5 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function LearnMore() {
   const [showUpdates, setShowUpdates] = useState(false);
-  const [versionUpdates, setVersionUpdates] = useState([]);
-  const [loadingUpdates, setLoadingUpdates] = useState(false);
-  const [error, setError] = useState(null);
+  const [openFaq, setOpenFaq] = useState(null);
 
-  // Fetch version updates when modal is opened
-  useEffect(() => {
-    const fetchUpdates = async () => {
-      if (showUpdates && versionUpdates.length === 0) {
-        setLoadingUpdates(true);
-        setError(null);
-        try {
-          const updates = await versionUpdatesApi.getAll();
-          console.log('Fetched version updates:', updates);
-          setVersionUpdates(updates);
-        } catch (error) {
-          console.error('Failed to fetch version updates:', error);
-          setError(error.message || 'Failed to load version updates');
-        } finally {
-          setLoadingUpdates(false);
-        }
-      }
-    };
-
-    fetchUpdates();
-  }, [showUpdates, versionUpdates.length]);
+  const testimonials = [
+    {
+      quote: "Study Buddy completely transformed my exam prep. I went from C's to A's in one semester.",
+      author: "Ayoub",
+      role: "Pre-Med Student, UCLA"
+    },
+    {
+      quote: "The AI chat actually understands my notes. It's like having a tutor who read everything I did.",
+      author: "Ali",
+      role: "Engineering Major, MIT"
+    },
+    {
+      quote: "I used to spend 4 hours making flashcards. Now it takes 4 minutes. Game changer.",
+      author: "Omar",
+      role: "Law Student, NYU"
+    },
+    {
+      quote: "Finally, a study tool that doesn't feel like another chore. Actually makes studying enjoyable.",
+      author: "Abidul",
+      role: "Business Major, Stanford"
+    },
+    {
+      quote: "The flashcard generation is incredible. It picks out exactly what I need to study for exams.",
+      author: "Magda",
+      role: "Biology Major, Boston University"
+    }
+  ];
 
   const features = [
     {
+      title: "Upload Any Document",
+      description: "PDFs, Word docs, PowerPoints—drop them in and we'll do the rest. Your notes become instantly searchable and AI-ready.",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+      )
+    },
+    {
+      title: "AI Flashcard Generation",
+      description: "Our AI reads your materials and creates perfect flashcards automatically. Study the concepts that matter, skip the busywork.",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+      )
+    },
+    {
+      title: "Chat With Your Notes",
+      description: "Ask questions, get explanations, dive deeper. The AI knows your exact course materials—no generic answers.",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+      )
+    },
+    {
       title: "Subject Organization",
-      description: "Create and manage subjects to keep your study materials organized and focused.",
+      description: "Keep everything sorted by class. Biology notes don't mix with History. Clean, simple, effective.",
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
         </svg>
       )
     },
     {
-      title: "PDF Note Upload",
-      description: "Upload up to 10 PDF notes per subject. Files are securely stored and processed for AI understanding.",
+      title: "Progress Tracking",
+      description: "See what you've mastered and what needs work. Smart repetition means you remember more with less effort.",
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
       )
     },
     {
-      title: "AI-Generated Flashcards",
-      description: "Azure OpenAI automatically creates flashcard decks from your notes for personalized study sessions.",
+      title: "Secure & Private",
+      description: "Your notes are encrypted and never shared. Firebase Authentication keeps your account locked down tight.",
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
       )
+    }
+  ];
+
+  const faqs = [
+    {
+      q: "What file types can I upload?",
+      a: "Currently we support PDFs, Word documents (.docx), and PowerPoint presentations (.pptx). More formats coming soon."
     },
     {
-      title: "Subject-Specific AI Chat",
-      description: "Chat with an AI that understands your course materials using advanced RAG retrieval technology.",
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-        </svg>
-      )
+      q: "How does the AI understand my specific notes?",
+      a: "We use advanced RAG (Retrieval-Augmented Generation) technology. When you ask a question, the AI searches through YOUR uploaded materials first, then crafts an answer based on that context. It's like having a tutor who actually read your textbook."
     },
     {
-      title: "Secure Authentication",
-      description: "Firebase Authentication keeps your account secure with email and Google sign-in support.",
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-        </svg>
-      )
-    },
-    {
-      title: "Personalized Dashboard",
-      description: "Track your subjects, flashcard progress, and chat history all in one centralized location.",
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      )
-    },
+      q: "How many subjects can I create?",
+      a: "As many as you need. Each subject can hold up to 10 documents, and you can create unlimited subjects."
+    }
   ];
 
   return (
-    <div className="min-h-screen gradient-bg relative overflow-x-hidden">
-      {/* Simple Logo Nav */}
-      <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center gap-3">
-              <img src="/IMG_3002.png" alt="Logo" className="h-10 w-10 object-contain" />
-              <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-                The Study Buddy
-              </span>
+    <div className="min-h-screen bg-white text-zinc-900 font-sans antialiased">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-zinc-100">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3 group">
+            <img src="/IMG_3002.png" alt="Logo" className="h-8 w-8 object-contain" />
+            <span className="text-lg font-semibold tracking-tight">The Study Buddy</span>
+          </Link>
+          
+          <div className="hidden md:flex items-center gap-8">
+            <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm text-zinc-600 hover:text-zinc-900 transition-colors">Features</button>
+            <button onClick={() => document.getElementById('testimonials')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm text-zinc-600 hover:text-zinc-900 transition-colors">Testimonials</button>
+            <button onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm text-zinc-600 hover:text-zinc-900 transition-colors">FAQ</button>
+            <button onClick={() => document.getElementById('team')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm text-zinc-600 hover:text-zinc-900 transition-colors">Team</button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Link to="/login" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 px-4 py-2 transition-colors">
+              Log in
             </Link>
-            
-            {/* Auth Buttons */}
-            <div className="flex items-center gap-3">
-              <Link 
-                to="/login" 
-                className="px-5 py-2 rounded-lg font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-300"
-              >
-                Login
-              </Link>
-              <Link 
-                to="/signup" 
-                className="px-5 py-2 rounded-lg font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:border-indigo-500 dark:hover:border-indigo-400 transition-all duration-300"
-              >
-                Sign Up
-              </Link>
-            </div>
+            <Link to="/signup" className="text-sm font-medium bg-zinc-900 text-white px-5 py-2.5 rounded-full hover:bg-zinc-700 transition-all">
+              Get Started
+            </Link>
           </div>
         </div>
       </nav>
-      
-      {/* Gradient background blur */}
-      <div aria-hidden="true" className="gradient-blur">
-        <div className="gradient-blur-shape" />
-      </div>
 
-      {/* Landing Page Hero Section */}
-      <div className="relative mx-auto max-w-7xl px-6 py-6 sm:py-8 lg:px-8 z-10" style={{maxHeight: '80vh'}}>
-        <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-12 gap-y-6 sm:gap-y-8 lg:mx-0 lg:max-w-none lg:grid-cols-[65%_35%] lg:items-center" style={{maxHeight: '80vh'}}>
-          {/* Left side - Text content */}
-          <div className="lg:pr-8 text-center lg:text-left">
-            <div className="w-full">
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
-                The Study Buddy
-              </h1>
-              <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-                Transform your homework notes into interactive flashcards and chat with an AI that understands your content. Study smarter, not harder.
-              </p>
+      {/* Hero Section */}
+      <section className="pt-32 pb-8 md:pt-40 md:pb-16 px-6">
+        <div className="max-w-5xl mx-auto text-center">
+          {/* Headline */}
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-zinc-900 mb-6 leading-[0.95]">
+            Your Study Hours,
+            <br />
+            <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 bg-clip-text text-transparent">Cut in Half.</span>
+          </h1>
 
-              {/* Key highlights */}
-              <div className="space-y-3 mb-6 max-w-md mx-auto lg:mx-0">
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-3 h-3 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Free to Join & Use</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Completely free platform accessible to all students</p>
-                  </div>
-                </div>
+          {/* Subheadline */}
+          <p className="text-xl md:text-2xl text-zinc-500 max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
+            Upload your notes. Get AI-generated flashcards. Chat with a tutor that actually read your materials. Study smarter, not longer.
+          </p>
 
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-3 h-3 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">AI-Powered Learning</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Generate flashcards and get instant answers from your materials</p>
-                  </div>
-                </div>
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+            <Link 
+              to="/signup" 
+              className="group bg-zinc-900 text-white px-8 py-4 rounded-full text-base font-semibold hover:bg-zinc-700 transition-all flex items-center gap-2 shadow-lg shadow-zinc-900/20"
+            >
+              Start Studying Free
+              <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+            <button 
+              onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
+              className="text-zinc-600 px-8 py-4 rounded-full text-base font-medium hover:text-zinc-900 transition-colors flex items-center gap-2"
+            >
+              See how it works
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
 
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-3 h-3 text-pink-600 dark:text-pink-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Simple 3-Step Process</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Create a subject → Upload PDFs → Generate flashcards or chat</p>
-                  </div>
-                </div>
+      {/* Dashboard Preview */}
+      <section id="demo" className="hidden md:block px-6 relative">
+        {/* Left side white fade - stronger at bottom */}
+        <div
+          className="absolute left-0 top-0 bottom-0 w-1/4 pointer-events-none z-10"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.3) 55%, rgba(255,255,255,0.6) 70%, rgba(255,255,255,0.85) 85%, rgb(255,255,255) 100%)'
+          }}
+        />
+        {/* Right side white fade - stronger at bottom */}
+        <div
+          className="absolute right-0 top-0 bottom-0 w-1/4 pointer-events-none z-10"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.3) 55%, rgba(255,255,255,0.6) 70%, rgba(255,255,255,0.85) 85%, rgb(255,255,255) 100%)'
+          }}
+        />
 
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-3 h-3 text-cyan-600 dark:text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Organized by Subject</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Keep all your study materials separated and easily accessible</p>
-                  </div>
-                </div>
+        <div className="max-w-6xl mx-auto">
+          <div className="relative">
+            {/* Glow */}
+            <div className="absolute -inset-4 bg-gradient-to-r from-indigo-100 via-violet-100 to-purple-100 rounded-3xl blur-3xl opacity-60" />
 
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-3 h-3 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Secure & Private</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Your notes are encrypted and stored safely in the cloud</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-center lg:justify-start gap-x-6">
-                <Link to="/login" className="btn-primary">
-                  Get Started & Login
-                </Link>
-              </div>
-
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200/50 dark:border-gray-700/50 max-w-md mx-auto lg:mx-0">
-                <div>
-                  <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">AI</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Powered</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">10</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">PDFs per subject</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-pink-600 dark:text-pink-400">24/7</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Study Access</div>
-                </div>
+            {/* Image Container */}
+            <div className="relative bg-white rounded-t-2xl p-2 pb-0 shadow-2xl shadow-zinc-900/10 ring-1 ring-zinc-900/5 ring-b-0">
+              <div className="relative rounded-t-xl overflow-hidden">
+                <img
+                  alt="Study Buddy Dashboard"
+                  src={homepageImage}
+                  className="w-full"
+                />
+                {/* White gradient fade at bottom */}
+                <div
+                  className="absolute inset-x-0 bottom-0 h-3/5"
+                  style={{
+                    background: 'linear-gradient(to top, rgb(255,255,255) 0%, rgb(255,255,255) 45%, rgba(255,255,255,0.92) 60%, rgba(255,255,255,0.8) 70%, rgba(255,255,255,0.6) 80%, rgba(255,255,255,0.35) 90%, rgba(255,255,255,0) 100%)'
+                  }}
+                />
               </div>
             </div>
           </div>
-
-          {/* Right side - Screenshot (hidden on mobile) */}
-          <div className="hidden lg:flex relative lg:-mr-8 items-start">
-            <img
-              alt="Study Buddy Dashboard Screenshot"
-              src={homepageImage}
-              className="w-full max-w-none rounded-2xl shadow-[0_40px_80px_-1px_rgba(0,0,0,0.5)] ring-1 ring-white/10 lg:w-[60rem] h-auto object-contain"
-              style={{maxHeight: '60vh'}}
-            />
-          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Divider */}
-      <div className="max-w-6xl mx-auto px-6 relative z-10">
-        <div className="border-t border-gray-300/50 dark:border-gray-700/50 mb-16"></div>
-      </div>
-
-      {/* Main Content Section */}
-      <div className="max-w-6xl mx-auto px-6 pb-16 relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight">
-            Study <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Smarter</span>
-          </h2>
-          <p className="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
-            Transform your notes into intelligent flashcards and chat with AI that understands your content
-          </p>
-        </div>
-
-        {/* Features Grid */}
-        <div className="mb-32">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-12 text-center">
-            Powerful Features
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <div 
-                key={index}
-                className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-200/50 dark:border-gray-700/50 hover:border-indigo-500/50 dark:hover:border-indigo-400/50 transition-all duration-300 hover:shadow-xl hover:scale-105"
-              >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
-                  {feature.icon}
+      {/* How It Works - Overlapping the image */}
+      <section className="pt-8 pb-24 px-6 bg-white relative z-10 md:-mt-48">
+        <div className="max-w-6xl mx-auto">
+          <div className="hidden md:grid md:grid-cols-3 gap-16 max-w-5xl mx-auto">
+            {[
+              {
+                step: "01",
+                title: "Upload Your Notes",
+                desc: "Drop in PDFs, Word docs, or PowerPoints. We process them in under a minute.",
+                icon: (
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                )
+              },
+              {
+                step: "02",
+                title: "AI Flashcards",
+                desc: "Get perfect flashcards automatically. Study what matters, skip the busywork.",
+                icon: (
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                )
+              },
+              {
+                step: "03",
+                title: "Chat & Learn",
+                desc: "Ask questions about your materials. Get explanations based on your actual notes.",
+                icon: (
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                )
+              }
+            ].map((item, i) => (
+              <div key={i} className="text-center">
+                {/* Icon */}
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 flex items-center justify-center text-indigo-600 mb-4 mx-auto">
+                  {item.icon}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                  {feature.description}
-                </p>
+
+                {/* Number */}
+                <div className="text-5xl font-bold text-indigo-600/20 mb-2">
+                  {item.step}
+                </div>
+
+                <h3 className="text-xl font-bold text-zinc-900 mb-2">{item.title}</h3>
+                <p className="text-zinc-600 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* About Section */}
-        <div className="mb-32">
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-3xl p-8 md:p-12 border border-gray-200/50 dark:border-gray-700/50">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
-              About Study Buddy
+        {/* Title section with zinc background */}
+        <div className="bg-zinc-50 py-16 mt-0 md:mt-16 -mx-6 border-y border-zinc-100">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-4 tracking-tight">
+              Three steps to better grades.
             </h2>
-            <div className="space-y-4 text-gray-600 dark:text-gray-400 leading-relaxed">
-              <p className="text-lg">
-                Study Buddy is an AI-powered learning platform designed to help students maximize their study efficiency. 
-                Upload your PDF notes, organize them by subject, and let advanced AI technology transform them into 
-                interactive study materials.
-              </p>
-              <p className="text-lg">
-                Built with cutting-edge cloud technologies including Azure OpenAI, Firebase, and MongoDB, Study Buddy 
-                provides a scalable, intelligent study companion that adapts to your learning needs.
-              </p>
-            </div>
+            <p className="text-xl text-zinc-600">No setup wizards. No learning curve. Just results.</p>
           </div>
         </div>
+      </section>
 
-        {/* Creators Section */}
-        <div className="mb-20">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-12 text-center">
-            Meet the Creators
-          </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Jonah Rothman */}
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-3xl p-8 border border-gray-200/50 dark:border-gray-700/50 hover:border-indigo-500/50 dark:hover:border-indigo-400/50 transition-all duration-300">
-              <div className="flex items-start gap-4 mb-6">
-                <img 
-                  src={jonahHeadshot} 
-                  alt="Jonah Rothman"
-                  className="w-20 h-20 rounded-full object-cover ring-2 ring-indigo-500/20"
-                />
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Jonah Rothman</h3>
-                  <p className="text-indigo-600 dark:text-indigo-400 font-medium">Computer Science</p>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">Boston University</p>
+      {/* Document to Flashcards Demo */}
+      <section className="py-0 pb-16 px-6 bg-white border-b border-zinc-100">
+        <style>{`
+          .demo-flip-container {
+            perspective: 1500px;
+          }
+
+          .demo-flip-card-inner {
+            position: relative;
+            width: 100%;
+            min-height: 322px;
+            transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform-style: preserve-3d;
+          }
+
+          .demo-flip-card-inner.flipped {
+            transform: rotateY(180deg);
+          }
+
+          .demo-flip-card-front,
+          .demo-flip-card-back {
+            position: absolute;
+            width: 100%;
+            min-height: 322px;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .demo-flip-card-back {
+            transform: rotateY(180deg);
+          }
+        `}</style>
+
+        <div className="max-w-5xl mx-auto">
+          {/* Section Title */}
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight">
+              Upload your notes → AI generates smart flashcards in seconds
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-[1fr_auto_1fr] gap-8 items-center">
+            {/* Left: Document Preview */}
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[430px] flex flex-col">
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 flex items-center gap-2 flex-shrink-0">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
                 </div>
+                <span className="text-white text-xs font-medium ml-2">Chemistry 101 Notes.pdf</span>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                Senior pursuing BA/MS in Computer Science with a minor in Economics. Passionate about web development 
-                and artificial intelligence with experience as a Full Stack Developer Intern.
-              </p>
-              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                  <span>Junior Front End Developer at PanelClaw</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                  <span>Built VibeScape - Spotify visualization platform</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                  <span>Tech: TypeScript, Next.js, React Native, Git</span>
+              <div className="p-5 bg-gradient-to-b from-zinc-50 to-white flex-1 overflow-y-auto">
+                <h3 className="text-base font-bold text-zinc-900 mb-2.5">Chemical Bonding - Lecture 3</h3>
+                <div className="space-y-0.5 text-zinc-600 leading-[1.2] notes-content">
+                  <style>{`
+                    .notes-content p {
+                      font-size: 14px !important;
+                    }
+                  `}</style>
+                  <p className="font-semibold text-zinc-800">1. Ionic Bonds</p>
+                  <p>• Form between metals and non-metals through electron transfer</p>
+                  <p>• Metal atoms lose electrons to become cations (+ charge)</p>
+                  <p>• Non-metal atoms gain electrons to become anions (- charge)</p>
+                  <p>• Electrostatic attraction holds oppositely charged ions together</p>
+                  <p>• Result in crystalline structures with high melting points</p>
+                  <p>• Examples: NaCl (table salt), MgO (magnesium oxide)</p>
+
+                  <p className="font-semibold text-zinc-800 mt-2">2. Covalent Bonds</p>
+                  <p>• Sharing of electron pairs between atoms</p>
+                  <p>• Occurs between non-metal atoms with similar electronegativity</p>
+                  <p>• Can be single (2e⁻), double (4e⁻), or triple bonds (6e⁻)</p>
+                  <p>• Common in organic molecules and molecular compounds</p>
+                  <p>• Form discrete molecules rather than crystal lattices</p>
+                  <p>• Examples: H₂O (water), CO₂ (carbon dioxide), CH₄ (methane)</p>
+
+                  <p className="font-semibold text-zinc-800 mt-2">3. Metallic Bonds</p>
+                  <p>• Form between metal atoms in solid metals</p>
+                  <p>• Valence electrons are delocalized across metal lattice</p>
+                  <p>• Creates "sea of electrons" that flows freely</p>
+                  <p>• Explains electrical conductivity and malleability of metals</p>
+                  <p>• Examples: copper (Cu), iron (Fe), gold (Au)</p>
+
+                  <p className="font-semibold text-zinc-800 mt-2">Key Concept: Electronegativity</p>
+                  <p>• Measure of atom's ability to attract electrons in a bond</p>
+                  <p>• Higher difference in electronegativity → more ionic character</p>
+                  <p>• Lower difference → more covalent character</p>
                 </div>
               </div>
             </div>
 
-            {/* Sean Tomany */}
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-3xl p-8 border border-gray-200/50 dark:border-gray-700/50 hover:border-indigo-500/50 dark:hover:border-indigo-400/50 transition-all duration-300">
-              <div className="flex items-start gap-4 mb-6">
-                <img 
-                  src={seanHeadshot} 
-                  alt="Sean Tomany"
-                  className="w-20 h-20 rounded-full object-cover ring-2 ring-purple-500/20"
-                />
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Sean Tomany</h3>
-                  <p className="text-indigo-600 dark:text-indigo-400 font-medium">Data Science</p>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">Boston University</p>
-                </div>
-              </div>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                Data Science student (Class of 2026) specializing in AI/ML systems. Software Engineering Intern at Dynapt, 
-                building intelligent voice agents and ML pipelines for enterprise solutions.
-              </p>
-              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                  <span>Software Engineering Intern at Dynapt</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                  <span>ML Heart Disease Prediction (90% F1 score)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                  <span>Tech: Python, SQL, Rust, LangChain, Azure, Tableau</span>
-                </div>
+            {/* Center: Arrow */}
+            <div className="flex justify-center">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
               </div>
             </div>
+
+            {/* Right: Interactive Flashcards */}
+            <DemoFlashcards />
           </div>
         </div>
+      </section>
 
-        {/* CTA Section */}
-        <div className="text-center bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-12 md:p-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Ready to Transform Your Study Routine?
+      {/* CTA Banner */}
+      <section className="py-16 px-6 bg-gradient-to-r from-indigo-50 via-violet-50 to-purple-50 border-y border-indigo-100">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-6 tracking-tight">
+            Sign up now for completely free
           </h2>
-          <p className="text-indigo-100 text-lg mb-8 max-w-2xl mx-auto">
-            Join students who are studying smarter with AI-powered tools
-          </p>
           <Link
             to="/signup"
-            className="inline-block bg-white text-indigo-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-indigo-50 transition-all duration-300 hover:scale-105 shadow-lg"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-8 py-4 rounded-full text-base font-semibold hover:from-indigo-700 hover:to-violet-700 transition-all shadow-lg"
           >
-            Get Started Now
+            Get Started Free
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
           </Link>
         </div>
+      </section>
 
-        {/* What's New Button */}
-        <div className="mt-12 text-center">
-          <button
-            onClick={() => setShowUpdates(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            What's New
-          </button>
+      {/* Notes to AI Chat Demo */}
+      <section className="py-16 px-6 bg-white border-b border-zinc-100">
+        <div className="max-w-5xl mx-auto">
+          {/* Section Title */}
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight">
+              Ask questions → AI answers based on your notes
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-[1fr_auto_1fr] gap-8 items-center">
+            {/* Left: Physics Notes */}
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[430px] flex flex-col">
+              <div className="bg-gradient-to-r from-green-500 to-green-600 px-4 py-2 flex items-center gap-2 flex-shrink-0">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
+                </div>
+                <span className="text-white text-xs font-medium ml-2">Physics 201 Notes.pdf</span>
+              </div>
+              <div className="p-5 bg-gradient-to-b from-zinc-50 to-white flex-1 overflow-y-auto">
+                <h3 className="text-base font-bold text-zinc-900 mb-2.5">Newton's Laws of Motion</h3>
+                <div className="space-y-0.5 text-zinc-600 leading-[1.2] notes-content">
+                  <style>{`
+                    .notes-content p {
+                      font-size: 14px !important;
+                    }
+                  `}</style>
+                  <p className="font-semibold text-zinc-800">Newton's First Law (Law of Inertia)</p>
+                  <p>• An object at rest stays at rest, an object in motion stays in motion</p>
+                  <p>• This continues unless acted upon by an external force</p>
+                  <p>• Inertia is the tendency of objects to resist changes in motion</p>
+                  <p>• Mass is a measure of inertia - more mass = more inertia</p>
+                  <p>• Example: A book on a table won't move until you push it</p>
+
+                  <p className="font-semibold text-zinc-800 mt-2">Newton's Second Law (F = ma)</p>
+                  <p>• Force equals mass times acceleration (F = ma)</p>
+                  <p>• Acceleration is directly proportional to net force</p>
+                  <p>• Acceleration is inversely proportional to mass</p>
+                  <p>• Units: Force in Newtons (N), mass in kg, acceleration in m/s²</p>
+                  <p>• Example: Pushing a shopping cart - more force or less mass = more acceleration</p>
+
+                  <p className="font-semibold text-zinc-800 mt-2">Newton's Third Law (Action-Reaction)</p>
+                  <p>• For every action, there is an equal and opposite reaction</p>
+                  <p>• Forces always come in pairs - action and reaction forces</p>
+                  <p>• These forces act on different objects</p>
+                  <p>• Forces are equal in magnitude and opposite in direction</p>
+                  <p>• Example: When you push against a wall, the wall pushes back with equal force</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Center: Arrow */}
+            <div className="flex justify-center">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Right: AI Chat */}
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden flex flex-col h-[430px]">
+              {/* Chat Header */}
+              <div className="bg-gradient-to-r from-purple-500 to-indigo-600 px-4 py-3 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-xs font-semibold">
+                  SB
+                </div>
+                <div>
+                  <div className="text-white font-semibold text-sm">Study Buddy AI</div>
+                  <div className="text-white/80 text-xs">Physics 201</div>
+                </div>
+              </div>
+
+              {/* Chat Messages */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-zinc-50 to-white">
+                {/* User Message 1 */}
+                <div className="flex flex-col items-end">
+                  <div className="bg-indigo-600 text-white rounded-lg px-4 py-2 max-w-[80%] shadow-sm">
+                    <p className="text-sm text-white">Can you explain Newton's Second Law?</p>
+                  </div>
+                </div>
+
+                {/* AI Response 1 */}
+                <div className="flex flex-col items-start">
+                  <div className="bg-gray-100 rounded-lg px-4 py-2 max-w-[85%] shadow-sm">
+                    <p className="text-sm text-zinc-900">Based on your notes, Newton's Second Law states that Force equals mass times acceleration (F = ma). This means that acceleration is directly proportional to the net force applied and inversely proportional to the object's mass. For example, if you push a shopping cart with more force or reduce its mass, it will accelerate more.</p>
+                  </div>
+                </div>
+
+                {/* User Message 2 */}
+                <div className="flex flex-col items-end">
+                  <div className="bg-indigo-600 text-white rounded-lg px-4 py-2 max-w-[80%] shadow-sm">
+                    <p className="text-sm text-white">What's an example of the Third Law?</p>
+                  </div>
+                </div>
+
+                {/* AI Response 2 */}
+                <div className="flex flex-col items-start">
+                  <div className="bg-gray-100 rounded-lg px-4 py-2 max-w-[85%] shadow-sm">
+                    <p className="text-sm text-zinc-900">According to your notes, when you push against a wall, the wall pushes back with equal force. This demonstrates that forces always come in pairs - the action force (you pushing the wall) and the reaction force (wall pushing you back).</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chat Input (disabled/demo) */}
+              <div className="border-t border-zinc-200 p-3 bg-white">
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    placeholder="Ask a question..."
+                    disabled
+                    className="flex-1 px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-zinc-50 text-zinc-400"
+                  />
+                  <button disabled className="p-2 bg-indigo-600 text-white rounded-lg opacity-50">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Testimonials - Infinite Scrolling Marquee */}
+      <section id="testimonials" className="py-16 bg-zinc-50 border-b border-zinc-100 overflow-hidden">
+        <div className="text-center mb-10 px-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 mb-2 tracking-tight">
+            Students love Study Buddy.
+          </h2>
+          <p className="text-zinc-500">Join thousands of students studying smarter.</p>
+        </div>
+
+        {/* Marquee Container */}
+        <div className="relative">
+          {/* Fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+          
+          {/* Scrolling track */}
+          <div className="flex animate-marquee">
+            {/* First set */}
+            {[...testimonials, ...testimonials].map((t, i) => (
+              <div
+                key={i}
+                className="flex-shrink-0 w-[400px] mx-3 bg-white rounded-2xl p-6 border border-zinc-100"
+              >
+                {/* Stars */}
+                <div className="flex gap-0.5 mb-3">
+                  {[1,2,3,4,5].map((star) => (
+                    <svg key={star} className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                
+                <p className="text-zinc-700 text-sm leading-relaxed mb-4">"{t.quote}"</p>
+                
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-violet-400 flex items-center justify-center text-white font-bold text-xs">
+                    {t.author[0]}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-zinc-900 text-sm">{t.author}</div>
+                    <div className="text-xs text-zinc-500">{t.role}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CSS for infinite scroll animation */}
+        <style>{`
+          @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .animate-marquee {
+            animation: marquee 30s linear infinite;
+          }
+          .animate-marquee:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="py-24 px-6 bg-white border-y border-zinc-100">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-4 tracking-tight">
+              Got questions?
+            </h2>
+            <p className="text-xl text-zinc-500">We've got answers.</p>
+          </div>
+
+          <div className="space-y-4">
+            {faqs.map((faq, i) => (
+              <div 
+                key={i}
+                className="bg-white rounded-xl border border-zinc-100 overflow-hidden"
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-zinc-50 transition-colors"
+                >
+                  <span className="font-semibold text-zinc-900 pr-4">{faq.q}</span>
+                  <svg 
+                    className={`w-5 h-5 text-zinc-400 flex-shrink-0 transition-transform ${openFaq === i ? 'rotate-180' : ''}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {openFaq === i && (
+                  <div className="px-6 pb-5 text-zinc-600 leading-relaxed">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Team Section */}
+      <section id="team" className="py-24 px-6 bg-zinc-50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-4 tracking-tight">
+              Built by students, for students.
+            </h2>
+            <p className="text-xl text-zinc-500">Meet the team behind Study Buddy.</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Jonah */}
+            <div className="bg-white rounded-2xl p-8 border border-zinc-100 hover:shadow-xl transition-all duration-300 group">
+              <div className="flex items-start gap-5 mb-6">
+                <img 
+                  src={jonahHeadshot} 
+                  alt="Jonah Rothman" 
+                  className="w-20 h-20 rounded-2xl object-cover ring-4 ring-white shadow-lg"
+                />
+                <div>
+                  <h3 className="text-xl font-bold text-zinc-900">Jonah Rothman</h3>
+                  <p className="text-indigo-600 font-medium">Computer Science</p>
+                  <p className="text-sm text-zinc-400">Boston University</p>
+                </div>
+              </div>
+              <p className="text-zinc-600 leading-relaxed text-sm mb-4">
+                Senior pursuing BA/MS in Computer Science with a minor in Economics. Full-stack developer with a passion for building tools that make learning more accessible.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs bg-zinc-100 text-zinc-600 px-3 py-1 rounded-full">React</span>
+                <span className="text-xs bg-zinc-100 text-zinc-600 px-3 py-1 rounded-full">Node.js</span>
+                <span className="text-xs bg-zinc-100 text-zinc-600 px-3 py-1 rounded-full">Azure</span>
+              </div>
+            </div>
+
+            {/* Sean */}
+            <div className="bg-white rounded-2xl p-8 border border-zinc-100 hover:shadow-xl transition-all duration-300 group">
+              <div className="flex items-start gap-5 mb-6">
+                <img 
+                  src={seanHeadshot} 
+                  alt="Sean Tomany" 
+                  className="w-20 h-20 rounded-2xl object-cover ring-4 ring-white shadow-lg"
+                />
+                <div>
+                  <h3 className="text-xl font-bold text-zinc-900">Sean Tomany</h3>
+                  <p className="text-violet-600 font-medium">Data Science</p>
+                  <p className="text-sm text-zinc-400">Boston University</p>
+                </div>
+              </div>
+              <p className="text-zinc-600 leading-relaxed text-sm mb-4">
+                Data Science student (Class of 2026) specializing in AI/ML systems. Software Engineering Intern at Dynapt, building intelligent voice agents and ML pipelines.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs bg-zinc-100 text-zinc-600 px-3 py-1 rounded-full">Python</span>
+                <span className="text-xs bg-zinc-100 text-zinc-600 px-3 py-1 rounded-full">ML/AI</span>
+                <span className="text-xs bg-zinc-100 text-zinc-600 px-3 py-1 rounded-full">Azure OpenAI</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-16 px-6 bg-zinc-900 text-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl md:text-4xl font-bold mb-4 tracking-tight bg-gradient-to-r from-indigo-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
+            Ready to study smarter?
+          </h2>
+          <p className="text-base md:text-lg text-zinc-400 mb-8 max-w-2xl mx-auto">
+            Join students who've already transformed how they learn. Free to start, powerful from day one.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link 
+              to="/signup" 
+              className="bg-white text-zinc-900 px-8 py-4 rounded-full text-base font-semibold hover:bg-zinc-100 transition-all shadow-xl"
+            >
+              Get Started Free
+            </Link>
+            <button
+              onClick={() => setShowUpdates(true)}
+              className="text-zinc-400 hover:text-white px-8 py-4 rounded-full text-base font-medium transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              What's New
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-8 px-6 bg-zinc-900 border-t border-zinc-800">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-zinc-400 text-sm">
+            <img src="/IMG_3002.png" alt="Logo" className="h-5 w-5 object-contain opacity-60" />
+            <span>© 2025 The Study Buddy. All rights reserved.</span>
+          </div>
+          <div className="flex items-center gap-6 text-sm text-zinc-400">
+            <button onClick={() => setShowUpdates(true)} className="hover:text-white transition-colors">Changelog</button>
+            <a href="mailto:support@studybuddy.com" className="hover:text-white transition-colors">Contact</a>
+            <a
+              href="https://www.instagram.com/thestudybud/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-zinc-400 hover:text-white transition-colors flex items-center gap-2"
+              aria-label="Instagram"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </footer>
 
       {/* Version Updates Modal */}
       {showUpdates && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowUpdates(false)}>
           <div
-            className="bg-white dark:bg-gray-800 rounded-3xl max-w-3xl w-full max-h-[80vh] overflow-y-auto shadow-2xl"
+            className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-6 rounded-t-3xl flex items-center justify-between">
-              <h2 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                What's New
-              </h2>
-              <button
-                onClick={() => setShowUpdates(false)}
-                className="text-white/80 hover:text-white transition-colors p-2"
-              >
+            <div className="sticky top-0 bg-white/90 backdrop-blur-md px-8 py-6 border-b border-zinc-100 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-zinc-900">What's New</h2>
+              <button onClick={() => setShowUpdates(false)} className="text-zinc-400 hover:text-zinc-900 transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
-            {/* Content */}
             <div className="p-8">
-              {loadingUpdates ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-                </div>
-              ) : error ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <svg className="w-16 h-16 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-gray-600 dark:text-gray-400">{error}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Please make sure the backend server is running.</p>
-                </div>
-              ) : versionUpdates.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <p className="text-gray-600 dark:text-gray-400">No version updates available.</p>
-                </div>
-              ) : (
-                <div className="space-y-8">
-                  {versionUpdates.map((update, index) => (
-                    <div
-                      key={update._id || index}
-                      className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700"
-                    >
-                      {/* Version Header */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <span className="px-3 py-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-bold rounded-full">
-                            v{update.version}
-                          </span>
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                            {update.title}
-                          </h3>
-                        </div>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          {new Date(update.releaseDate).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
-                        </span>
-                      </div>
-
-                      {/* Description */}
-                      <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-                        {update.description}
-                      </p>
-
-                      {/* Features List */}
-                      {update.features && update.features.length > 0 && (
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            Features:
-                          </h4>
-                          <ul className="space-y-2">
-                            {update.features.map((feature, featureIndex) => (
-                              <li
-                                key={featureIndex}
-                                className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400"
-                              >
-                                <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                </svg>
-                                <span>{feature}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+              <div className="space-y-8">
+                {changelogData.map((update, index) => (
+                  <div key={index} className="relative pl-8 border-l-2 border-zinc-200">
+                    <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-indigo-600 ring-4 ring-white"></div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="px-2 py-0.5 bg-zinc-100 text-zinc-600 text-xs font-bold rounded">
+                        v{update.version}
+                      </span>
+                      <span className="text-sm text-zinc-400">
+                        {new Date(update.releaseDate).toLocaleDateString()}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <h3 className="text-lg font-bold text-zinc-900 mb-2">{update.title}</h3>
+                    <p className="text-zinc-600 text-sm mb-3">{update.description}</p>
+                    {update.features?.length > 0 && (
+                      <ul className="space-y-1">
+                        {update.features.map((f, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-zinc-500">
+                            <span className="text-indigo-600 mt-0.5">•</span> {f}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

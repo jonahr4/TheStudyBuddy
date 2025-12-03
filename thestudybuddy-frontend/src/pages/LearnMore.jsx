@@ -381,56 +381,71 @@ export default function LearnMore() {
       {/* How It Works - Overlapping the image */}
       <section className="pt-8 pb-24 px-6 bg-white relative z-10 -mt-32 md:-mt-48">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-4 tracking-tight">
-              Three steps to better grades.
-            </h2>
-            <p className="text-xl text-zinc-500">No setup wizards. No learning curve. Just results.</p>
-          </div>
-
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { step: "01", title: "Upload Your Notes", desc: "Drop in your PDFs, Word docs, or PowerPoints. We process them in under a minute." },
-              { step: "02", title: "Get Smart Flashcards", desc: "Our AI extracts key concepts and creates flashcards automatically. Review what matters." },
-              { step: "03", title: "Chat & Learn", desc: "Ask questions about your materials. Get explanations, examples, and clarity on demand." }
+              {
+                step: "01",
+                title: "Upload Your Notes",
+                desc: "PDFs, Word docs, PowerPoints—drop them in and we'll do the rest. Your notes become instantly searchable and AI-ready. We process them in under a minute.",
+                icon: (
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                )
+              },
+              {
+                step: "02",
+                title: "Get Smart Flashcards",
+                desc: "Our AI reads your materials and creates perfect flashcards automatically. Study the concepts that matter, skip the busywork. Smart repetition means you remember more with less effort.",
+                icon: (
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                )
+              },
+              {
+                step: "03",
+                title: "Chat & Learn",
+                desc: "Ask questions, get explanations, dive deeper. The AI knows your exact course materials—no generic answers. Keep everything sorted by class with secure, encrypted storage.",
+                icon: (
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                )
+              }
             ].map((item, i) => (
               <div key={i} className="relative group">
-                <div className="text-7xl font-bold text-zinc-100 group-hover:text-indigo-100 transition-colors absolute -top-4 -left-2">{item.step}</div>
-                <div className="relative pt-12 pl-2">
-                  <h3 className="text-xl font-bold text-zinc-900 mb-2">{item.title}</h3>
-                  <p className="text-zinc-500 leading-relaxed">{item.desc}</p>
+                <div className="bg-white rounded-2xl p-8 border border-zinc-200 hover:border-indigo-200 hover:shadow-xl transition-all duration-300 h-full">
+                  {/* Subtle glow effect on hover */}
+                  <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 rounded-2xl opacity-0 group-hover:opacity-10 blur-lg transition-opacity duration-300"></div>
+
+                  <div className="relative">
+                    {/* Icon with subtle glow */}
+                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 flex items-center justify-center text-indigo-600 mb-6 group-hover:scale-105 transition-all duration-300">
+                      {item.icon}
+                    </div>
+
+                    {/* Number with subtle glow */}
+                    <div className="absolute -top-3 -right-3 text-6xl font-bold text-zinc-100 group-hover:text-indigo-500/15 transition-all duration-300 group-hover:scale-105">
+                      {item.step}
+                    </div>
+
+                    <h3 className="text-xl font-bold text-zinc-900 mb-3">{item.title}</h3>
+                    <p className="text-zinc-600 leading-relaxed text-sm">{item.desc}</p>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* Features Grid */}
-      <section id="features" className="py-24 px-6 bg-zinc-50 border-y border-zinc-100">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-4 tracking-tight">
-              Everything you need to ace your classes.
+        {/* Title section with black background */}
+        <div className="bg-zinc-900 py-16 mt-16 -mx-6">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+              Three steps to better grades.
             </h2>
-            <p className="text-xl text-zinc-500 max-w-2xl mx-auto">
-              Built for students who want to work smarter, not harder.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, i) => (
-              <div 
-                key={i}
-                className="bg-white rounded-2xl p-8 border border-zinc-100 hover:border-zinc-200 hover:shadow-xl transition-all duration-300 group"
-              >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 flex items-center justify-center text-indigo-600 mb-5 group-hover:scale-110 transition-transform">
-                  {feature.icon}
-                </div>
-                <h3 className="text-lg font-bold text-zinc-900 mb-2">{feature.title}</h3>
-                <p className="text-zinc-500 leading-relaxed text-sm">{feature.description}</p>
-              </div>
-            ))}
+            <p className="text-xl text-zinc-400">No setup wizards. No learning curve. Just results.</p>
           </div>
         </div>
       </section>
@@ -541,6 +556,24 @@ export default function LearnMore() {
             {/* Right: Interactive Flashcards */}
             <DemoFlashcards />
           </div>
+        </div>
+      </section>
+
+      {/* CTA Banner */}
+      <section className="py-16 px-6 bg-zinc-900">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight">
+            Sign up now for completely free
+          </h2>
+          <Link
+            to="/signup"
+            className="inline-flex items-center gap-2 bg-white text-zinc-900 px-8 py-4 rounded-full text-base font-semibold hover:bg-zinc-100 transition-all shadow-xl"
+          >
+            Get Started Free
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </Link>
         </div>
       </section>
 

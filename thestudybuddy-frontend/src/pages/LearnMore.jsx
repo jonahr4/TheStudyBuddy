@@ -128,27 +128,32 @@ export default function LearnMore() {
     {
       quote: "Study Buddy completely transformed my exam prep. I went from C's to A's in one semester.",
       author: "Ayoub",
-      role: "Pre-Med Student, UCLA"
+      role: "Media Science Major",
+      image: "/ayoub-pfp.png"
     },
     {
       quote: "The AI chat actually understands my notes. It's like having a tutor who read everything I did.",
       author: "Ali",
-      role: "Engineering Major, MIT"
+      role: "Media Science & Journalism Major",
+      image: "/ali-pfp.jpeg"
     },
     {
       quote: "I used to spend 4 hours making flashcards. Now it takes 4 minutes. Game changer.",
       author: "Omar",
-      role: "Law Student, NYU"
+      role: "Computer Science & Economics Major",
+      image: "/omar-pfp.jpeg"
     },
     {
       quote: "Finally, a study tool that doesn't feel like another chore. Actually makes studying enjoyable.",
       author: "Abidul",
-      role: "Business Major, Stanford"
+      role: "Computer Science Major",
+      image: "/abidul-pfp.avif"
     },
     {
       quote: "The flashcard generation is incredible. It picks out exactly what I need to study for exams.",
       author: "Magda",
-      role: "Biology Major, Boston University"
+      role: "Biology Major",
+      image: "/magda-pfp.jpeg"
     }
   ];
 
@@ -512,13 +517,13 @@ export default function LearnMore() {
       <section className="py-16 px-6 bg-gradient-to-r from-indigo-50 via-violet-50 to-purple-50 border-y border-indigo-100">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-6 tracking-tight">
-            Sign up now for completely free
+            Sign up now for free
           </h2>
           <Link
             to="/signup"
             className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-8 py-4 rounded-full text-base font-semibold hover:from-indigo-700 hover:to-violet-700 transition-all shadow-lg"
           >
-            Get Started Free
+            Get Started
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
@@ -659,59 +664,72 @@ export default function LearnMore() {
           <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 mb-2 tracking-tight">
             Students love Study Buddy.
           </h2>
-          <p className="text-zinc-500">Join thousands of students studying smarter.</p>
+          <p className="text-zinc-500">Join a growing number of students studying smarter.</p>
         </div>
 
         {/* Marquee Container */}
         <div className="relative">
           {/* Fade edges */}
-          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
-          
-          {/* Scrolling track */}
-          <div className="flex animate-marquee">
-            {/* First set */}
-            {[...testimonials, ...testimonials].map((t, i) => (
-              <div
-                key={i}
-                className="flex-shrink-0 w-[400px] mx-3 bg-white rounded-2xl p-6 border border-zinc-100"
-              >
-                {/* Stars */}
-                <div className="flex gap-0.5 mb-3">
-                  {[1,2,3,4,5].map((star) => (
-                    <svg key={star} className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                
-                <p className="text-zinc-700 text-sm leading-relaxed mb-4">"{t.quote}"</p>
-                
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-violet-400 flex items-center justify-center text-white font-bold text-xs">
-                    {t.author[0]}
+          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-zinc-50 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-zinc-50 to-transparent z-10 pointer-events-none" />
+
+          {/* Scrolling track - wrapper */}
+          <div className="overflow-hidden">
+            <div className="flex gap-6 animate-scroll whitespace-nowrap">
+              {/* Create 3 sets for seamless infinite scroll */}
+              {Array(3).fill(testimonials).flat().map((t, i) => (
+                <div
+                  key={i}
+                  className="inline-block w-[400px] bg-white rounded-2xl p-6 border border-zinc-100"
+                >
+                  {/* Stars */}
+                  <div className="flex gap-0.5 mb-3">
+                    {[1,2,3,4,5].map((star) => (
+                      <svg key={star} className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
                   </div>
-                  <div>
-                    <div className="font-semibold text-zinc-900 text-sm">{t.author}</div>
-                    <div className="text-xs text-zinc-500">{t.role}</div>
+
+                  <p className="text-zinc-700 text-sm leading-relaxed mb-4 whitespace-normal">"{t.quote}"</p>
+
+                  <div className="flex items-center gap-3">
+                    {t.image ? (
+                      <img
+                        src={t.image}
+                        alt={t.author}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-violet-400 flex items-center justify-center text-white font-bold text-xs">
+                        {t.author[0]}
+                      </div>
+                    )}
+                    <div>
+                      <div className="font-semibold text-zinc-900 text-sm">{t.author}</div>
+                      <div className="text-xs text-zinc-500">{t.role}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
         {/* CSS for infinite scroll animation */}
         <style>{`
-          @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
+          @keyframes scroll {
+            0% {
+              transform: translateX(0);
+            }
+            100% {
+              transform: translateX(calc(-406px * 5));
+            }
           }
-          .animate-marquee {
-            animation: marquee 30s linear infinite;
-          }
-          .animate-marquee:hover {
-            animation-play-state: paused;
+
+          .animate-scroll {
+            animation: scroll 35s linear infinite;
+            display: inline-flex;
           }
         `}</style>
       </section>

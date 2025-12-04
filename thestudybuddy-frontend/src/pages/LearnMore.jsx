@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import homepageImage from '../assets/Homepage3.png';
 import seanHeadshot from '../assets/SeanLink.jpeg';
 import jonahHeadshot from '../assets/JonahLink.jpeg';
@@ -123,6 +123,74 @@ function DemoFlashcards() {
 export default function LearnMore() {
   const [showUpdates, setShowUpdates] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
+  const [uploadScrollProgress, setUploadScrollProgress] = useState(0);
+  const uploadSectionRef = useRef(null);
+
+  useEffect(() => {
+    let animationFrameId;
+
+    const handleScroll = () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+
+      animationFrameId = requestAnimationFrame(() => {
+        if (!uploadSectionRef.current) {
+          return;
+        }
+
+        const section = uploadSectionRef.current;
+        const rect = section.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+
+        // Calculate when the section is in the middle of the viewport
+        const sectionTop = rect.top;
+        const sectionHeight = rect.height;
+        const viewportMiddle = windowHeight / 2;
+
+        // Start animation when section center reaches viewport middle (delayed start)
+        const sectionCenter = sectionTop + (sectionHeight / 2);
+        const animationStart = sectionCenter - viewportMiddle;
+        const animationEnd = animationStart - (sectionHeight * 0.5);
+
+        let progress = 0;
+
+        if (animationStart > 0) {
+          // Section hasn't reached middle yet
+          progress = 0;
+        } else if (animationStart <= 0 && sectionTop > animationEnd) {
+          // Section is being scrolled through the animation range
+          progress = Math.abs(animationStart) / (sectionHeight * 0.5);
+        } else {
+          // Section has fully passed
+          progress = 1;
+        }
+
+        // Clamp between 0 and 1
+        progress = Math.max(0, Math.min(1, progress));
+
+        setUploadScrollProgress(progress);
+      });
+    };
+
+    // Try multiple scroll targets
+    const scrollTargets = [window, document, document.body, document.documentElement];
+
+    scrollTargets.forEach(target => {
+      target.addEventListener('scroll', handleScroll, { passive: true });
+    });
+
+    handleScroll(); // Initial check
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      scrollTargets.forEach(target => {
+        target.removeEventListener('scroll', handleScroll);
+      });
+    };
+  }, []);
 
   const testimonials = [
     {
@@ -351,9 +419,9 @@ export default function LearnMore() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-[1fr_auto_1fr] gap-8 items-center">
+          <div ref={uploadSectionRef} className="grid md:grid-cols-[1fr_auto_1fr] gap-8 items-center relative">
             {/* Left: Drag to Upload Box */}
-            <div className="bg-white rounded-xl border-2 border-dashed border-zinc-300 shadow-lg h-[430px] flex flex-col items-center justify-center p-8 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all">
+            <div className="bg-white rounded-xl border-2 border-dashed border-zinc-300 shadow-lg h-[430px] flex flex-col items-center justify-center p-8 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all relative overflow-hidden">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-50 to-violet-50 flex items-center justify-center text-indigo-600 mb-6">
                 <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -379,47 +447,47 @@ export default function LearnMore() {
             </div>
 
             {/* Right: Sample Notes Tabs */}
-            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[430px] flex flex-col">
-              {/* Tabs Header */}
-              <div className="bg-zinc-50 border-b border-zinc-200 flex flex-shrink-0">
-                <div className="bg-white px-4 py-2.5 border-r border-zinc-200 flex items-center gap-2 text-sm font-medium text-zinc-900">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                  Chemistry.pdf
+            <div
+              className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[430px] flex flex-col"
+              style={{
+                transform: `translateX(${uploadScrollProgress * -124.5}%) scale(${1 - uploadScrollProgress * 0.25})`,
+                transition: 'transform 0.3s ease-out',
+                transformOrigin: 'center'
+              }}
+            >
+              {/* Document Header */}
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 flex items-center gap-2 flex-shrink-0">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
                 </div>
-                <div className="px-4 py-2.5 border-r border-zinc-200 flex items-center gap-2 text-sm text-zinc-500 hover:bg-white/50 cursor-pointer transition-colors">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  Physics.pdf
-                </div>
-                <div className="px-4 py-2.5 flex items-center gap-2 text-sm text-zinc-500 hover:bg-white/50 cursor-pointer transition-colors">
-                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                  History.docx
-                </div>
+                <span className="text-white text-xs font-medium ml-2">Chemistry Lecture 4.pdf</span>
               </div>
 
               {/* File Content Preview */}
-              <div className="p-5 bg-gradient-to-b from-zinc-50 to-white flex-1 overflow-y-auto">
-                <h3 className="text-base font-bold text-zinc-900 mb-2.5">Chemical Bonding - Lecture 3</h3>
-                <div className="space-y-0.5 text-zinc-600 leading-[1.2]">
+              <div className="p-5 bg-gradient-to-b from-zinc-50 to-white flex-1 overflow-hidden">
+                <h3 className="text-base font-bold text-zinc-900 mb-2.5">Topics Covered</h3>
+                <div className="space-y-0.5 text-zinc-600 leading-[1.2] notes-content">
                   <style>{`
-                    .notes-preview p {
+                    .notes-content p {
                       font-size: 14px !important;
                     }
                   `}</style>
-                  <div className="notes-preview">
-                    <p className="font-semibold text-zinc-800">1. Ionic Bonds</p>
-                    <p>• Form between metals and non-metals through electron transfer</p>
-                    <p>• Metal atoms lose electrons to become cations (+ charge)</p>
-                    <p>• Non-metal atoms gain electrons to become anions (- charge)</p>
-                    <p>• Electrostatic attraction holds oppositely charged ions together</p>
-                    <p>• Result in crystalline structures with high melting points</p>
-                    <p>• Examples: NaCl (table salt), MgO (magnesium oxide)</p>
+                  <p className="font-semibold text-zinc-800">Molecular Geometry</p>
+                  <p>• VSEPR theory predicts molecular shapes</p>
+                  <p>• Electron pairs repel to minimize energy</p>
+                  <p>• Common shapes: linear, trigonal, tetrahedral</p>
 
-                    <p className="font-semibold text-zinc-800 mt-2">2. Covalent Bonds</p>
-                    <p>• Sharing of electron pairs between atoms</p>
-                    <p>• Occurs between non-metal atoms with similar electronegativity</p>
-                    <p>• Can be single (2e⁻), double (4e⁻), or triple bonds (6e⁻)</p>
-                    <p>• Common in organic molecules and molecular compounds</p>
-                  </div>
+                  <p className="font-semibold text-zinc-800 mt-2">Polarity</p>
+                  <p>• Unequal sharing of electrons creates dipoles</p>
+                  <p>• Affects solubility and intermolecular forces</p>
+                  <p>• Water is a polar molecule (H₂O)</p>
+
+                  <p className="font-semibold text-zinc-800 mt-2">Intermolecular Forces</p>
+                  <p>• London dispersion forces (weakest)</p>
+                  <p>• Dipole-dipole interactions</p>
+                  <p>• Hydrogen bonding (strongest)</p>
                 </div>
               </div>
             </div>

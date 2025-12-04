@@ -211,7 +211,7 @@ export default function FlashcardStudy() {
         }
 
         .flip-container {
-          perspective: 2000px;
+          perspective: 1000px;
           aspect-ratio: 5 / 3;
           width: 100%;
           max-width: 700px;
@@ -221,7 +221,7 @@ export default function FlashcardStudy() {
           position: relative;
           width: 100%;
           height: 100%;
-          transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+          transition: transform 0.6s;
           transform-style: preserve-3d;
         }
 
@@ -236,9 +236,6 @@ export default function FlashcardStudy() {
           height: 100%;
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
-          display: flex;
-          align-items: center;
-          justify-content: center;
         }
 
         .flip-card-back {
@@ -317,6 +314,7 @@ export default function FlashcardStudy() {
         {/* Flashcard - flex-1 to take available space */}
         <div className="max-w-2xl mx-auto w-full mb-2 flex-1 min-h-0 flex items-center justify-center">
           <div
+            key={`${currentIndex}-${currentCard.front}`}
             className={`flip-container ${slideDirection} ${isExiting ? 'exit-animation' : ''}`}
             onClick={handleFlip}
           >
@@ -358,8 +356,16 @@ export default function FlashcardStudy() {
           </div>
         </div>
 
-        {/* Study Action Buttons - flex-shrink-0 */}
-        <div className="max-w-2xl mx-auto w-full mb-2 flex gap-2 justify-center flex-shrink-0">
+        {/* Navigation and Action Buttons - flex-shrink-0 */}
+        <div className="max-w-2xl mx-auto w-full flex justify-center items-center gap-2 flex-shrink-0 mb-1">
+          <button
+            onClick={handlePrevious}
+            disabled={currentIndex === 0}
+            className="btn-secondary disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 text-xs px-3 py-1.5"
+          >
+            ← Previous
+          </button>
+
           {!showStudied ? (
             <button
               onClick={() => handleMarkStudied(true)}
@@ -375,17 +381,6 @@ export default function FlashcardStudy() {
               ↺ Mark as Unstudied
             </button>
           )}
-        </div>
-
-        {/* Navigation Buttons - flex-shrink-0 */}
-        <div className="max-w-2xl mx-auto w-full flex justify-between items-center gap-2 flex-shrink-0 mb-1">
-          <button
-            onClick={handlePrevious}
-            disabled={currentIndex === 0}
-            className="btn-secondary disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 text-xs px-3 py-1.5"
-          >
-            ← Previous
-          </button>
 
           <button
             onClick={handleFlip}

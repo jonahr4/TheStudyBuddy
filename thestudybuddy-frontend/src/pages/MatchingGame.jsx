@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { flashcardApi } from '../services/api';
+import { flashcardApi, gameApi } from '../services/api';
 
 export default function MatchingGame() {
   const { setId } = useParams();
@@ -19,10 +19,47 @@ export default function MatchingGame() {
   const [showIncorrect, setShowIncorrect] = useState(false);
   const [difficulty, setDifficulty] = useState(null); // 'easy', 'medium', 'hard'
   const [gameStarted, setGameStarted] = useState(false);
+  const [previousStats, setPreviousStats] = useState(null);
+  const [savingResult, setSavingResult] = useState(false);
+  const resultSavedRef = useRef(false);
 
   useEffect(() => {
     loadFlashcardSet();
+    loadPreviousStats();
   }, [setId]);
+
+  const loadPreviousStats = async () => {
+    try {
+      const stats = await gameApi.getStats(setId, 'matching');
+      setPreviousStats(stats);
+    } catch (error) {
+      console.error('Failed to load previous stats:', error);
+    }
+  };
+
+  const saveGameResult = async (score, stars) => {
+    if (resultSavedRef.current) return; // Prevent duplicate saves
+    resultSavedRef.current = true;
+    setSavingResult(true);
+    
+    try {
+      await gameApi.saveResult({
+        flashcardSetId: setId,
+        gameType: 'matching',
+        score,
+        time: timer,
+        moves,
+        difficulty,
+        stars,
+      });
+      // Reload stats to show updated records
+      await loadPreviousStats();
+    } catch (error) {
+      console.error('Failed to save game result:', error);
+    } finally {
+      setSavingResult(false);
+    }
+  };
 
   // Timer effect
   useEffect(() => {
@@ -58,6 +95,7 @@ export default function MatchingGame() {
     setSelectedCards([]);
     setMoves(0);
     setTimer(0);
+    resultSavedRef.current = false; // Reset for new game
 
     // Determine number of pairs based on difficulty
     let numPairs;
@@ -128,6 +166,18 @@ export default function MatchingGame() {
         if (matchedPairs.length + 1 === totalPairs) {
           setGameComplete(true);
           setIsRunning(false);
+          
+          // Calculate and save the game result
+          const finalTimer = timer;
+          const finalMoves = moves + 1; // Current move count
+          const baseScore = 1000;
+          const timePenalty = finalTimer * 2;
+          const movePenalty = finalMoves * 10;
+          const difficultyBonus = difficulty === 'hard' ? 500 : difficulty === 'medium' ? 250 : 0;
+          const finalScore = Math.max(0, baseScore - timePenalty - movePenalty + difficultyBonus);
+          const finalStars = finalScore >= 800 ? 3 : finalScore >= 500 ? 2 : 1;
+          
+          saveGameResult(finalScore, finalStars);
         }
       } else {
         // No match - show incorrect briefly
@@ -215,9 +265,32 @@ export default function MatchingGame() {
             <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
               {flashcardSet.flashcards.length} cards available
             </p>
+            
+            {/* Previous Stats */}
+            {previousStats && previousStats.totalGamesPlayed > 0 && (
+              <div className="mt-4 p-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide font-semibold">Your Best</p>
+                <div className="flex justify-center gap-6 text-sm">
+                  <div>
+                    <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">{previousStats.bestScore}</span>
+                    <p className="text-xs text-gray-500">Best Score</p>
+                  </div>
+                  {previousStats.bestTime && (
+                    <div>
+                      <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatTime(previousStats.bestTime)}</span>
+                      <p className="text-xs text-gray-500">Best Time</p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">{previousStats.totalGamesPlayed}</span>
+                    <p className="text-xs text-gray-500">Games Played</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 mt-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white text-center mb-4">
               Select Difficulty
             </h3>
@@ -260,6 +333,8 @@ export default function MatchingGame() {
   if (gameComplete) {
     const stars = getStars();
     const score = getScore();
+    const isNewBestScore = previousStats && score > previousStats.bestScore;
+    const isNewBestTime = previousStats && previousStats.bestTime && timer < previousStats.bestTime;
 
     return (
       <div className="gradient-bg min-h-screen">
@@ -273,6 +348,13 @@ export default function MatchingGame() {
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
               Congratulations!
             </h2>
+
+            {/* New Record Badge */}
+            {(isNewBestScore || isNewBestTime) && (
+              <div className="mb-4 inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
+                🏆 NEW PERSONAL BEST!
+              </div>
+            )}
 
             {/* Stars */}
             <div className="flex justify-center gap-2 mb-6">
@@ -292,12 +374,14 @@ export default function MatchingGame() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4">
-                <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className={`rounded-xl p-4 ${isNewBestTime ? 'bg-yellow-50 dark:bg-yellow-900/20 ring-2 ring-yellow-400' : 'bg-emerald-50 dark:bg-emerald-900/20'}`}>
+                <p className={`text-3xl font-bold ${isNewBestTime ? 'text-yellow-600 dark:text-yellow-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                   {formatTime(timer)}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Time</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Time {isNewBestTime && '🔥'}
+                </p>
               </div>
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
                 <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
@@ -305,13 +389,45 @@ export default function MatchingGame() {
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Moves</p>
               </div>
-              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4">
-                <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+              <div className={`rounded-xl p-4 ${isNewBestScore ? 'bg-yellow-50 dark:bg-yellow-900/20 ring-2 ring-yellow-400' : 'bg-purple-50 dark:bg-purple-900/20'}`}>
+                <p className={`text-3xl font-bold ${isNewBestScore ? 'text-yellow-600 dark:text-yellow-400' : 'text-purple-600 dark:text-purple-400'}`}>
                   {score}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Score</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Score {isNewBestScore && '🔥'}
+                </p>
               </div>
             </div>
+
+            {/* Previous Stats */}
+            {previousStats && previousStats.totalGamesPlayed > 0 && (
+              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide font-semibold">Your Stats</p>
+                <div className="flex justify-center gap-6 text-sm">
+                  <div>
+                    <span className="text-gray-600 dark:text-gray-400">Games Played:</span>
+                    <span className="ml-1 font-bold text-gray-900 dark:text-white">{previousStats.totalGamesPlayed}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600 dark:text-gray-400">Best Score:</span>
+                    <span className="ml-1 font-bold text-purple-600 dark:text-purple-400">{previousStats.bestScore}</span>
+                  </div>
+                  {previousStats.bestTime && (
+                    <div>
+                      <span className="text-gray-600 dark:text-gray-400">Best Time:</span>
+                      <span className="ml-1 font-bold text-emerald-600 dark:text-emerald-400">{formatTime(previousStats.bestTime)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Save Status */}
+            {savingResult && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                <span className="animate-pulse">Saving your score...</span>
+              </p>
+            )}
 
             <div className="flex gap-4 justify-center">
               <button
@@ -409,25 +525,43 @@ export default function MatchingGame() {
             ← Exit
           </button>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 md:gap-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900 dark:text-white font-mono">
+              <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white font-mono">
                 {formatTime(timer)}
               </p>
               <p className="text-xs text-gray-500">Time</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                 {moves}
               </p>
               <p className="text-xs text-gray-500">Moves</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+              <p className="text-xl md:text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                 {matchedPairs.length}/{gameCards.length / 2}
               </p>
               <p className="text-xs text-gray-500">Matched</p>
             </div>
+            {previousStats && previousStats.bestScore > 0 && (
+              <div className="hidden sm:flex items-center gap-3 border-l border-gray-300 dark:border-gray-600 pl-4 md:pl-6">
+                <div className="text-center">
+                  <p className="text-lg md:text-xl font-bold text-yellow-500">
+                    🏆 {previousStats.bestScore}
+                  </p>
+                  <p className="text-xs text-gray-500">High Score</p>
+                </div>
+                {previousStats.bestTime && (
+                  <div className="text-center">
+                    <p className="text-lg md:text-xl font-bold text-yellow-500">
+                      ⏱️ {formatTime(previousStats.bestTime)}
+                    </p>
+                    <p className="text-xs text-gray-500">Best Time</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <button

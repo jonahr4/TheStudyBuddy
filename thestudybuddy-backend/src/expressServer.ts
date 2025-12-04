@@ -19,6 +19,7 @@ import aiRoutes from "./routes/ai";
 import usersRoutes from "./routes/users";
 import reportsRoutes from "./routes/reports";
 import versionUpdatesRoutes from "./routes/versionUpdates";
+import gamesRoutes from "./routes/games";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -81,6 +82,7 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/version-updates", versionUpdatesRoutes);
+app.use("/api/games", gamesRoutes);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

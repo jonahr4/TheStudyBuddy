@@ -124,7 +124,9 @@ export default function LearnMore() {
   const [showUpdates, setShowUpdates] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
   const [uploadScrollProgress, setUploadScrollProgress] = useState(0);
+  const [flashcardScrollProgress, setFlashcardScrollProgress] = useState(0);
   const uploadSectionRef = useRef(null);
+  const flashcardSectionRef = useRef(null);
 
   useEffect(() => {
     let animationFrameId;
@@ -135,41 +137,61 @@ export default function LearnMore() {
       }
 
       animationFrameId = requestAnimationFrame(() => {
-        if (!uploadSectionRef.current) {
-          return;
+        // Upload section animation
+        if (uploadSectionRef.current) {
+          const section = uploadSectionRef.current;
+          const rect = section.getBoundingClientRect();
+          const windowHeight = window.innerHeight;
+
+          const sectionTop = rect.top;
+          const sectionHeight = rect.height;
+          const viewportMiddle = windowHeight / 2;
+
+          const sectionCenter = sectionTop + (sectionHeight / 2) - 100;
+          const animationStart = sectionCenter - viewportMiddle;
+          const animationEnd = animationStart - (sectionHeight * 0.5);
+
+          let progress = 0;
+
+          if (animationStart > 0) {
+            progress = 0;
+          } else if (animationStart <= 0 && sectionTop > animationEnd) {
+            progress = Math.abs(animationStart) / (sectionHeight * 0.5);
+          } else {
+            progress = 1;
+          }
+
+          progress = Math.max(0, Math.min(1, progress));
+          setUploadScrollProgress(progress);
         }
 
-        const section = uploadSectionRef.current;
-        const rect = section.getBoundingClientRect();
-        const windowHeight = window.innerHeight;
+        // Flashcard section animation
+        if (flashcardSectionRef.current) {
+          const section = flashcardSectionRef.current;
+          const rect = section.getBoundingClientRect();
+          const windowHeight = window.innerHeight;
 
-        // Calculate when the section is in the middle of the viewport
-        const sectionTop = rect.top;
-        const sectionHeight = rect.height;
-        const viewportMiddle = windowHeight / 2;
+          const sectionTop = rect.top;
+          const sectionHeight = rect.height;
+          const viewportMiddle = windowHeight / 2;
 
-        // Start animation when section center reaches viewport middle (delayed start)
-        const sectionCenter = sectionTop + (sectionHeight / 2);
-        const animationStart = sectionCenter - viewportMiddle;
-        const animationEnd = animationStart - (sectionHeight * 0.5);
+          const sectionCenter = sectionTop + (sectionHeight / 2) - 600;
+          const animationStart = sectionCenter - viewportMiddle;
+          const animationEnd = animationStart - (sectionHeight * 0.75);
 
-        let progress = 0;
+          let progress = 0;
 
-        if (animationStart > 0) {
-          // Section hasn't reached middle yet
-          progress = 0;
-        } else if (animationStart <= 0 && sectionTop > animationEnd) {
-          // Section is being scrolled through the animation range
-          progress = Math.abs(animationStart) / (sectionHeight * 0.5);
-        } else {
-          // Section has fully passed
-          progress = 1;
+          if (animationStart > 0) {
+            progress = 0;
+          } else if (animationStart <= 0 && sectionTop > animationEnd) {
+            progress = Math.abs(animationStart) / (sectionHeight * 0.75);
+          } else {
+            progress = 1;
+          }
+
+          progress = Math.max(0, Math.min(1, progress));
+          setFlashcardScrollProgress(progress);
         }
-
-        // Clamp between 0 and 1
-        progress = Math.max(0, Math.min(1, progress));
-
-        setUploadScrollProgress(progress);
       });
     };
 
@@ -403,11 +425,21 @@ export default function LearnMore() {
       </section>
 
       {/* 1. Upload Notes Section */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-5xl mx-auto">
+      <section className="py-20 px-6 bg-gradient-to-b from-white via-indigo-50/30 to-white relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-indigo-100/40 to-violet-100/40 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-purple-100/40 to-pink-100/40 rounded-full blur-3xl"></div>
+
+        <div className="max-w-5xl mx-auto relative z-10">
           {/* Section Title */}
           <div className="text-center mb-16">
             <div className="inline-block">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                  <span className="text-white font-bold text-lg">1</span>
+                </div>
+                <p className="text-indigo-600 font-bold text-xl">STEP ONE</p>
+              </div>
               <div className="relative">
                 {/* Glow effect */}
                 <div className="absolute -inset-2 bg-gradient-to-r from-indigo-400 via-violet-400 to-purple-400 rounded-lg blur-xl opacity-30"></div>
@@ -415,7 +447,7 @@ export default function LearnMore() {
                   Drop Your Notes
                 </h2>
               </div>
-              <p className="text-zinc-500 mt-2 text-sm">Step 1</p>
+              <p className="text-zinc-600 mt-3 text-sm">Upload any file format in seconds</p>
             </div>
           </div>
 
@@ -450,7 +482,7 @@ export default function LearnMore() {
             <div
               className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[430px] flex flex-col"
               style={{
-                transform: `translateX(${uploadScrollProgress * -124.5}%) scale(${1 - uploadScrollProgress * 0.25})`,
+                transform: `translateX(${uploadScrollProgress * -124.5}%) scale(${1 - uploadScrollProgress * 0.35})`,
                 transition: 'transform 0.3s ease-out',
                 transformOrigin: 'center'
               }}
@@ -496,7 +528,11 @@ export default function LearnMore() {
       </section>
 
       {/* 2. Flashcards Section */}
-      <section className="py-20 px-6 bg-white">
+      <section className="py-20 px-6 bg-gradient-to-b from-white via-violet-50/30 to-white relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-bl from-violet-100/40 to-purple-100/40 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-pink-100/40 to-indigo-100/40 rounded-full blur-3xl"></div>
+
         <style>{`
           .demo-flip-container {
             perspective: 1500px;
@@ -531,10 +567,16 @@ export default function LearnMore() {
           }
         `}</style>
 
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto relative z-10">
           {/* Section Title */}
           <div className="text-center mb-16">
             <div className="inline-block">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                  <span className="text-white font-bold text-lg">2</span>
+                </div>
+                <p className="text-violet-600 font-bold text-xl">STEP TWO</p>
+              </div>
               <div className="relative">
                 {/* Glow effect */}
                 <div className="absolute -inset-2 bg-gradient-to-r from-indigo-400 via-violet-400 to-purple-400 rounded-lg blur-xl opacity-30"></div>
@@ -542,13 +584,13 @@ export default function LearnMore() {
                   AI Generates Flashcards
                 </h2>
               </div>
-              <p className="text-zinc-500 mt-2 text-sm">Step 2</p>
+              <p className="text-zinc-600 mt-3 text-sm">Smart cards created automatically from your notes</p>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-[1fr_auto_1fr] gap-8 items-center">
+          <div ref={flashcardSectionRef} className="grid md:grid-cols-[1fr_auto_1fr] gap-8 items-center relative">
             {/* Left: Document Preview */}
-            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[430px] flex flex-col">
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[430px] flex flex-col relative z-10">
               <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 flex items-center gap-2 flex-shrink-0">
                 <div className="flex gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
@@ -606,17 +648,36 @@ export default function LearnMore() {
             </div>
 
             {/* Right: Interactive Flashcards */}
-            <DemoFlashcards />
+            <div
+              style={{
+                transform: `translateX(${(1 - flashcardScrollProgress) * -124.5}%) scale(${0.5 + flashcardScrollProgress * 0.5})`,
+                transition: 'transform 0.3s ease-out',
+                transformOrigin: 'center left',
+                zIndex: flashcardScrollProgress < 0.5 ? 0 : 10
+              }}
+            >
+              <DemoFlashcards />
+            </div>
           </div>
         </div>
       </section>
 
       {/* 3. Chat with Study Buddy */}
-      <section className="py-20 px-6 bg-white border-b border-zinc-100">
-        <div className="max-w-5xl mx-auto">
+      <section className="py-20 px-6 bg-gradient-to-b from-white via-indigo-50/30 to-white relative overflow-hidden border-b border-zinc-100">
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-indigo-100/40 to-violet-100/40 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-purple-100/40 to-pink-100/40 rounded-full blur-3xl"></div>
+
+        <div className="max-w-5xl mx-auto relative z-10">
           {/* Section Title */}
           <div className="text-center mb-16">
             <div className="inline-block">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                  <span className="text-white font-bold text-lg">3</span>
+                </div>
+                <p className="text-indigo-600 font-bold text-xl">STEP THREE</p>
+              </div>
               <div className="relative">
                 {/* Glow effect */}
                 <div className="absolute -inset-2 bg-gradient-to-r from-indigo-400 via-violet-400 to-purple-400 rounded-lg blur-xl opacity-30"></div>
@@ -624,7 +685,7 @@ export default function LearnMore() {
                   Ask Questions, Get Answers
                 </h2>
               </div>
-              <p className="text-zinc-500 mt-2 text-sm">Step 3</p>
+              <p className="text-zinc-600 mt-3 text-sm">Chat with AI that knows your material inside-out</p>
             </div>
           </div>
 

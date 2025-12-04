@@ -358,15 +358,23 @@ export default function MatchingGame() {
 
             {/* Stars */}
             <div className="flex justify-center gap-2 mb-6">
+              <style>{`
+                @keyframes starBounce {
+                  0%, 100% { transform: translateY(0); }
+                  50% { transform: translateY(-15px); }
+                }
+                .star-bounce-1 { animation: starBounce 1s ease-in-out infinite; animation-delay: 0s; }
+                .star-bounce-2 { animation: starBounce 1s ease-in-out infinite; animation-delay: 0.15s; }
+                .star-bounce-3 { animation: starBounce 1s ease-in-out infinite; animation-delay: 0.3s; }
+              `}</style>
               {[1, 2, 3].map(star => (
                 <span
                   key={star}
                   className={`text-5xl transition-all ${
                     star <= stars 
-                      ? 'text-yellow-400 animate-bounce' 
+                      ? `text-yellow-400 star-bounce-${star}` 
                       : 'text-gray-300 dark:text-gray-600'
                   }`}
-                  style={{ animationDelay: `${star * 0.1}s` }}
                 >
                   ⭐
                 </span>

@@ -12,7 +12,7 @@ export interface IGameResult {
 export interface IGameStats extends Document {
   userId: string;
   flashcardSetId: string;
-  gameType: 'matching'; // Can be extended for other games
+  gameType: 'matching' | 'multiplechoice'; // Game types
   results: IGameResult[];
   totalGamesPlayed: number;
   bestScore: number;
@@ -66,7 +66,7 @@ const GameStatsSchema: Schema = new Schema(
     },
     gameType: {
       type: String,
-      enum: ['matching'],
+      enum: ['matching', 'multiplechoice'],
       required: true,
       default: 'matching',
     },

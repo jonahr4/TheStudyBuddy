@@ -60,6 +60,14 @@ export default function Games() {
       gradient: 'from-emerald-500 to-teal-600',
       hoverGradient: 'hover:from-emerald-600 hover:to-teal-700',
     },
+    {
+      id: 'quiz',
+      name: 'Quiz Time',
+      description: 'Multiple choice questions to test your knowledge',
+      icon: '❓',
+      gradient: 'from-violet-500 to-purple-600',
+      hoverGradient: 'hover:from-violet-600 hover:to-purple-700',
+    },
   ];
 
   const handlePlayGame = (gameId) => {

@@ -196,10 +196,7 @@ export default function Chat() {
                       : 'bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm'
                   }`}
                 >
-                  <div
-                    className="w-2 h-2 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: subject.color }}
-                  ></div>
+                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${subject.color || 'bg-indigo-500'}`} />
                   {subject.name}
                 </button>
               ))}

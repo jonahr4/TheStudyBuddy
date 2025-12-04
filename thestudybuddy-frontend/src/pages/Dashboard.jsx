@@ -195,10 +195,12 @@ export default function Dashboard() {
                     to={`/flashcards/study/${deck._id}`}
                     className="block p-3 rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200/50 dark:border-purple-700/50 hover:border-purple-400 dark:hover:border-purple-500 transition-all"
                   >
-                    <h5 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">{deck.name}</h5>
-                    <span className="text-xs px-2 py-0.5 bg-white dark:bg-gray-800 rounded-full text-purple-600 dark:text-purple-400 inline-block mb-2">
-                      {deck.flashcards.length} cards
-                    </span>
+                    <div className="flex justify-between items-start mb-2">
+                      <h5 className="font-semibold text-sm text-gray-900 dark:text-white">{deck.name}</h5>
+                      <span className="text-xs px-2 py-0.5 bg-white dark:bg-gray-800 rounded-full text-purple-600 dark:text-purple-400">
+                        {deck.flashcards.length} cards
+                      </span>
+                    </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-purple-600 dark:text-purple-400 font-semibold">Study Now →</span>
                       {deck.subjectId?.name && (

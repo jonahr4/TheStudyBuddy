@@ -244,7 +244,7 @@ router.post("/generate", async (req: Request, res: Response) => {
     }
 
     const { userId } = await getUserInfoFromRequest(req);
-    const { subjectId, name, description } = req.body;
+    const { subjectId, name, description, difficulty = 'medium', cardCount = '10-15' } = req.body;
 
     if (!subjectId || !name) {
       return res.status(400).json({ message: "subjectId and name are required" });
@@ -252,6 +252,8 @@ router.post("/generate", async (req: Request, res: Response) => {
 
     console.log(`Generating flashcards for subject ${subjectId}`);
     console.log(`Set name: ${name}`);
+    console.log(`Difficulty: ${difficulty}`);
+    console.log(`Card count: ${cardCount}`);
     if (description) {
       console.log(`Focus: ${description}`);
     }
@@ -317,11 +319,33 @@ router.post("/generate", async (req: Request, res: Response) => {
       ? `Focus specifically on: ${description}`
       : 'Cover the main concepts from the notes';
 
+    // Parse card count range
+    const [minCards, maxCards] = cardCount.split('-').map(Number);
+
+    // Calculate target number of cards (aim for max of range)
+    const targetCards = maxCards;
+
+    // Define difficulty instructions
+    const difficultyInstructions: Record<string, string> = {
+      easy: 'Make the questions straightforward and focus on basic recall of key terms and definitions. Answers should be simple and direct.',
+      medium: 'Create questions that test understanding of concepts. Mix recall with application and comprehension questions.',
+      hard: 'Generate challenging questions that require analysis, synthesis, and deep understanding. Include questions that connect multiple concepts and require critical thinking.'
+    };
+
+    const difficultyText = difficultyInstructions[difficulty] || difficultyInstructions.medium;
+
     const prompt = `You are creating flashcards to help a student study. ${focusInstruction}
 
-Create 10-15 flashcards based on the following notes. Each flashcard should have:
+Create EXACTLY ${targetCards} flashcards based on the following notes.
+
+DIFFICULTY LEVEL: ${difficulty.toUpperCase()}
+${difficultyText}
+
+Each flashcard should have:
 - A clear, concise question or prompt on the FRONT
 - A complete, helpful answer on the BACK
+
+IMPORTANT: Generate exactly ${targetCards} flashcards, no more and no less.
 
 Return ONLY a valid JSON array in this exact format:
 [
@@ -333,7 +357,7 @@ Here are the student's notes:
 ${contextText}
 ${truncationNote}
 
-Return ONLY the JSON array, no other text.`;
+Return ONLY the JSON array with exactly ${targetCards} flashcards, no other text.`;
 
     console.log('Calling Azure OpenAI to generate flashcards...');
 
@@ -397,6 +421,12 @@ Return ONLY the JSON array, no other text.`;
 
     if (flashcards.length === 0) {
       return res.status(500).json({ message: "No valid flashcards were generated" });
+    }
+
+    // Trim to max cards if AI generated too many
+    if (flashcards.length > maxCards) {
+      console.log(`AI generated ${flashcards.length} cards, trimming to ${maxCards} (max for range ${cardCount})`);
+      flashcards = flashcards.slice(0, maxCards);
     }
 
     console.log(`Generated ${flashcards.length} flashcards`);

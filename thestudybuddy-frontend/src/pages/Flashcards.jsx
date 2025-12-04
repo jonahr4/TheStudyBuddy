@@ -15,6 +15,8 @@ export default function Flashcards() {
     subjectId: '',
     name: '',
     description: '',
+    difficulty: 'medium',
+    cardCount: '10-15',
   });
 
   // Scroll to top when component mounts
@@ -60,9 +62,11 @@ export default function Flashcards() {
         subjectId: newSetData.subjectId,
         name: newSetData.name,
         description: newSetData.description,
+        difficulty: newSetData.difficulty,
+        cardCount: newSetData.cardCount,
       });
 
-      setNewSetData({ subjectId: '', name: '', description: '' });
+      setNewSetData({ subjectId: '', name: '', description: '', difficulty: 'medium', cardCount: '10-15' });
       setShowCreateModal(false);
       await loadFlashcardSets();
     } catch (error) {
@@ -291,6 +295,88 @@ export default function Flashcards() {
                 />
               </div>
 
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  Difficulty
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewSetData({ ...newSetData, difficulty: 'easy' })}
+                    className={`px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                      newSetData.difficulty === 'easy'
+                        ? 'bg-green-600 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    Easy
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewSetData({ ...newSetData, difficulty: 'medium' })}
+                    className={`px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                      newSetData.difficulty === 'medium'
+                        ? 'bg-yellow-600 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    Medium
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewSetData({ ...newSetData, difficulty: 'hard' })}
+                    className={`px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                      newSetData.difficulty === 'hard'
+                        ? 'bg-red-600 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    Hard
+                  </button>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  Number of Cards
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewSetData({ ...newSetData, cardCount: '5-10' })}
+                    className={`px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                      newSetData.cardCount === '5-10'
+                        ? 'bg-purple-600 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    5-10
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewSetData({ ...newSetData, cardCount: '10-15' })}
+                    className={`px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                      newSetData.cardCount === '10-15'
+                        ? 'bg-purple-600 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    10-15
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewSetData({ ...newSetData, cardCount: '15-20' })}
+                    className={`px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                      newSetData.cardCount === '15-20'
+                        ? 'bg-purple-600 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    15-20
+                  </button>
+                </div>
+              </div>
+
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Focus (Optional)
@@ -312,7 +398,7 @@ export default function Flashcards() {
                   type="button"
                   onClick={() => {
                     setShowCreateModal(false);
-                    setNewSetData({ subjectId: '', name: '', description: '' });
+                    setNewSetData({ subjectId: '', name: '', description: '', difficulty: 'medium', cardCount: '10-15' });
                   }}
                   className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   disabled={creating}

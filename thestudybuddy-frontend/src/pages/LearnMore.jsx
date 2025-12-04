@@ -147,7 +147,7 @@ export default function LearnMore() {
           const sectionHeight = rect.height;
           const viewportMiddle = windowHeight / 2;
 
-          const sectionCenter = sectionTop + (sectionHeight / 2) - 100;
+          const sectionCenter = sectionTop + (sectionHeight / 2) - 70;
           const animationStart = sectionCenter - viewportMiddle;
           const animationEnd = animationStart - (sectionHeight * 0.5);
 
@@ -306,6 +306,10 @@ export default function LearnMore() {
 
   const faqs = [
     {
+      q: "Is it free? Are there any hidden charges?",
+      a: "No, it's completely free. There are no hidden charges, subscription fees, or paid tiers. We believe every student should have access to great study tools."
+    },
+    {
       q: "What file types can I upload?",
       a: "Currently we support PDFs, Word documents (.docx), and PowerPoint presentations (.pptx). More formats coming soon."
     },
@@ -407,8 +411,8 @@ export default function LearnMore() {
         </div>
       </section>
 
-      {/* Three Steps to Better Grades */}
-      <section className="py-16 px-6 border-b border-zinc-100 relative -mt-64 z-10 overflow-visible">
+      {/* Three Steps to Better Grades - Desktop Only */}
+      <section className="hidden md:block py-16 px-6 border-b border-zinc-100 relative -mt-64 z-10 overflow-visible">
         {/* Background with gradient opacity */}
         <div
           className="absolute inset-x-0 bottom-0 -top-32"
@@ -424,8 +428,76 @@ export default function LearnMore() {
         </div>
       </section>
 
-      {/* 1. Upload Notes Section */}
-      <section className="py-20 px-6 bg-gradient-to-b from-white via-indigo-50/30 to-white relative overflow-hidden">
+      {/* Mobile Features Section */}
+      <section className="md:hidden py-16 px-6 bg-white">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-zinc-900 mb-4 tracking-tight">
+            Study <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Smarter</span>
+          </h2>
+          <p className="text-base text-zinc-600 max-w-3xl mx-auto leading-relaxed">
+            Transform your notes into intelligent flashcards and chat with AI that understands your content
+          </p>
+        </div>
+
+        <div className="grid gap-4">
+          {/* Upload Feature */}
+          <div className="group bg-white/80 backdrop-blur-lg rounded-2xl p-6 border border-zinc-200/50 hover:border-indigo-500/50 transition-all duration-300 hover:shadow-xl">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-zinc-900 mb-2">Upload Any Document</h3>
+            <p className="text-zinc-600 text-sm leading-relaxed">
+              PDFs, Word docs, PowerPoints—drop them in and we'll do the rest. Your notes become instantly searchable and AI-ready.
+            </p>
+          </div>
+
+          {/* AI Flashcards Feature */}
+          <div className="group bg-white/80 backdrop-blur-lg rounded-2xl p-6 border border-zinc-200/50 hover:border-indigo-500/50 transition-all duration-300 hover:shadow-xl">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-zinc-900 mb-2">AI Flashcard Generation</h3>
+            <p className="text-zinc-600 text-sm leading-relaxed">
+              Our AI reads your materials and creates perfect flashcards automatically. Study the concepts that matter, skip the busywork.
+            </p>
+          </div>
+
+          {/* Chat Feature */}
+          <div className="group bg-white/80 backdrop-blur-lg rounded-2xl p-6 border border-zinc-200/50 hover:border-indigo-500/50 transition-all duration-300 hover:shadow-xl">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-zinc-900 mb-2">Chat With Your Notes</h3>
+            <p className="text-zinc-600 text-sm leading-relaxed">
+              Ask questions, get explanations, dive deeper. The AI knows your exact course materials—no generic answers.
+            </p>
+          </div>
+
+          {/* Subject Organization */}
+          <div className="group bg-white/80 backdrop-blur-lg rounded-2xl p-6 border border-zinc-200/50 hover:border-indigo-500/50 transition-all duration-300 hover:shadow-xl">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-zinc-900 mb-2">Subject Organization</h3>
+            <p className="text-zinc-600 text-sm leading-relaxed">
+              Keep everything sorted by class. Biology notes don't mix with History. Clean, simple, effective.
+            </p>
+          </div>
+
+         
+        </div>
+      </section>
+
+      {/* 1. Upload Notes Section - Desktop Only */}
+      <section className="hidden md:block py-20 px-6 bg-gradient-to-b from-white via-indigo-50/30 to-white relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-indigo-100/40 to-violet-100/40 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-purple-100/40 to-pink-100/40 rounded-full blur-3xl"></div>
@@ -453,7 +525,7 @@ export default function LearnMore() {
 
           <div ref={uploadSectionRef} className="grid md:grid-cols-[1fr_auto_1fr] gap-8 items-center relative">
             {/* Left: Drag to Upload Box */}
-            <div className="bg-white rounded-xl border-2 border-dashed border-zinc-300 shadow-lg h-[430px] flex flex-col items-center justify-center p-8 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all relative overflow-hidden">
+            <div className="hidden md:flex bg-white rounded-xl border-2 border-dashed border-zinc-300 shadow-lg h-[430px] flex-col items-center justify-center p-8 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all relative overflow-hidden">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-50 to-violet-50 flex items-center justify-center text-indigo-600 mb-6">
                 <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -470,7 +542,7 @@ export default function LearnMore() {
             </div>
 
             {/* Center: Left Arrow */}
-            <div className="flex justify-center">
+            <div className="hidden md:flex justify-center">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg">
                 <svg className="w-6 h-6 text-white rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -480,7 +552,7 @@ export default function LearnMore() {
 
             {/* Right: Sample Notes Tabs */}
             <div
-              className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[430px] flex flex-col"
+              className="hidden md:flex bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[430px] flex-col"
               style={{
                 transform: `translateX(${uploadScrollProgress * -124.5}%) scale(${1 - uploadScrollProgress * 0.35})`,
                 transition: 'transform 0.3s ease-out',
@@ -527,8 +599,8 @@ export default function LearnMore() {
         </div>
       </section>
 
-      {/* 2. Flashcards Section */}
-      <section className="py-20 px-6 bg-gradient-to-b from-white via-violet-50/30 to-white relative overflow-hidden">
+      {/* 2. Flashcards Section - Desktop Only */}
+      <section className="hidden md:block py-20 px-6 bg-gradient-to-b from-white via-violet-50/30 to-white relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-bl from-violet-100/40 to-purple-100/40 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-pink-100/40 to-indigo-100/40 rounded-full blur-3xl"></div>
@@ -590,7 +662,7 @@ export default function LearnMore() {
 
           <div ref={flashcardSectionRef} className="grid md:grid-cols-[1fr_auto_1fr] gap-8 items-center relative">
             {/* Left: Document Preview */}
-            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[430px] flex flex-col relative z-10">
+            <div className="hidden md:flex bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[430px] flex-col relative z-10">
               <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 flex items-center gap-2 flex-shrink-0">
                 <div className="flex gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
@@ -639,7 +711,7 @@ export default function LearnMore() {
             </div>
 
             {/* Center: Arrow */}
-            <div className="flex justify-center">
+            <div className="hidden md:flex justify-center">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -649,6 +721,7 @@ export default function LearnMore() {
 
             {/* Right: Interactive Flashcards */}
             <div
+              className="hidden md:block"
               style={{
                 transform: `translateX(${(1 - flashcardScrollProgress) * -124.5}%) scale(${0.5 + flashcardScrollProgress * 0.5})`,
                 transition: 'transform 0.3s ease-out',
@@ -662,8 +735,8 @@ export default function LearnMore() {
         </div>
       </section>
 
-      {/* 3. Chat with Study Buddy */}
-      <section className="py-20 px-6 bg-gradient-to-b from-white via-indigo-50/30 to-white relative overflow-hidden border-b border-zinc-100">
+      {/* 3. Chat with Study Buddy - Desktop Only */}
+      <section className="hidden md:block py-20 px-6 bg-gradient-to-b from-white via-indigo-50/30 to-white relative overflow-hidden border-b border-zinc-100">
         {/* Background decoration */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-indigo-100/40 to-violet-100/40 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-purple-100/40 to-pink-100/40 rounded-full blur-3xl"></div>
@@ -691,7 +764,7 @@ export default function LearnMore() {
 
           <div className="grid md:grid-cols-[1fr_auto_1fr] gap-8 items-center">
             {/* Left: Physics Notes */}
-            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[430px] flex flex-col">
+            <div className="hidden md:flex bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden h-[430px] flex-col">
               <div className="bg-gradient-to-r from-green-500 to-green-600 px-4 py-2 flex items-center gap-2 flex-shrink-0">
                 <div className="flex gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
@@ -733,7 +806,7 @@ export default function LearnMore() {
             </div>
 
             {/* Center: Arrow */}
-            <div className="flex justify-center">
+            <div className="hidden md:flex justify-center">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center shadow-lg">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -742,7 +815,7 @@ export default function LearnMore() {
             </div>
 
             {/* Right: AI Chat */}
-            <div className="bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden flex flex-col h-[430px]">
+            <div className="hidden md:flex bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden flex-col h-[430px]">
               {/* Chat Header */}
               <div className="bg-gradient-to-r from-purple-500 to-indigo-600 px-4 py-3 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-xs font-semibold">

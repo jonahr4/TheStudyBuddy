@@ -4,6 +4,7 @@ import { useSubjects } from '../contexts/SubjectContext';
 import { useNotes } from '../contexts/NoteContext';
 import { textExtractionApi, youtubeApi } from '../services/api';
 import VideoRecommendations from '../components/VideoRecommendations';
+import PdfViewerModal from '../components/PdfViewerModal';
 
 export default function SubjectDetail() {
   const { subjectId } = useParams();
@@ -21,6 +22,7 @@ export default function SubjectDetail() {
   const [successMessage, setSuccessMessage] = useState('');
   const [uploadingFiles, setUploadingFiles] = useState(false);
   const [extractingText, setExtractingText] = useState({});
+  const [viewingNote, setViewingNote] = useState(null);
   
   // Get notes from context
   const notes = getNotesForSubject(subjectId);
@@ -283,6 +285,11 @@ export default function SubjectDetail() {
     }
   };
 
+  // Handle viewing a PDF
+  const handleViewNote = (note) => {
+    setViewingNote(note);
+  };
+
   return (
     <div className="gradient-bg min-h-screen">
       {/* Gradient background blur */}
@@ -462,7 +469,8 @@ export default function SubjectDetail() {
                         ✓ Ready for Chat
                       </span>
                     )}
-                    <button 
+                    <button
+                      onClick={() => handleViewNote(note)}
                       className="btn-secondary text-sm"
                       disabled={note.blobUrl.startsWith('placeholder')}
                       title={note.blobUrl.startsWith('placeholder') ? 'File not yet available in Azure Blob Storage' : 'View file'}
@@ -499,7 +507,7 @@ export default function SubjectDetail() {
                 </div>
               </div>
             ) : videoSearchQuery ? (
-              <VideoRecommendations 
+              <VideoRecommendations
                 searchQuery={videoSearchQuery}
                 title={`Recommended Videos Based on Your Notes`}
                 maxResults={3}
@@ -514,6 +522,14 @@ export default function SubjectDetail() {
           </div>
         )}
       </div>
+
+      {/* PDF Viewer Modal */}
+      <PdfViewerModal
+        isOpen={!!viewingNote}
+        onClose={() => setViewingNote(null)}
+        pdfUrl={viewingNote?.blobUrl}
+        fileName={viewingNote?.fileName}
+      />
     </div>
   );
 }

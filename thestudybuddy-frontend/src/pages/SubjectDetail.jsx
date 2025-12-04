@@ -212,12 +212,10 @@ export default function SubjectDetail() {
       // Clear selected files
       setSelectedFiles([]);
       
-      // Show success message with MongoDB and Azure Blob status
+      // Show success message
       const fileCount = selectedFiles.length;
       setSuccessMessage(
-        `✅ ${fileCount} ${fileCount === 1 ? 'file' : 'files'} successfully uploaded!\n` +
-        `📊 MongoDB: Metadata saved\n` +
-        `☁️ Azure Blob Storage: ✅ PDFs uploaded!`
+        `${fileCount} ${fileCount === 1 ? 'file' : 'files'} successfully uploaded!`
       );
       
       // Clear success message after 5 seconds
@@ -241,12 +239,8 @@ export default function SubjectDetail() {
     try {
       await deleteNote(noteId, subjectId);
       
-      // Show success message with MongoDB and Azure Blob status
-      setSuccessMessage(
-        `✅ Note successfully deleted!\n` +
-        `📊 MongoDB: Metadata removed\n` +
-        `☁️ Azure Blob Storage: Pending cleanup (being implemented)`
-      );
+      // Show success message
+      setSuccessMessage('Note successfully deleted!');
       
       // Clear success message after 5 seconds
       setTimeout(() => setSuccessMessage(''), 5000);
@@ -268,9 +262,7 @@ export default function SubjectDetail() {
       });
 
       setSuccessMessage(
-        `✅ Text extracted successfully from ${note.fileName}!\n` +
-        `📝 Extracted ${response.textLength} characters\n` +
-        `☁️ Text saved to Azure Blob Storage`
+        `Text extracted successfully from ${note.fileName}`
       );
 
       // Refresh notes to get updated textUrl
@@ -442,33 +434,19 @@ export default function SubjectDetail() {
                       <p className="text-sm text-gray-500">
                         {formatFileSize(note.fileSize)} • Uploaded {new Date(note.uploadedAt).toLocaleDateString()}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-xs text-gray-400">
-                          {note.blobUrl.startsWith('placeholder') ? '☁️ Azure Blob: Pending upload' : '☁️ Azure Blob: Available'}
-                        </p>
-                        {note.textUrl && !note.textUrl.includes('placeholder') && (
-                          <span className="text-xs text-green-600 dark:text-green-400">
-                            • ✅ Text extracted
-                          </span>
-                        )}
-                      </div>
                     </div>
                   </div>
                   <div className="flex gap-2">
                     {!note.textUrl || note.textUrl.includes('placeholder') ? (
-                      <button 
+                      <button
                         onClick={() => handleExtractText(note)}
                         disabled={note.blobUrl.startsWith('placeholder') || extractingText[note.id]}
                         className="btn-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         title={note.blobUrl.startsWith('placeholder') ? 'Wait for file upload to complete' : 'Extract text from PDF for AI chat'}
                       >
-                        {extractingText[note.id] ? 'Extracting...' : '📝 Extract Text'}
+                        {extractingText[note.id] ? 'Extracting...' : 'Extract Text'}
                       </button>
-                    ) : (
-                      <span className="text-xs text-green-600 dark:text-green-400 font-medium px-3 py-2">
-                        ✓ Ready for Chat
-                      </span>
-                    )}
+                    ) : null}
                     <button
                       onClick={() => handleViewNote(note)}
                       className="btn-secondary text-sm"

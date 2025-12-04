@@ -8,10 +8,10 @@ import PdfViewerModal from '../components/PdfViewerModal';
 
 export default function SubjectDetail() {
   const { subjectId } = useParams();
-  const { getSubject } = useSubjects();
+  const { getSubject, loading: subjectsLoading } = useSubjects();
   const { fetchNotesBySubject, uploadNote, deleteNote, getNotesForSubject, loading } = useNotes();
   const fileInputRef = useRef(null);
-  
+
   // Get the actual subject from context
   const subject = getSubject(subjectId);
   
@@ -88,9 +88,23 @@ export default function SubjectDetail() {
     };
 
     generateSearchQuery();
-  }, [notes, subject.name, subjectId]);
-  
-  // Redirect to subjects page if subject not found
+  }, [notes, subject?.name, subjectId]);
+
+  // Show loading while subjects are being fetched
+  if (subjectsLoading) {
+    return (
+      <div className="gradient-bg min-h-screen">
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 dark:border-t-indigo-400"></div>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading subject...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to subjects page if subject not found after loading
   if (!subject) {
     return <Navigate to="/subjects" replace />;
   }

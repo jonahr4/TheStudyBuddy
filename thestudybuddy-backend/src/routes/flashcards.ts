@@ -436,6 +436,8 @@ Return ONLY the JSON array with exactly ${targetCards} flashcards, no other text
       subjectId,
       name,
       description: description || '',
+      difficulty,
+      cardCount,
       flashcards,
     });
 

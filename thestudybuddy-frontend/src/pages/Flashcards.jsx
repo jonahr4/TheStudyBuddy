@@ -30,20 +30,34 @@ export default function Flashcards() {
 
   const loadFlashcardSets = async () => {
     if (subjects.length === 0) return;
-    
+
     setLoading(true);
     try {
       if (selectedSubject === 'all') {
         const allSets = [];
         for (const subject of subjects) {
           const response = await flashcardApi.getBySubject(subject.id);
-          allSets.push(...response.map(set => ({ ...set, subjectName: subject.name, subjectColor: subject.color })));
+          const setsWithSubject = response.map(set => ({
+            ...set,
+            subjectName: subject.name,
+            subjectColor: subject.color
+          }));
+          console.log('Subject:', subject.name, 'Color:', subject.color);
+          allSets.push(...setsWithSubject);
         }
+        console.log('All flashcard sets with colors:', allSets);
         setFlashcardSets(allSets);
       } else {
         const response = await flashcardApi.getBySubject(selectedSubject);
         const subject = subjects.find(s => s.id === selectedSubject);
-        setFlashcardSets(response.map(set => ({ ...set, subjectName: subject?.name, subjectColor: subject?.color })));
+        console.log('Selected subject:', subject?.name, 'Color:', subject?.color);
+        const setsWithSubject = response.map(set => ({
+          ...set,
+          subjectName: subject?.name,
+          subjectColor: subject?.color
+        }));
+        console.log('Flashcard sets with colors:', setsWithSubject);
+        setFlashcardSets(setsWithSubject);
       }
     } catch (error) {
       console.error('Failed to load flashcard sets:', error);
@@ -169,10 +183,7 @@ export default function Flashcards() {
                     : 'bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm'
                 }`}
               >
-                <div
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: subject.color }}
-                ></div>
+                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${subject.color || 'bg-indigo-500'}`} />
                 {subject.name}
               </button>
             ))}
@@ -192,18 +203,28 @@ export default function Flashcards() {
             {flashcardSets.map(set => (
               <div key={set._id} className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 hover:shadow-2xl shadow-sm">
                 <div className="mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div 
-                      className="w-2 h-2 rounded-full" 
-                      style={{ backgroundColor: set.subjectColor }}
-                    ></div>
-                    <span className="text-xs text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className={`w-3 h-3 rounded-full flex-shrink-0 ${set.subjectColor || 'bg-indigo-500'}`} />
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                       {set.subjectName}
                     </span>
                   </div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                    {set.name}
-                  </h4>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-gray-900 dark:text-white">
+                      {set.name}
+                    </h4>
+                    {set.difficulty && (
+                      <span className={`text-xs font-medium px-2 py-1 rounded ${
+                        set.difficulty === 'easy'
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                          : set.difficulty === 'medium'
+                          ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                          : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                      }`}>
+                        {set.difficulty.charAt(0).toUpperCase() + set.difficulty.slice(1)}
+                      </span>
+                    )}
+                  </div>
                   {set.description && (
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {set.description}

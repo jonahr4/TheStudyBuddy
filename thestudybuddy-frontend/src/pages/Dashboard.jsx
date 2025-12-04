@@ -18,11 +18,25 @@ export default function Dashboard() {
   // Fetch flashcard sets
   useEffect(() => {
     const fetchFlashcards = async () => {
+      if (subjects.length === 0) {
+        setRecentDecks([]);
+        setLoadingDecks(false);
+        return;
+      }
+
       try {
         setLoadingDecks(true);
-        const sets = await flashcardApi.getAll();
+        // Fetch flashcards for each subject, just like Flashcards page does
+        const allSets = [];
+        for (const subject of subjects) {
+          const response = await flashcardApi.getBySubject(subject.id);
+          allSets.push(...response.map(set => ({
+            ...set,
+            subjectId: { name: subject.name, color: subject.color }
+          })));
+        }
         // Get the 5 most recent sets
-        setRecentDecks(sets.slice(0, 5));
+        setRecentDecks(allSets.slice(0, 5));
       } catch (error) {
         console.error('Failed to fetch flashcard sets:', error);
         setRecentDecks([]);
@@ -32,7 +46,7 @@ export default function Dashboard() {
     };
 
     fetchFlashcards();
-  }, []);
+  }, [subjects]);
 
   // Fetch chat statistics
   useEffect(() => {
@@ -181,15 +195,16 @@ export default function Dashboard() {
                     to={`/flashcards/study/${deck._id}`}
                     className="block p-3 rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200/50 dark:border-purple-700/50 hover:border-purple-400 dark:hover:border-purple-500 transition-all"
                   >
-                    <div className="flex justify-between items-start mb-1">
-                      <h5 className="font-semibold text-sm text-gray-900 dark:text-white">{deck.name}</h5>
-                      <span className="text-xs px-2 py-1 bg-white dark:bg-gray-800 rounded-full text-purple-600 dark:text-purple-400">
-                        {deck.flashcards.length} cards
-                      </span>
+                    <h5 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">{deck.name}</h5>
+                    <span className="text-xs px-2 py-0.5 bg-white dark:bg-gray-800 rounded-full text-purple-600 dark:text-purple-400 inline-block mb-2">
+                      {deck.flashcards.length} cards
+                    </span>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-purple-600 dark:text-purple-400 font-semibold">Study Now →</span>
+                      {deck.subjectId?.name && (
+                        <span className="text-gray-600 dark:text-gray-400">{deck.subjectId.name}</span>
+                      )}
                     </div>
-                    {deck.subjectId?.name && (
-                      <p className="text-xs text-gray-600 dark:text-gray-400">📚 {deck.subjectId.name}</p>
-                    )}
                   </Link>
                 ))}
               </div>
@@ -347,20 +362,22 @@ export default function Dashboard() {
                           <h5 className="font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
                             {deck.name}
                           </h5>
-                          <span className="px-3 py-1 bg-white dark:bg-gray-800 rounded-full text-xs font-semibold text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-700">
+                          <span className="px-2 py-0.5 bg-white dark:bg-gray-800 rounded-full text-xs font-semibold text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-700">
                             {deck.flashcards.length} cards
                           </span>
                         </div>
-                        {deck.subjectId?.name && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                            📚 {deck.subjectId.name}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400 font-semibold">
-                          Study Now 
-                          <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                          </svg>
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 font-semibold">
+                            Study Now
+                            <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                          </div>
+                          {deck.subjectId?.name && (
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                              {deck.subjectId.name}
+                            </p>
+                          )}
                         </div>
                       </Link>
                     ))}

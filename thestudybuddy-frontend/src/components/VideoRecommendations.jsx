@@ -54,18 +54,19 @@ const VideoRecommendations = ({ searchQuery, title = "Recommended Videos", maxRe
     );
   }
 
-  if (error) {
-    return (
-      <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
-        <p className="text-red-300">
-          {error === 'YouTube API not configured' 
-            ? 'YouTube recommendations are not available yet. Please configure the API key.'
-            : `Failed to load videos: ${error}`
-          }
-        </p>
-      </div>
-    );
-  }
+  // Temporarily disabled error message display
+  // if (error) {
+  //   return (
+  //     <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
+  //       <p className="text-red-300">
+  //         {error === 'YouTube API not configured' 
+  //           ? 'YouTube recommendations are not available yet. Please configure the API key.'
+  //           : `Failed to load videos: ${error}`
+  //         }
+  //       </p>
+  //     </div>
+  //   );
+  // }
 
   if (videos.length === 0) {
     return (

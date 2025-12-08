@@ -216,7 +216,7 @@ export default function LearnMore() {
 
   const testimonials = [
     {
-      quote: "Study Buddy completely transformed my exam prep. I went from C's to A's in one semester.",
+      quote: "Study Buddy really transformed my exam prep, giving me the confidence I needed to succeed.",
       author: "Ayoub",
       role: "Media Science Major",
       image: "/ayoub-pfp.png"
@@ -228,7 +228,7 @@ export default function LearnMore() {
       image: "/ali-pfp.jpeg"
     },
     {
-      quote: "I used to spend 4 hours making flashcards. Now it takes 4 minutes. Game changer.",
+      quote: "I used to spend so much time making flashcards, but now it takes seconds, giving me more time to study.",
       author: "Omar",
       role: "Computer Science & Economics Major",
       image: "/omar-pfp.jpeg"
@@ -949,7 +949,7 @@ export default function LearnMore() {
           }
 
           .animate-scroll {
-            animation: scroll 35s linear infinite;
+            animation: scroll 80s linear infinite;
             display: inline-flex;
           }
         `}</style>

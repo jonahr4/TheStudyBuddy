@@ -11,6 +11,8 @@ export interface IFlashcardSet extends Document {
   subjectId: string;
   name: string;
   description?: string;
+  difficulty?: string;
+  cardCount?: string;
   flashcards: IFlashcard[];
   createdAt: Date;
   updatedAt: Date;
@@ -48,6 +50,14 @@ const FlashcardSetSchema: Schema = new Schema(
       required: true,
     },
     description: {
+      type: String,
+    },
+    difficulty: {
+      type: String,
+      enum: ['easy', 'medium', 'hard'],
+      default: 'medium',
+    },
+    cardCount: {
       type: String,
     },
     flashcards: [FlashcardSchema],

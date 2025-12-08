@@ -3,9 +3,13 @@ import { getUserInfoFromRequest } from "../shared/expressAuth";
 import { MongoSubjectRepository } from "../shared/repos/MongoSubjectRepository";
 import { CreateSubjectRequest, UpdateSubjectRequest } from "../shared/types";
 import { LIMITS, isValidStringLength } from "../config/limits";
+import { MongoNoteRepository } from "../shared/repos/MongoNoteRepository";
+import FlashcardSet from "../models/FlashcardSet";
+import { deleteBlobsForNote } from "../shared/services/textExtraction";
 
 const router = Router();
 const subjectRepo = new MongoSubjectRepository();
+const noteRepo = new MongoNoteRepository();
 
 /**
  * GET /api/subjects - List all subjects for current user
@@ -127,8 +131,42 @@ router.delete("/:id", async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Subject ID is required" });
     }
 
-    // TODO: Also cascade delete notes and flashcards for this subject
+    console.log(`🗑️ Deleting subject ${id} and all related data...`);
+
+    // 1. Get all notes for this subject so we can delete their blobs
+    const notes = await noteRepo.getNotesForSubject(userId, id);
+    console.log(`Found ${notes.length} notes to delete`);
+
+    // 2. Delete blobs for each note
+    for (const note of notes) {
+      try {
+        await deleteBlobsForNote(note, (msg) => console.log(msg));
+      } catch (error) {
+        console.error(`Failed to delete blobs for note ${note.id}:`, error);
+        // Continue even if blob deletion fails
+      }
+    }
+
+    // 3. Delete all notes for this subject
+    for (const note of notes) {
+      try {
+        await noteRepo.deleteNote(userId, note.id);
+      } catch (error) {
+        console.error(`Failed to delete note ${note.id}:`, error);
+      }
+    }
+    console.log(`✅ Deleted ${notes.length} notes`);
+
+    // 4. Delete all flashcard sets for this subject
+    const flashcardResult = await FlashcardSet.deleteMany({
+      userId,
+      subjectId: id
+    });
+    console.log(`✅ Deleted ${flashcardResult.deletedCount} flashcard sets`);
+
+    // 5. Finally, delete the subject itself
     await subjectRepo.deleteSubject(userId, id);
+    console.log(`✅ Deleted subject ${id}`);
 
     res.status(204).send();
   } catch (error) {

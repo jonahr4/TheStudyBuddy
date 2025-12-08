@@ -44,8 +44,9 @@ export default function Settings() {
 
   const handleLogout = async () => {
     try {
+      // Navigate first to avoid PrivateRoute redirect
+      navigate('/');
       await logout();
-      navigate('/login');
     } catch (error) {
       console.error('Failed to log out:', error);
     }

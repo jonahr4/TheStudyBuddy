@@ -1,0 +1,51 @@
+[
+  {
+    "version": "1.2",
+    "title": "Landing Page Redesign & Interactive Demos",
+    "description": "Complete redesign of the landing page with interactive demo elements showcasing flashcard generation and AI chat capabilities.",
+    "features": [
+      "Completely redesigned landing page UI with modern gradient effects",
+      "Added interactive flashcard demo showing notes-to-flashcards transformation",
+      "Added interactive AI chat demo with sample conversation",
+      "Improved mobile layout - hidden dashboard preview for cleaner experience",
+      "Improved testimonial cards with white backgrounds",
+      "Added difficulty levels and card count to flashcard sets",
+      "Improved flashcard animations with smooth transitions",
+      "Added PDF viewer for notes",
+      "Fixed flashcard display bugs and refresh issues",
+      "Improved mobile responsiveness for flashcards",
+      "Logout button now redirects to dashboard"
+    ],
+    "releaseDate": "2025-12-03T00:00:00.000Z"
+  },
+  {
+    "version": "1.1",
+    "title": "Mobile Improvements & Resource Limits",
+    "description": "Enhanced mobile experience and enforced user resource limits to ensure optimal performance for all users.",
+    "features": [
+      "Enforced user upload limits: 10 subjects, 10 notes per subject, 20 flashcard sets per subject",
+      "Completely redesigned mobile dashboard with vertical scrolling feed and quick stats",
+      "Fixed Chat page layout issues - header now always visible on mobile",
+      "Improved responsive design across all pages for 400x800 phone screens",
+      "Added glassmorphism effects and polished UI with better subject selectors",
+      "Hidden landing page images on mobile for cleaner layout",
+      "Better button and text sizing for mobile devices",
+      "Fixed flashcard count display on subjects page"
+    ],
+    "releaseDate": "2025-11-27T00:00:00.000Z"
+  },
+  {
+    "version": "1.0",
+    "title": "Welcome to Study Buddy!",
+    "description": "The first official deployment of Study Buddy - your AI-powered study companion. Upload your notes, generate flashcards, and chat with AI about your course materials.",
+    "features": [
+      "Create and organize subjects for your courses",
+      "Upload PDF notes (up to 10 per subject)",
+      "AI-generated flashcards from your notes using Azure OpenAI",
+      "Subject-specific AI chat with RAG retrieval",
+      "Secure Firebase authentication",
+      "Personalized dashboard to track your progress"
+    ],
+    "releaseDate": "2025-11-20T00:00:00.000Z"
+  }
+]

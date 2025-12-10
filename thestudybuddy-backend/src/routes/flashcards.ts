@@ -233,6 +233,157 @@ router.patch("/set/:setId/card/:cardIndex/studied", async (req: Request, res: Re
 });
 
 /**
+ * PUT /api/flashcards/set/:setId - Update a flashcard set (name, description, flashcards)
+ */
+router.put("/set/:setId", async (req: Request, res: Response) => {
+  try {
+    const { userId } = await getUserInfoFromRequest(req);
+    const { setId } = req.params;
+    const { name, description, flashcards } = req.body;
+
+    if (!setId) {
+      return res.status(400).json({ message: "Set ID is required" });
+    }
+
+    const flashcardSet = await FlashcardSet.findOne({ _id: setId, userId }).exec();
+
+    if (!flashcardSet) {
+      return res.status(404).json({ message: "Flashcard set not found" });
+    }
+
+    // Update fields if provided
+    if (name !== undefined) flashcardSet.name = name;
+    if (description !== undefined) flashcardSet.description = description;
+    if (flashcards !== undefined) flashcardSet.flashcards = flashcards;
+
+    await flashcardSet.save();
+
+    console.log(`✅ Flashcard set updated: ${setId}`);
+    res.json(flashcardSet);
+  } catch (error: any) {
+    console.error("Error in updateFlashcardSet:", error);
+    res.status(500).json({
+      message: "Failed to update flashcard set",
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/flashcards/set/:setId/card - Add a new card to a set
+ */
+router.post("/set/:setId/card", async (req: Request, res: Response) => {
+  try {
+    const { userId } = await getUserInfoFromRequest(req);
+    const { setId } = req.params;
+    const { front, back } = req.body;
+
+    if (!setId) {
+      return res.status(400).json({ message: "Set ID is required" });
+    }
+
+    if (!front || !back) {
+      return res.status(400).json({ message: "front and back are required" });
+    }
+
+    const flashcardSet = await FlashcardSet.findOne({ _id: setId, userId }).exec();
+
+    if (!flashcardSet) {
+      return res.status(404).json({ message: "Flashcard set not found" });
+    }
+
+    flashcardSet.flashcards.push({ front, back, studied: false });
+    await flashcardSet.save();
+
+    console.log(`✅ Card added to flashcard set ${setId}`);
+    res.status(201).json(flashcardSet);
+  } catch (error: any) {
+    console.error("Error in addFlashcard:", error);
+    res.status(500).json({
+      message: "Failed to add flashcard",
+      error: error.message
+    });
+  }
+});
+
+/**
+ * PUT /api/flashcards/set/:setId/card/:cardIndex - Update a specific card
+ */
+router.put("/set/:setId/card/:cardIndex", async (req: Request, res: Response) => {
+  try {
+    const { userId } = await getUserInfoFromRequest(req);
+    const { setId, cardIndex } = req.params;
+    const cardIdx = parseInt(cardIndex || '0');
+    const { front, back } = req.body;
+
+    if (!setId) {
+      return res.status(400).json({ message: "Set ID is required" });
+    }
+
+    const flashcardSet = await FlashcardSet.findOne({ _id: setId, userId }).exec();
+
+    if (!flashcardSet) {
+      return res.status(404).json({ message: "Flashcard set not found" });
+    }
+
+    if (cardIdx < 0 || cardIdx >= flashcardSet.flashcards.length) {
+      return res.status(400).json({ message: "Invalid card index" });
+    }
+
+    if (front !== undefined) flashcardSet.flashcards[cardIdx].front = front;
+    if (back !== undefined) flashcardSet.flashcards[cardIdx].back = back;
+
+    await flashcardSet.save();
+
+    console.log(`✅ Card ${cardIdx} updated in flashcard set ${setId}`);
+    res.json(flashcardSet);
+  } catch (error: any) {
+    console.error("Error in updateFlashcard:", error);
+    res.status(500).json({
+      message: "Failed to update flashcard",
+      error: error.message
+    });
+  }
+});
+
+/**
+ * DELETE /api/flashcards/set/:setId/card/:cardIndex - Delete a specific card
+ */
+router.delete("/set/:setId/card/:cardIndex", async (req: Request, res: Response) => {
+  try {
+    const { userId } = await getUserInfoFromRequest(req);
+    const { setId, cardIndex } = req.params;
+    const cardIdx = parseInt(cardIndex || '0');
+
+    if (!setId) {
+      return res.status(400).json({ message: "Set ID is required" });
+    }
+
+    const flashcardSet = await FlashcardSet.findOne({ _id: setId, userId }).exec();
+
+    if (!flashcardSet) {
+      return res.status(404).json({ message: "Flashcard set not found" });
+    }
+
+    if (cardIdx < 0 || cardIdx >= flashcardSet.flashcards.length) {
+      return res.status(400).json({ message: "Invalid card index" });
+    }
+
+    flashcardSet.flashcards.splice(cardIdx, 1);
+    await flashcardSet.save();
+
+    console.log(`✅ Card ${cardIdx} deleted from flashcard set ${setId}`);
+    res.json(flashcardSet);
+  } catch (error: any) {
+    console.error("Error in deleteFlashcard:", error);
+    res.status(500).json({
+      message: "Failed to delete flashcard",
+      error: error.message
+    });
+  }
+});
+
+/**
  * POST /api/flashcards/generate - Generate flashcards using AI
  */
 router.post("/generate", async (req: Request, res: Response) => {

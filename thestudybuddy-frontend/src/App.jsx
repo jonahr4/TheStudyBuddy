@@ -9,6 +9,7 @@ import Subjects from './pages/Subjects';
 import SubjectDetail from './pages/SubjectDetail';
 import Flashcards from './pages/Flashcards';
 import FlashcardStudy from './pages/FlashcardStudy';
+import EditFlashcards from './pages/EditFlashcards';
 import Chat from './pages/Chat';
 import Settings from './pages/Settings';
 import TestBackend from './pages/TestBackend';
@@ -29,6 +30,7 @@ function App() {
       <Route path="/subjects/:subjectId" element={<Layout><PrivateRoute><SubjectDetail /></PrivateRoute></Layout>} />
       <Route path="/flashcards" element={<Layout><PrivateRoute><Flashcards /></PrivateRoute></Layout>} />
       <Route path="/flashcards/study/:setId" element={<Layout><PrivateRoute><FlashcardStudy /></PrivateRoute></Layout>} />
+      <Route path="/flashcards/edit/:setId" element={<Layout><PrivateRoute><EditFlashcards /></PrivateRoute></Layout>} />
       <Route path="/chat" element={<Layout><PrivateRoute><Chat /></PrivateRoute></Layout>} />
       <Route path="/settings" element={<Layout><PrivateRoute><Settings /></PrivateRoute></Layout>} />
       

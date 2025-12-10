@@ -135,6 +135,15 @@ export const flashcardApi = {
       method: "PATCH",
       body: JSON.stringify({ studied }),
     }),
+  // Edit flashcards methods
+  updateSet: (setId: string, data: { name?: string; description?: string; flashcards?: any[] }) =>
+    apiRequest(`/flashcards/set/${setId}`, { method: "PUT", body: JSON.stringify(data) }),
+  addCard: (setId: string, card: { front: string; back: string }) =>
+    apiRequest(`/flashcards/set/${setId}/card`, { method: "POST", body: JSON.stringify(card) }),
+  updateCard: (setId: string, cardIndex: number, card: { front?: string; back?: string }) =>
+    apiRequest(`/flashcards/set/${setId}/card/${cardIndex}`, { method: "PUT", body: JSON.stringify(card) }),
+  deleteCard: (setId: string, cardIndex: number) =>
+    apiRequest(`/flashcards/set/${setId}/card/${cardIndex}`, { method: "DELETE" }),
 };
 
 /* -------------------------------

@@ -135,6 +135,15 @@ export const flashcardApi = {
       method: "PATCH",
       body: JSON.stringify({ studied }),
     }),
+  // Edit flashcards methods
+  updateSet: (setId: string, data: { name?: string; description?: string; flashcards?: any[] }) =>
+    apiRequest(`/flashcards/set/${setId}`, { method: "PUT", body: JSON.stringify(data) }),
+  addCard: (setId: string, card: { front: string; back: string }) =>
+    apiRequest(`/flashcards/set/${setId}/card`, { method: "POST", body: JSON.stringify(card) }),
+  updateCard: (setId: string, cardIndex: number, card: { front?: string; back?: string }) =>
+    apiRequest(`/flashcards/set/${setId}/card/${cardIndex}`, { method: "PUT", body: JSON.stringify(card) }),
+  deleteCard: (setId: string, cardIndex: number) =>
+    apiRequest(`/flashcards/set/${setId}/card/${cardIndex}`, { method: "DELETE" }),
 };
 
 /* -------------------------------
@@ -178,4 +187,45 @@ export const reportApi = {
 export const versionUpdatesApi = {
   getAll: () => apiRequest(`/version-updates`),
   getLatest: () => apiRequest(`/version-updates/latest`),
+};
+
+/* -------------------------------
+   GAMES
+   ------------------------------- */
+export const gameApi = {
+  saveResult: (data: {
+    flashcardSetId: string;
+    gameType: string;
+    score: number;
+    time: number;
+    moves: number;
+    difficulty: string;
+    stars: number;
+  }) => apiRequest(`/games/results`, { method: "POST", body: JSON.stringify(data) }),
+  
+  getStats: (flashcardSetId: string, gameType = 'matching') =>
+    apiRequest(`/games/stats/${flashcardSetId}?gameType=${gameType}`),
+  
+  getAllStats: () => apiRequest(`/games/stats`),
+  
+  getRecentResults: (limit = 10) => apiRequest(`/games/recent?limit=${limit}`),
+};
+
+/* -------------------------------
+   ANALYTICS API
+   ------------------------------- */
+interface AnalyticsEventData {
+  eventType: string;
+  metadata?: Record<string, any>;
+}
+
+export const analyticsApi = {
+  track: (data: AnalyticsEventData) =>
+    apiRequest(`/api/analytics/track`, { method: "POST", body: JSON.stringify(data) }),
+
+  getMe: () => apiRequest(`/api/analytics/me`),
+
+  syncCounts: () => apiRequest(`/api/analytics/sync-counts`, { method: "POST" }),
+
+  getSummary: () => apiRequest(`/api/analytics/summary`),
 };

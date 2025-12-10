@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { flashcardApi } from '../services/api';
+import { trackFlashcardStudied } from '../services/analytics';
 
 export default function FlashcardStudy() {
   const { setId } = useParams();
@@ -78,7 +79,12 @@ export default function FlashcardStudy() {
       
       // Update on backend
       const updatedSet = await flashcardApi.updateStudied(setId, actualIndex, studied);
-      
+
+      // Track flashcard studied
+      if (studied) {
+        trackFlashcardStudied(setId, actualIndex);
+      }
+
       // Wait for animation to complete
       setTimeout(() => {
         setFlashcardSet(updatedSet);
@@ -277,20 +283,32 @@ export default function FlashcardStudy() {
                 <p className="text-xs text-gray-600 dark:text-gray-400">{flashcardSet.description}</p>
               )}
             </div>
-            <button
-              onClick={() => {
-                setShowStudied(!showStudied);
-                setCurrentIndex(0);
-                setIsFlipped(false);
-              }}
-              className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all flex-shrink-0 ${
-                showStudied
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-              }`}
-            >
-              {showStudied ? '✓ Studied' : 'Unstudied'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate(`/flashcards/edit/${setId}`)}
+                className="px-3 py-1.5 rounded-lg font-medium text-xs transition-all flex-shrink-0 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center gap-1.5"
+                title="Edit flashcards"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit
+              </button>
+              <button
+                onClick={() => {
+                  setShowStudied(!showStudied);
+                  setCurrentIndex(0);
+                  setIsFlipped(false);
+                }}
+                className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all flex-shrink-0 ${
+                  showStudied
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                {showStudied ? '✓ Studied' : 'Unstudied'}
+              </button>
+            </div>
           </div>
         </div>
 

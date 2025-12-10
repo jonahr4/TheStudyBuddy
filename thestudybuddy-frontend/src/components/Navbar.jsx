@@ -19,6 +19,7 @@ export default function Navbar() {
     { path: '/subjects', label: 'Subjects' },
     { path: '/flashcards', label: 'Flashcards' },
     { path: '/chat', label: 'Chat' },
+    { path: '/games', label: 'Games' },
   ];
 
   useEffect(() => {

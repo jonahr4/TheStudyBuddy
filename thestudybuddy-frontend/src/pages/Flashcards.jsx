@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSubjects } from '../contexts/SubjectContext';
 import { flashcardApi } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { trackFlashcardSetCreated } from '../services/analytics';
 
 export default function Flashcards() {
   const { subjects, loading: subjectsLoading } = useSubjects();
@@ -72,13 +73,23 @@ export default function Flashcards() {
 
     setCreating(true);
     try {
-      await flashcardApi.generate({
+      const result = await flashcardApi.generate({
         subjectId: newSetData.subjectId,
         name: newSetData.name,
         description: newSetData.description,
         difficulty: newSetData.difficulty,
         cardCount: newSetData.cardCount,
       });
+
+      // Track flashcard set creation
+      const cardCountNumbers = newSetData.cardCount.split('-').map(Number);
+      const estimatedCardCount = cardCountNumbers[1] || cardCountNumbers[0] || 10;
+      trackFlashcardSetCreated(
+        newSetData.subjectId,
+        newSetData.name,
+        estimatedCardCount,
+        newSetData.difficulty
+      );
 
       setNewSetData({ subjectId: '', name: '', description: '', difficulty: 'medium', cardCount: '10-15' });
       setShowCreateModal(false);

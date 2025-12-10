@@ -75,6 +75,10 @@ export default function Games() {
       alert('Please select a flashcard set first!');
       return;
     }
+    if (selectedSet.flashcards.length < 8) {
+      alert('This flashcard set needs at least 8 cards to play games!');
+      return;
+    }
     navigate(`/games/${gameId}/${selectedSet._id}`);
   };
 
@@ -159,10 +163,7 @@ export default function Games() {
                     : 'bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm'
                 }`}
               >
-                <div
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: subject.color }}
-                />
+                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${subject.color || 'bg-emerald-500'}`} />
                 {subject.name}
               </button>
             ))}
@@ -195,44 +196,66 @@ export default function Games() {
                 </div>
               ) : (
                 <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
-                  {flashcardSets.map(set => (
-                    <button
-                      key={set._id}
-                      onClick={() => setSelectedSet(set)}
-                      className={`w-full text-left p-4 rounded-xl transition-all ${
-                        selectedSet?._id === set._id
-                          ? 'bg-emerald-100 dark:bg-emerald-900/30 border-2 border-emerald-500 shadow-md'
-                          : 'bg-gray-50 dark:bg-gray-700/50 border-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <div
-                              className="w-2 h-2 rounded-full"
-                              style={{ backgroundColor: set.subjectColor }}
-                            />
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {set.subjectName}
-                            </span>
+                  {flashcardSets.map(set => {
+                    const hasEnoughCards = set.flashcards.length >= 8;
+                    return (
+                      <button
+                        key={set._id}
+                        onClick={() => setSelectedSet(set)}
+                        className={`w-full text-left p-4 rounded-xl transition-all relative group ${
+                          selectedSet?._id === set._id
+                            ? 'bg-emerald-100 dark:bg-emerald-900/30 border-2 border-emerald-500 shadow-md'
+                            : 'bg-gray-50 dark:bg-gray-700/50 border-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className={`w-3 h-3 rounded-full flex-shrink-0 ${set.subjectColor || 'bg-emerald-500'}`} />
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {set.subjectName}
+                              </span>
+                              {set.difficulty && (
+                                <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                                  set.difficulty === 'easy'
+                                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                                    : set.difficulty === 'medium'
+                                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                                    : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                                }`}>
+                                  {set.difficulty.charAt(0).toUpperCase() + set.difficulty.slice(1)}
+                                </span>
+                              )}
+                            </div>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {set.name}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {set.flashcards.length} cards
+                              </p>
+                              {!hasEnoughCards && (
+                                <div className="relative">
+                                  <span className="text-yellow-500 text-sm">⚠️</span>
+                                  <div className="absolute top-full left-0 mt-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                    Too few cards to play games (need 8+)
+                                    <div className="absolute bottom-full left-4 mb-[-4px] border-4 border-transparent border-b-gray-900"></div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {set.name}
-                          </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {set.flashcards.length} cards
-                          </p>
+                          {selectedSet?._id === set._id && (
+                            <div className="text-emerald-600 dark:text-emerald-400 flex-shrink-0 ml-2">
+                              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
-                        {selectedSet?._id === set._id && (
-                          <div className="text-emerald-600 dark:text-emerald-400">
-                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -244,35 +267,46 @@ export default function Games() {
                 Choose a Game
               </h3>
 
-              {games.map(game => (
-                <button
-                  key={game.id}
-                  onClick={() => handlePlayGame(game.id)}
-                  disabled={!selectedSet}
-                  className={`w-full text-left p-6 rounded-2xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none bg-gradient-to-br ${game.gradient} ${game.hoverGradient} shadow-lg hover:shadow-xl`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="text-4xl">{game.icon}</div>
-                    <div className="flex-1">
-                      <h4 className="text-xl font-bold text-white mb-1">
-                        {game.name}
-                      </h4>
-                      <p className="text-white/80 text-sm">
-                        {game.description}
-                      </p>
+              {games.map(game => {
+                const canPlay = selectedSet && selectedSet.flashcards.length >= 8;
+                return (
+                  <button
+                    key={game.id}
+                    onClick={() => handlePlayGame(game.id)}
+                    disabled={!canPlay}
+                    className={`w-full text-left p-6 rounded-2xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none bg-gradient-to-br ${game.gradient} ${game.hoverGradient} shadow-lg hover:shadow-xl`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="text-4xl">{game.icon}</div>
+                      <div className="flex-1">
+                        <h4 className="text-xl font-bold text-white mb-1">
+                          {game.name}
+                        </h4>
+                        <p className="text-white/80 text-sm mb-1">
+                          {game.description}
+                        </p>
+                        <p className="text-white/60 text-xs">
+                          Requires 8+ cards
+                        </p>
+                      </div>
+                      <div className="text-white/60">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
                     </div>
-                    <div className="text-white/60">
-                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
 
               {!selectedSet && (
                 <p className="text-center text-gray-500 dark:text-gray-400 text-sm mt-4">
                   👆 Select a flashcard set to start playing
+                </p>
+              )}
+              {selectedSet && selectedSet.flashcards.length < 8 && (
+                <p className="text-center text-yellow-600 dark:text-yellow-400 text-sm mt-4">
+                  ⚠️ Selected set needs at least 8 cards to play
                 </p>
               )}
             </div>

@@ -198,7 +198,7 @@ export default function EditFlashcards() {
           <div className="space-y-6">
             {cards.map((card, index) => (
               <FlashcardEditorRow
-                key={`card-${index}`}
+                key={card._id || `card-${index}`}
                 index={index}
                 card={card}
                 onSave={handleSaveCard}

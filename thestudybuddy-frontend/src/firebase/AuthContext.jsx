@@ -10,6 +10,7 @@ import {
 } from 'firebase/auth';
 import { auth } from './config';
 import { userApi } from '../services/api';
+import { initializeUserTracking, trackLogin, startSession, endSession } from '../services/analytics';
 
 const AuthContext = createContext({});
 
@@ -70,6 +71,10 @@ export function AuthProvider({ children }) {
       const result = await signInWithEmailAndPassword(auth, email, password);
       // Sync user data with MongoDB
       await syncUserData(result.user);
+      // Track login and start session
+      initializeUserTracking(result.user.uid, result.user.email);
+      trackLogin();
+      startSession();
       return result;
     } catch (err) {
       setError(err.message);
@@ -85,6 +90,10 @@ export function AuthProvider({ children }) {
       const result = await signInWithPopup(auth, provider);
       // Sync user data with MongoDB
       await syncUserData(result.user);
+      // Track login and start session
+      initializeUserTracking(result.user.uid, result.user.email);
+      trackLogin();
+      startSession();
       return result;
     } catch (err) {
       setError(err.message);
@@ -96,6 +105,8 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       setError(null);
+      // End session before signing out
+      endSession();
       await signOut(auth);
     } catch (err) {
       setError(err.message);

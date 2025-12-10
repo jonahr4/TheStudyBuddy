@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { flashcardApi } from '../services/api';
+import { trackFlashcardStudied } from '../services/analytics';
 
 export default function FlashcardStudy() {
   const { setId } = useParams();
@@ -78,7 +79,12 @@ export default function FlashcardStudy() {
       
       // Update on backend
       const updatedSet = await flashcardApi.updateStudied(setId, actualIndex, studied);
-      
+
+      // Track flashcard studied
+      if (studied) {
+        trackFlashcardStudied(setId, actualIndex);
+      }
+
       // Wait for animation to complete
       setTimeout(() => {
         setFlashcardSet(updatedSet);

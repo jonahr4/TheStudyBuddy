@@ -5,6 +5,7 @@ import { useNotes } from '../contexts/NoteContext';
 import { textExtractionApi, youtubeApi } from '../services/api';
 import VideoRecommendations from '../components/VideoRecommendations';
 import PdfViewerModal from '../components/PdfViewerModal';
+import { trackNoteUpload } from '../services/analytics';
 
 export default function SubjectDetail() {
   const { subjectId } = useParams();
@@ -222,10 +223,15 @@ export default function SubjectDetail() {
       );
       
       await Promise.all(uploadPromises);
-      
+
+      // Track note uploads
+      selectedFiles.forEach(file => {
+        trackNoteUpload(subjectId, file.name, file.type);
+      });
+
       // Clear selected files
       setSelectedFiles([]);
-      
+
       // Show success message
       const fileCount = selectedFiles.length;
       setSuccessMessage(

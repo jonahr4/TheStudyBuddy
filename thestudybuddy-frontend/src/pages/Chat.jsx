@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSubjects } from '../contexts/SubjectContext';
 import { useAuth } from '../firebase/AuthContext';
 import { chatApi } from '../services/api';
+import { trackChatMessage } from '../services/analytics';
 
 export default function Chat() {
   const { subjects, loading: subjectsLoading } = useSubjects();
@@ -82,6 +83,9 @@ export default function Chat() {
       };
 
       setMessages(prev => [...prev, aiMessage]);
+
+      // Track chat message
+      trackChatMessage(selectedSubject);
     } catch (error) {
       console.error('Failed to send message:', error);
       const errorMessage = {

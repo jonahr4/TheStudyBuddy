@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useSubjects } from '../contexts/SubjectContext';
 import SubjectModal from '../components/SubjectModal';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { trackSubjectCreated } from '../services/analytics';
 
 export default function Subjects() {
   const { subjects, loading, error, createSubject, updateSubject, deleteSubject } = useSubjects();
@@ -45,8 +46,11 @@ export default function Subjects() {
       } else {
         // Create new subject
         await createSubject(subjectData);
+
+        // Track subject creation
+        trackSubjectCreated(subjectData.name, subjectData.color);
       }
-      
+
       setIsModalOpen(false);
       setEditingSubject(null);
     } catch (err) {

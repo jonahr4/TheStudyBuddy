@@ -210,3 +210,22 @@ export const gameApi = {
   
   getRecentResults: (limit = 10) => apiRequest(`/games/recent?limit=${limit}`),
 };
+
+/* -------------------------------
+   ANALYTICS API
+   ------------------------------- */
+interface AnalyticsEventData {
+  eventType: string;
+  metadata?: Record<string, any>;
+}
+
+export const analyticsApi = {
+  track: (data: AnalyticsEventData) =>
+    apiRequest(`/api/analytics/track`, { method: "POST", body: JSON.stringify(data) }),
+
+  getMe: () => apiRequest(`/api/analytics/me`),
+
+  syncCounts: () => apiRequest(`/api/analytics/sync-counts`, { method: "POST" }),
+
+  getSummary: () => apiRequest(`/api/analytics/summary`),
+};

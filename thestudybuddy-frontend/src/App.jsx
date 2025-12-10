@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import LearnMore from './pages/LearnMore';
@@ -17,8 +18,26 @@ import Chat from './pages/Chat';
 import Settings from './pages/Settings';
 import TestBackend from './pages/TestBackend';
 import NotFound from './pages/NotFound';
+import { trackPageView, endSession } from './services/analytics';
 
 function App() {
+  const location = useLocation();
+
+  // Track page views
+  useEffect(() => {
+    trackPageView(location.pathname, document.title);
+  }, [location]);
+
+  // End session on window close
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      endSession();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
   return (
     <Routes>
       {/* Public routes */}

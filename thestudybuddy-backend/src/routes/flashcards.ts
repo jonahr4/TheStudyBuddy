@@ -233,6 +233,157 @@ router.patch("/set/:setId/card/:cardIndex/studied", async (req: Request, res: Re
 });
 
 /**
+ * PUT /api/flashcards/set/:setId - Update a flashcard set (name, description, flashcards)
+ */
+router.put("/set/:setId", async (req: Request, res: Response) => {
+  try {
+    const { userId } = await getUserInfoFromRequest(req);
+    const { setId } = req.params;
+    const { name, description, flashcards } = req.body;
+
+    if (!setId) {
+      return res.status(400).json({ message: "Set ID is required" });
+    }
+
+    const flashcardSet = await FlashcardSet.findOne({ _id: setId, userId }).exec();
+
+    if (!flashcardSet) {
+      return res.status(404).json({ message: "Flashcard set not found" });
+    }
+
+    // Update fields if provided
+    if (name !== undefined) flashcardSet.name = name;
+    if (description !== undefined) flashcardSet.description = description;
+    if (flashcards !== undefined) flashcardSet.flashcards = flashcards;
+
+    await flashcardSet.save();
+
+    console.log(`✅ Flashcard set updated: ${setId}`);
+    res.json(flashcardSet);
+  } catch (error: any) {
+    console.error("Error in updateFlashcardSet:", error);
+    res.status(500).json({
+      message: "Failed to update flashcard set",
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/flashcards/set/:setId/card - Add a new card to a set
+ */
+router.post("/set/:setId/card", async (req: Request, res: Response) => {
+  try {
+    const { userId } = await getUserInfoFromRequest(req);
+    const { setId } = req.params;
+    const { front, back } = req.body;
+
+    if (!setId) {
+      return res.status(400).json({ message: "Set ID is required" });
+    }
+
+    if (!front || !back) {
+      return res.status(400).json({ message: "front and back are required" });
+    }
+
+    const flashcardSet = await FlashcardSet.findOne({ _id: setId, userId }).exec();
+
+    if (!flashcardSet) {
+      return res.status(404).json({ message: "Flashcard set not found" });
+    }
+
+    flashcardSet.flashcards.push({ front, back, studied: false });
+    await flashcardSet.save();
+
+    console.log(`✅ Card added to flashcard set ${setId}`);
+    res.status(201).json(flashcardSet);
+  } catch (error: any) {
+    console.error("Error in addFlashcard:", error);
+    res.status(500).json({
+      message: "Failed to add flashcard",
+      error: error.message
+    });
+  }
+});
+
+/**
+ * PUT /api/flashcards/set/:setId/card/:cardIndex - Update a specific card
+ */
+router.put("/set/:setId/card/:cardIndex", async (req: Request, res: Response) => {
+  try {
+    const { userId } = await getUserInfoFromRequest(req);
+    const { setId, cardIndex } = req.params;
+    const cardIdx = parseInt(cardIndex || '0');
+    const { front, back } = req.body;
+
+    if (!setId) {
+      return res.status(400).json({ message: "Set ID is required" });
+    }
+
+    const flashcardSet = await FlashcardSet.findOne({ _id: setId, userId }).exec();
+
+    if (!flashcardSet) {
+      return res.status(404).json({ message: "Flashcard set not found" });
+    }
+
+    if (cardIdx < 0 || cardIdx >= flashcardSet.flashcards.length) {
+      return res.status(400).json({ message: "Invalid card index" });
+    }
+
+    if (front !== undefined) flashcardSet.flashcards[cardIdx].front = front;
+    if (back !== undefined) flashcardSet.flashcards[cardIdx].back = back;
+
+    await flashcardSet.save();
+
+    console.log(`✅ Card ${cardIdx} updated in flashcard set ${setId}`);
+    res.json(flashcardSet);
+  } catch (error: any) {
+    console.error("Error in updateFlashcard:", error);
+    res.status(500).json({
+      message: "Failed to update flashcard",
+      error: error.message
+    });
+  }
+});
+
+/**
+ * DELETE /api/flashcards/set/:setId/card/:cardIndex - Delete a specific card
+ */
+router.delete("/set/:setId/card/:cardIndex", async (req: Request, res: Response) => {
+  try {
+    const { userId } = await getUserInfoFromRequest(req);
+    const { setId, cardIndex } = req.params;
+    const cardIdx = parseInt(cardIndex || '0');
+
+    if (!setId) {
+      return res.status(400).json({ message: "Set ID is required" });
+    }
+
+    const flashcardSet = await FlashcardSet.findOne({ _id: setId, userId }).exec();
+
+    if (!flashcardSet) {
+      return res.status(404).json({ message: "Flashcard set not found" });
+    }
+
+    if (cardIdx < 0 || cardIdx >= flashcardSet.flashcards.length) {
+      return res.status(400).json({ message: "Invalid card index" });
+    }
+
+    flashcardSet.flashcards.splice(cardIdx, 1);
+    await flashcardSet.save();
+
+    console.log(`✅ Card ${cardIdx} deleted from flashcard set ${setId}`);
+    res.json(flashcardSet);
+  } catch (error: any) {
+    console.error("Error in deleteFlashcard:", error);
+    res.status(500).json({
+      message: "Failed to delete flashcard",
+      error: error.message
+    });
+  }
+});
+
+/**
  * POST /api/flashcards/generate - Generate flashcards using AI
  */
 router.post("/generate", async (req: Request, res: Response) => {
@@ -244,7 +395,7 @@ router.post("/generate", async (req: Request, res: Response) => {
     }
 
     const { userId } = await getUserInfoFromRequest(req);
-    const { subjectId, name, description } = req.body;
+    const { subjectId, name, description, difficulty = 'medium', cardCount = '10-15' } = req.body;
 
     if (!subjectId || !name) {
       return res.status(400).json({ message: "subjectId and name are required" });
@@ -252,6 +403,8 @@ router.post("/generate", async (req: Request, res: Response) => {
 
     console.log(`Generating flashcards for subject ${subjectId}`);
     console.log(`Set name: ${name}`);
+    console.log(`Difficulty: ${difficulty}`);
+    console.log(`Card count: ${cardCount}`);
     if (description) {
       console.log(`Focus: ${description}`);
     }
@@ -317,11 +470,33 @@ router.post("/generate", async (req: Request, res: Response) => {
       ? `Focus specifically on: ${description}`
       : 'Cover the main concepts from the notes';
 
+    // Parse card count range
+    const [minCards, maxCards] = cardCount.split('-').map(Number);
+
+    // Calculate target number of cards (aim for max of range)
+    const targetCards = maxCards;
+
+    // Define difficulty instructions
+    const difficultyInstructions: Record<string, string> = {
+      easy: 'Make the questions straightforward and focus on basic recall of key terms and definitions. Answers should be simple and direct.',
+      medium: 'Create questions that test understanding of concepts. Mix recall with application and comprehension questions.',
+      hard: 'Generate challenging questions that require analysis, synthesis, and deep understanding. Include questions that connect multiple concepts and require critical thinking.'
+    };
+
+    const difficultyText = difficultyInstructions[difficulty] || difficultyInstructions.medium;
+
     const prompt = `You are creating flashcards to help a student study. ${focusInstruction}
 
-Create 10-15 flashcards based on the following notes. Each flashcard should have:
+Create EXACTLY ${targetCards} flashcards based on the following notes.
+
+DIFFICULTY LEVEL: ${difficulty.toUpperCase()}
+${difficultyText}
+
+Each flashcard should have:
 - A clear, concise question or prompt on the FRONT
 - A complete, helpful answer on the BACK
+
+IMPORTANT: Generate exactly ${targetCards} flashcards, no more and no less.
 
 Return ONLY a valid JSON array in this exact format:
 [
@@ -333,7 +508,7 @@ Here are the student's notes:
 ${contextText}
 ${truncationNote}
 
-Return ONLY the JSON array, no other text.`;
+Return ONLY the JSON array with exactly ${targetCards} flashcards, no other text.`;
 
     console.log('Calling Azure OpenAI to generate flashcards...');
 
@@ -399,6 +574,12 @@ Return ONLY the JSON array, no other text.`;
       return res.status(500).json({ message: "No valid flashcards were generated" });
     }
 
+    // Trim to max cards if AI generated too many
+    if (flashcards.length > maxCards) {
+      console.log(`AI generated ${flashcards.length} cards, trimming to ${maxCards} (max for range ${cardCount})`);
+      flashcards = flashcards.slice(0, maxCards);
+    }
+
     console.log(`Generated ${flashcards.length} flashcards`);
 
     const flashcardSet = await FlashcardSet.create({
@@ -406,6 +587,8 @@ Return ONLY the JSON array, no other text.`;
       subjectId,
       name,
       description: description || '',
+      difficulty,
+      cardCount,
       flashcards,
     });
 

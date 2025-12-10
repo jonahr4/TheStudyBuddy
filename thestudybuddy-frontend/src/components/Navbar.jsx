@@ -18,6 +18,7 @@ export default function Navbar() {
     { path: '/dashboard', label: 'Dashboard' },
     { path: '/subjects', label: 'Subjects' },
     { path: '/flashcards', label: 'Flashcards' },
+    { path: '/games', label: 'Games' },
     { path: '/chat', label: 'Chat' },
   ];
 

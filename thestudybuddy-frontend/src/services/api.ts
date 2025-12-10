@@ -188,3 +188,25 @@ export const versionUpdatesApi = {
   getAll: () => apiRequest(`/version-updates`),
   getLatest: () => apiRequest(`/version-updates/latest`),
 };
+
+/* -------------------------------
+   GAMES
+   ------------------------------- */
+export const gameApi = {
+  saveResult: (data: {
+    flashcardSetId: string;
+    gameType: string;
+    score: number;
+    time: number;
+    moves: number;
+    difficulty: string;
+    stars: number;
+  }) => apiRequest(`/games/results`, { method: "POST", body: JSON.stringify(data) }),
+  
+  getStats: (flashcardSetId: string, gameType = 'matching') =>
+    apiRequest(`/games/stats/${flashcardSetId}?gameType=${gameType}`),
+  
+  getAllStats: () => apiRequest(`/games/stats`),
+  
+  getRecentResults: (limit = 10) => apiRequest(`/games/recent?limit=${limit}`),
+};

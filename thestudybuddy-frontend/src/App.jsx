@@ -9,6 +9,9 @@ import Subjects from './pages/Subjects';
 import SubjectDetail from './pages/SubjectDetail';
 import Flashcards from './pages/Flashcards';
 import FlashcardStudy from './pages/FlashcardStudy';
+import Games from './pages/Games';
+import MatchingGame from './pages/MatchingGame';
+import MultipleChoiceGame from './pages/MultipleChoiceGame';
 import EditFlashcards from './pages/EditFlashcards';
 import Chat from './pages/Chat';
 import Settings from './pages/Settings';
@@ -30,6 +33,9 @@ function App() {
       <Route path="/subjects/:subjectId" element={<Layout><PrivateRoute><SubjectDetail /></PrivateRoute></Layout>} />
       <Route path="/flashcards" element={<Layout><PrivateRoute><Flashcards /></PrivateRoute></Layout>} />
       <Route path="/flashcards/study/:setId" element={<Layout><PrivateRoute><FlashcardStudy /></PrivateRoute></Layout>} />
+      <Route path="/games" element={<Layout><PrivateRoute><Games /></PrivateRoute></Layout>} />
+      <Route path="/games/matching/:setId" element={<Layout><PrivateRoute><MatchingGame /></PrivateRoute></Layout>} />
+      <Route path="/games/quiz/:setId" element={<Layout><PrivateRoute><MultipleChoiceGame /></PrivateRoute></Layout>} />
       <Route path="/flashcards/edit/:setId" element={<Layout><PrivateRoute><EditFlashcards /></PrivateRoute></Layout>} />
       <Route path="/chat" element={<Layout><PrivateRoute><Chat /></PrivateRoute></Layout>} />
       <Route path="/settings" element={<Layout><PrivateRoute><Settings /></PrivateRoute></Layout>} />

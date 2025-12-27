@@ -1,4 +1,22 @@
-# The Study Buddy
+
+
+
+<h1 align="center">The Study Buddy</h1>
+<p align="center">
+  <a href="https://thestudybuddy.app" target="_blank">
+    <img src="StudyBuddyBanner.png" alt="The Study Buddy Preview" width="800" />
+  </a>
+</p>
+<p align="center">
+  <a href="https://thestudybuddy.app"><strong>🌐 thestudybuddy.app</strong></a>
+</p>
+
+<p align="center">
+  An AI-powered study assistant that turns your notes into flashcards and lets you chat with an AI that actually understands your material.
+</p>
+
+<hr />
+
 
 The Study Buddy is an AI-powered learning tool that helps students upload homework notes, turn them into flashcards, and chat with an AI that understands their content.
 
